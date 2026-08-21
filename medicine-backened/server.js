@@ -1,6 +1,3 @@
-const dns = require('node:dns');
-dns.setDefaultResultOrder('ipv4first');
-dns.setServers(['8.8.8.8', '8.8.4.4']);
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
@@ -14,6 +11,11 @@ const MONGO_URI = "mongodb+srv://mianisback59_db_user:n0dxouZjCQFC1P0k@cluster0.
 mongoose.connect(MONGO_URI)
   .then(() => console.log('✅ Connected to MongoDB Atlas Cloud Database'))
   .catch((err) => console.error('❌ MongoDB Connection Error:', err));
+
+// Home Route for Direct Vercel Testing
+app.get('/', (req, res) => {
+  res.send('✅ Backend Server is Running Successfully!');
+});
 
 // 1. Medicine Schema & Model
 const medicineSchema = new mongoose.Schema({
@@ -29,7 +31,7 @@ const medicineSchema = new mongoose.Schema({
 
 const Medicine = mongoose.model('Medicine', medicineSchema);
 
-// 2. Report Schema & Model (NEWLY ADDED)
+// 2. Report Schema & Model
 const reportSchema = new mongoose.Schema({
   batch_number: { type: String, required: true },
   reason: { type: String, default: 'Counterfeit / Unverified scan' },
@@ -42,11 +44,9 @@ const Report = mongoose.model('Report', reportSchema);
 // Verification API Route
 app.get('/api/verify/:batch', async (req, res) => {
   try {
-    // 1. Newlines aur Extra spaces filter karein
     let rawInput = decodeURIComponent(req.params.batch).replace(/[\r\n]+/g, '').trim();
     console.log("🔍 Backend Received Raw Text:", rawInput);
 
-    // 2. GS1 Format Extractor: String mein se Batch Number (10 ke baad) parse karein
     let extractedBatch = rawInput;
     if (rawInput.includes('10')) {
       const match = rawInput.match(/10([A-Za-z0-9]+)11/);
@@ -57,7 +57,6 @@ app.get('/api/verify/:batch', async (req, res) => {
 
     console.log("🎯 Extracted Batch Target:", extractedBatch);
 
-    // 3. Flexible MongoDB Query
     const found = await Medicine.findOne({
       $or: [
         { batch_number: extractedBatch },
@@ -116,13 +115,12 @@ app.get('/api/verify/:batch', async (req, res) => {
   }
 });
 
-// Report Counterfeit API Route (NEWLY ADDED)
+// Report Counterfeit API Route
 app.post('/api/report', async (req, res) => {
   try {
     const { batch_number, reason, store_location } = req.body;
     console.log("📥 Incoming Report Data:", req.body);
 
-    // Naya report document create karke database mein save karein
     const newReport = new Report({
       batch_number: batch_number || 'UNKNOWN',
       reason: reason || 'Counterfeit / Unverified scan',
@@ -147,7 +145,9 @@ app.post('/api/report', async (req, res) => {
   }
 });
 
-const PORT = 5000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Backend Server running on http://192.168.1.5:${PORT}`);
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
+
+module.exports = app;
