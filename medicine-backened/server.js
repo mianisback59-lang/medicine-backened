@@ -1,437 +1,153 @@
-import { BarcodeScanningResult, CameraView, useCameraPermissions } from 'expo-camera';
-import { useState } from 'react';
-import {
-  Alert,
-  Button,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+const express = require('express');
+const cors = require('cors');
+const mongoose = require('mongoose');
 
-interface Medicine {
-  id: number;
-  medicine_name: string;
-  brand_name: string;
-  batch_number: string;
-  manufacturing_date: string;
-  expiry_date: string;
-  qr_hash: string;
-  status: string;
-}
+const app = express();
+app.use(cors());
+app.use(express.json());
 
-interface VerificationResult {
-  status: 'AUTHENTIC' | 'EXPIRED' | 'FAKE' | 'SUSPICIOUS';
-  title: string;
-  color: string;
-  msg: string;
-  data?: Medicine;
-  batch?: string;
-}
+// MongoDB Connection Link
+const MONGO_URI = "mongodb+srv://mianisback59_db_user:n0dxouZjCQFC1P0k@cluster0.zm6ckjm.mongodb.net/medverify?retryWrites=true&w=majority&appName=Cluster0";
+mongoose.connect(MONGO_URI)
+  .then(() => console.log('✅ Connected to MongoDB Atlas Cloud Database'))
+  .catch((err) => console.error('❌ MongoDB Connection Error:', err));
 
-export default function Index() {
-  const [permission, requestPermission] = useCameraPermissions();
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [result, setResult] = useState<VerificationResult | null>(null);
-  const [torch, setTorch] = useState<boolean>(false);
-  const [manualCode, setManualCode] = useState<string>('');
-
-  // Report Modal States
-  const [isReportModalVisible, setIsReportModalVisible] = useState<boolean>(false);
-  const [reportReason, setReportReason] = useState<string>('');
-  const [storeInfo, setStoreInfo] = useState<string>('');
-  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
-  const [isSubmittingReport, setIsSubmittingReport] = useState<boolean>(false);
-
-  if (!permission) {
-    return (
-      <View style={styles.containerCenter}>
-        <Text style={styles.permissionText}>Loading camera status...</Text>
-      </View>
-    );
-  }
-
-  if (!permission.granted) {
-    return (
-      <View style={styles.containerCenter}>
-        <Text style={styles.permissionText}>
-          Camera permission is required to verify medicine authenticity.
-        </Text>
-        <Button onPress={requestPermission} title="Grant Permission" color="#2563EB" />
-      </View>
-    );
-  }
-
-  // Batch code cleaning logic
-  const extractCleanBatch = (rawCode: string): string => {
-    if (!rawCode) return 'UNKNOWN';
-    let cleaned = rawCode.replace(/[\r\n]+/g, '').trim().replace(/[^\x20-\x7E]/g, '');
-    
-    if (cleaned.includes('exp://') || cleaned.includes('http://') || cleaned.includes('https://')) {
-      const parts = cleaned.split('/');
-      cleaned = parts[parts.length - 1] || parts[parts.length - 2];
-      if (cleaned.includes(':')) {
-        cleaned = cleaned.split(':')[0];
-      }
-    }
-
-    if (cleaned.includes('10510902') || cleaned.includes('510902')) {
-      return '510902';
-    }
-
-    const gs1Match = cleaned.match(/10([A-Za-z0-9]{5,10})(11|17|21|240)/);
-    if (gs1Match && gs1Match[1]) {
-      return gs1Match[1];
-    }
-
-    return cleaned || '510902';
-  };
-
-  const verifyCode = async (code: string) => {
-    if (isProcessing) return;
-    setIsProcessing(true);
-
-    const searchTarget = extractCleanBatch(code);
-    console.log("🚀 Sending Code to Backend:", searchTarget);
-
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 6000);
-
-      // UPDATED TO VERCEL BACKEND URL
-      const response = await fetch(
-        `https://medicine-backened.vercel.app/api/verify/${encodeURIComponent(searchTarget)}`,
-        {
-          method: 'GET',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          },
-          signal: controller.signal,
-        }
-      );
-
-      clearTimeout(timeoutId);
-      const apiResponse = await response.json();
-
-      if (response.status === 404) {
-        setResult({
-          status: 'FAKE',
-          title: apiResponse.title || '🚨 UNVERIFIED / COUNTERFEIT',
-          color: '#EF4444',
-          batch: searchTarget,
-          msg: apiResponse.message || 'This batch number was not found in the official registry.',
-        });
-      } else {
-        setResult({
-          status: apiResponse.status,
-          title: apiResponse.title,
-          color:
-            apiResponse.status === 'AUTHENTIC'
-              ? '#10B981'
-              : apiResponse.status === 'EXPIRED'
-              ? '#F59E0B'
-              : '#EF4444',
-          data: apiResponse.data,
-          msg: apiResponse.message,
-        });
-      }
-    } catch (error: any) {
-      Alert.alert(
-        'Connection Error',
-        'Unable to connect to live backend (https://medicine-backened.vercel.app). Please check internet connection.'
-      );
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleBarcodeScanned = ({ data }: BarcodeScanningResult): void => {
-    if (!isProcessing && !result && data) {
-      verifyCode(data);
-    }
-  };
-
-  const activeBatch = extractCleanBatch(result?.data?.batch_number || result?.batch || 'N/A');
-
-  // Updated Handler with Validation Checks
-  const handleReportSubmit = async () => {
-    if (isSubmittingReport) return;
-
-    // Strict Input Validation
-    if (!reportReason.trim() || reportReason.trim().length < 5) {
-      Alert.alert(
-        "Required Field",
-        "Please enter a valid reason for reporting (minimum 5 characters)."
-      );
-      return;
-    }
-
-    setIsSubmittingReport(true);
-
-    try {
-      // UPDATED TO VERCEL BACKEND URL
-      const response = await fetch('https://medicine-backened.vercel.app/api/report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          batch_number: activeBatch,
-          reason: reportReason.trim(),
-          store_location: storeInfo.trim() || 'Not specified',
-        }),
-      });
-
-      if (response.ok) {
-        setIsSubmitted(true);
-      } else {
-        const errorData = await response.json();
-        Alert.alert('Submission Error', errorData.message || 'Failed to submit report.');
-      }
-    } catch (error) {
-      Alert.alert(
-        'Connection Error',
-        'Could not reach server. Please check your internet connection and try again.'
-      );
-    } finally {
-      setIsSubmittingReport(false);
-    }
-  };
-
-  const closeReportModal = () => {
-    setIsReportModalVisible(false);
-    setIsSubmitted(false);
-    setReportReason('');
-    setStoreInfo('');
-  };
-
-  return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
-      {/* Header */}
-      <View style={styles.headerContainer}>
-        <Text style={styles.appTitle}>MedVerify AI</Text>
-        <Text style={styles.appSubtitle}>Instant Authenticity & Safety Scanner</Text>
-      </View>
-
-      {/* Camera Section */}
-      <View style={styles.cameraCard}>
-        <CameraView
-          style={StyleSheet.absoluteFillObject}
-          facing="back"
-          enableTorch={torch}
-          onBarcodeScanned={isProcessing || result ? undefined : handleBarcodeScanned}
-          barcodeScannerSettings={{
-            barcodeTypes: ['qr', 'code128', 'ean13', 'ean8', 'datamatrix', 'pdf417'],
-          }}
-        />
-        <View style={styles.overlayFrame} />
-
-        <TouchableOpacity style={styles.torchBtn} onPress={() => setTorch(!torch)}>
-          <Text style={styles.torchBtnText}>{torch ? '🔦 Flash OFF' : '💡 Flash ON'}</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Manual Input Search Box */}
-      <View style={styles.manualSearchBox}>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter Batch No (e.g. 510902)"
-          placeholderTextColor="#94A3B8"
-          value={manualCode}
-          onChangeText={setManualCode}
-        />
-        <TouchableOpacity
-          style={styles.verifyBtn}
-          onPress={() => manualCode.length > 0 && verifyCode(manualCode)}
-        >
-          <Text style={styles.verifyBtnText}>Verify</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Verification Result Card */}
-      {result ? (
-        <View style={[styles.resultCard, { borderColor: result.color }]}>
-          <View style={[styles.badge, { backgroundColor: result.color }]}>
-            <Text style={styles.badgeText}>{result.status}</Text>
-          </View>
-          <Text style={[styles.resultTitle, { color: result.color }]}>{result.title}</Text>
-          <Text style={styles.resultMsg}>{result.msg}</Text>
-
-          {result.data && (
-            <View style={styles.detailsContainer}>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Medicine Name</Text>
-                <Text style={styles.detailValue}>{result.data.medicine_name}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Manufacturer</Text>
-                <Text style={styles.detailValue}>{result.data.brand_name}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Batch Code</Text>
-                <Text style={styles.detailValue}>{activeBatch}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Mfg Date</Text>
-                <Text style={styles.detailValue}>{result.data.manufacturing_date}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Expiry Date</Text>
-                <Text
-                  style={[
-                    styles.detailValue,
-                    result.status === 'EXPIRED' && { color: '#EF4444' },
-                  ]}
-                >
-                  {result.data.expiry_date}
-                </Text>
-              </View>
-            </View>
-          )}
-
-          {(result.status === 'FAKE' || result.status === 'SUSPICIOUS') && (
-            <TouchableOpacity
-              style={styles.reportBtn}
-              onPress={() => setIsReportModalVisible(true)}
-            >
-              <Text style={styles.reportBtnText}>REPORT MEDICINE</Text>
-            </TouchableOpacity>
-          )}
-
-          <TouchableOpacity
-            style={styles.resetBtn}
-            onPress={() => {
-              setIsProcessing(false);
-              setResult(null);
-              setManualCode('');
-            }}
-          >
-            <Text style={styles.resetBtnText}>SCAN ANOTHER MEDICINE</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <View style={styles.placeholderBox}>
-          <Text style={styles.placeholderText}>
-            Point your camera at a QR code or barcode to scan.
-          </Text>
-        </View>
-      )}
-
-      {/* REPORT MEDICINE MODAL */}
-      <Modal visible={isReportModalVisible} animationType="slide" transparent={true}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            {!isSubmitted ? (
-              <>
-                <Text style={styles.modalTitle}>Report Counterfeit Medicine</Text>
-                <Text style={styles.modalSub}>
-                  Reporting Batch: <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text>
-                </Text>
-
-                <Text style={styles.inputLabel}>
-                  Reason for Reporting <Text style={{ color: '#EF4444' }}>*</Text>
-                </Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="e.g. Broken seal, wrong packaging, fake QR code"
-                  placeholderTextColor="#94A3B8"
-                  value={reportReason}
-                  onChangeText={setReportReason}
-                />
-
-                <Text style={styles.inputLabel}>Medical Store Name / Location (Optional)</Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="e.g. City Pharmacy, Lahore"
-                  placeholderTextColor="#94A3B8"
-                  value={storeInfo}
-                  onChangeText={setStoreInfo}
-                />
-
-                <TouchableOpacity
-                  style={[
-                    styles.submitReportBtn,
-                    isSubmittingReport && { backgroundColor: '#94A3B8' },
-                  ]}
-                  onPress={handleReportSubmit}
-                  disabled={isSubmittingReport}
-                >
-                  <Text style={styles.submitReportText}>
-                    {isSubmittingReport ? 'Submitting...' : 'Submit Report to DRAP'}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.cancelBtn} onPress={closeReportModal}>
-                  <Text style={styles.cancelText}>Cancel</Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              <View style={{ alignItems: 'center', paddingVertical: 10 }}>
-                <Text style={{ fontSize: 40, marginBottom: 10 }}>✅</Text>
-                <Text style={styles.modalTitle}>Report Submitted!</Text>
-                <Text style={[styles.modalSub, { textAlign: 'center', marginTop: 8 }]}>
-                  Batch <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text> has been flagged and sent to Drug Regulatory Authority.
-                </Text>
-                <Text style={styles.refCode}>Ref ID: DRAP-2026-{Math.floor(1000 + Math.random() * 9000)}</Text>
-
-                <TouchableOpacity
-                  style={[styles.submitReportBtn, { width: '100%', marginTop: 20 }]}
-                  onPress={closeReportModal}
-                >
-                  <Text style={styles.submitReportText}>Done</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        </View>
-      </Modal>
-    </ScrollView>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC', paddingHorizontal: 20, paddingTop: 50 },
-  containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#F8FAFC' },
-  permissionText: { fontSize: 16, textAlign: 'center', color: '#475569', marginBottom: 20 },
-  headerContainer: { alignItems: 'center', marginBottom: 20 },
-  appTitle: { fontSize: 26, fontWeight: '800', color: '#0F172A', letterSpacing: 0.5 },
-  appSubtitle: { fontSize: 13, color: '#64748B', marginTop: 4 },
-  cameraCard: { height: 260, borderRadius: 20, overflow: 'hidden', backgroundColor: '#000', position: 'relative' },
-  overlayFrame: { flex: 1, margin: 35, borderWidth: 2, borderColor: '#3B82F6', borderRadius: 16, backgroundColor: 'transparent' },
-  torchBtn: { position: 'absolute', bottom: 12, right: 12, backgroundColor: 'rgba(15, 23, 42, 0.75)', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 20 },
-  torchBtnText: { color: '#FFF', fontSize: 12, fontWeight: '600' },
-  manualSearchBox: { flexDirection: 'row', marginTop: 18, gap: 10 },
-  input: { flex: 1, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 12, paddingHorizontal: 14, fontSize: 14, color: '#0F172A' },
-  verifyBtn: { backgroundColor: '#2563EB', justifyContent: 'center', paddingHorizontal: 18, borderRadius: 12 },
-  verifyBtnText: { color: '#FFF', fontWeight: '700', fontSize: 14 },
-  placeholderBox: { marginTop: 30, padding: 20, borderRadius: 16, backgroundColor: '#F1F5F9', borderStyle: 'dashed', borderWidth: 1, borderColor: '#CBD5E1', alignItems: 'center' },
-  placeholderText: { fontSize: 13, color: '#64748B', textAlign: 'center' },
-  resultCard: { backgroundColor: '#FFF', marginTop: 20, padding: 18, borderRadius: 20, borderWidth: 1.5, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
-  badge: { alignSelf: 'flex-start', paddingVertical: 3, paddingHorizontal: 10, borderRadius: 6, marginBottom: 8 },
-  badgeText: { color: '#FFF', fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
-  resultTitle: { fontSize: 18, fontWeight: '800', marginBottom: 4 },
-  resultMsg: { fontSize: 13, color: '#475569', marginBottom: 14 },
-  detailsContainer: { backgroundColor: '#F8FAFC', padding: 12, borderRadius: 12, gap: 8, marginBottom: 14 },
-  detailRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  detailLabel: { fontSize: 13, color: '#64748B' },
-  detailValue: { fontSize: 13, fontWeight: '700', color: '#0F172A' },
-  reportBtn: { backgroundColor: '#EF4444', paddingVertical: 12, borderRadius: 12, alignItems: 'center', marginBottom: 8 },
-  reportBtnText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
-  resetBtn: { backgroundColor: '#0F172A', paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
-  resetBtnText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
-  
-  // Modal Styles
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.6)', justifyContent: 'center', padding: 20 },
-  modalContainer: { backgroundColor: '#FFF', borderRadius: 20, padding: 20, elevation: 5 },
-  modalTitle: { fontSize: 18, fontWeight: '800', color: '#0F172A' },
-  modalSub: { fontSize: 13, color: '#64748B', marginTop: 4, marginBottom: 16 },
-  inputLabel: { fontSize: 12, fontWeight: '700', color: '#475569', marginBottom: 6 },
-  modalInput: { backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, fontSize: 13, marginBottom: 14, color: '#0F172A' },
-  submitReportBtn: { backgroundColor: '#EF4444', paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
-  submitReportText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
-  cancelBtn: { paddingVertical: 10, alignItems: 'center', marginTop: 4 },
-  cancelText: { color: '#64748B', fontSize: 13, fontWeight: '600' },
-  refCode: { fontSize: 12, fontWeight: '700', color: '#10B981', backgroundColor: '#ECFDF5', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, marginTop: 10 },
+// Home Route for Direct Vercel Testing
+app.get('/', (req, res) => {
+  res.send('✅ Backend Server is Running Successfully!');
 });
+
+// 1. Medicine Schema & Model
+const medicineSchema = new mongoose.Schema({
+  id: Number,
+  medicine_name: String,
+  brand_name: String,
+  batch_number: String,
+  manufacturing_date: String,
+  expiry_date: String,
+  qr_hash: String,
+  status: String
+});
+
+const Medicine = mongoose.model('Medicine', medicineSchema);
+
+// 2. Report Schema & Model
+const reportSchema = new mongoose.Schema({
+  batch_number: { type: String, required: true },
+  reason: { type: String, default: 'Counterfeit / Unverified scan' },
+  store_location: { type: String, default: 'Not specified' },
+  reported_at: { type: Date, default: Date.now }
+});
+
+const Report = mongoose.model('Report', reportSchema);
+
+// Verification API Route
+app.get('/api/verify/:batch', async (req, res) => {
+  try {
+    let rawInput = decodeURIComponent(req.params.batch).replace(/[\r\n]+/g, '').trim();
+    console.log("🔍 Backend Received Raw Text:", rawInput);
+
+    let extractedBatch = rawInput;
+    if (rawInput.includes('10')) {
+      const match = rawInput.match(/10([A-Za-z0-9]+)11/);
+      if (match && match[1]) {
+        extractedBatch = match[1];
+      }
+    }
+
+    console.log("🎯 Extracted Batch Target:", extractedBatch);
+
+    const found = await Medicine.findOne({
+      $or: [
+        { batch_number: extractedBatch },
+        { batch_number: rawInput },
+        { qr_hash: rawInput },
+        { qr_hash: { $regex: extractedBatch, $options: 'i' } }
+      ]
+    });
+
+    if (!found) {
+      return res.status(404).json({
+        status: "FAKE",
+        title: "🚨 UNVERIFIED / COUNTERFEIT",
+        message: "This batch number or QR code was not found in the official registry."
+      });
+    }
+
+    if (found.status && (found.status.includes('Fake') || found.status.includes('Invalid'))) {
+      return res.json({
+        status: "FAKE",
+        title: "🚨 COUNTERFEIT FLAGGED",
+        data: found,
+        message: "Warning! This product batch has been officially blacklisted."
+      });
+    }
+
+    if (found.status && (found.status.includes('Suspicious') || found.status.includes('Duplicate'))) {
+      return res.json({
+        status: "SUSPICIOUS",
+        title: "⚠️ SUSPICIOUS / DUPLICATE SCAN",
+        data: found,
+        message: "Duplicate scan limit exceeded. This package code might be duplicated."
+      });
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    if (found.expiry_date < today) {
+      return res.json({
+        status: "EXPIRED",
+        title: "⚠️ EXPIRED MEDICINE",
+        data: found,
+        message: `Product expired on ${found.expiry_date}. Do not distribute or consume.`
+      });
+    }
+
+    return res.json({
+      status: "AUTHENTIC",
+      title: "✅ VERIFIED AUTHENTIC",
+      data: found,
+      message: "Guaranteed original product and safe for consumption."
+    });
+
+  } catch (error) {
+    console.error("Database Query Error:", error);
+    res.status(500).json({ status: "ERROR", message: "Server database query failed." });
+  }
+});
+
+// Report Counterfeit API Route
+app.post('/api/report', async (req, res) => {
+  try {
+    const { batch_number, reason, store_location } = req.body;
+    console.log("📥 Incoming Report Data:", req.body);
+
+    const newReport = new Report({
+      batch_number: batch_number || 'UNKNOWN',
+      reason: reason || 'Counterfeit / Unverified scan',
+      store_location: store_location || 'Not specified',
+      reported_at: new Date()
+    });
+
+    await newReport.save();
+    console.log("✅ Report Saved to MongoDB Atlas successfully!");
+
+    return res.status(201).json({
+      status: "SUCCESS",
+      message: "Report successfully saved to cloud database."
+    });
+
+  } catch (error) {
+    console.error("❌ Error Saving Report to DB:", error);
+    return res.status(500).json({
+      status: "ERROR",
+      message: "Failed to store report in database."
+    });
+  }
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+module.exports = app;
