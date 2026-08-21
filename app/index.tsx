@@ -101,8 +101,9 @@ export default function Index() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 6000);
 
+      // UPDATED TO VERCEL BACKEND URL
       const response = await fetch(
-        `http://192.168.1.9:5000/api/verify/${encodeURIComponent(searchTarget)}`,
+        `https://medicine-backened.vercel.app/api/verify/${encodeURIComponent(searchTarget)}`,
         {
           method: 'GET',
           headers: {
@@ -141,7 +142,7 @@ export default function Index() {
     } catch (error: any) {
       Alert.alert(
         'Connection Error',
-        'Unable to connect to backend (http://192.168.1.5:5000). Ensure node server is running and device is on same Wi-Fi network.'
+        'Unable to connect to live backend (https://medicine-backened.vercel.app). Please check internet connection.'
       );
     } finally {
       setIsProcessing(false);
@@ -172,7 +173,8 @@ export default function Index() {
     setIsSubmittingReport(true);
 
     try {
-      const response = await fetch('http://192.168.1.9:5000/api/report', {
+      // UPDATED TO VERCEL BACKEND URL
+      const response = await fetch('https://medicine-backened.vercel.app/api/report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -191,7 +193,7 @@ export default function Index() {
     } catch (error) {
       Alert.alert(
         'Connection Error',
-        'Could not reach server. Please check your WiFi connection and try again.'
+        'Could not reach server. Please check your internet connection and try again.'
       );
     } finally {
       setIsSubmittingReport(false);
