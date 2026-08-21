@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "MedVerify AI",
+    "slug": "medverify-ai",
+    "scheme": "medverify",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": ".ChatApp/assets/images/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": ".ChatApp/assets/images/icon.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": ".ChatApp/assets/images/icon.png"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

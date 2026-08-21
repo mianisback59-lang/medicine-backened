@@ -1,0 +1,114 @@
+{
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit",
+    "source.sortMembers": "explicit"
+  }
+}
+import React, { useState } from 'react';
+import { Button, FlatList, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+
+export default function Home() {
+
+  const [students, setStudents] = useState([
+    { id: '1', name: 'Ali', image: 'https://i.pravatar.cc/100?img=1' },
+    { id: '2', name: 'Sara', image: 'https://i.pravatar.cc/100?img=2' }
+  ]);
+
+  const [name, setName] = useState('');
+
+  // ➕ ADD STUDENT
+  const addStudent = () => {
+    if (name.length === 0) return;
+
+    const newStudent = {
+      id: Date.now().toString(),
+      name: name,
+      image: 'https://i.pravatar.cc/100'
+    };
+
+    setStudents([...students, newStudent]);
+    setName('');
+  };
+
+  // ❌ DELETE STUDENT
+  const deleteStudent = (id: string) => {
+    setStudents(students.filter(item => item.id !== id));
+  };
+
+  // ✏️ EDIT STUDENT
+  const editStudent = (id: string) => {
+    const updatedName = prompt("Enter new name:");
+
+    if (!updatedName) return;
+
+    setStudents(
+      students.map(item =>
+        item.id === id ? { ...item, name: updatedName } : item
+      )
+    );
+  };
+
+  return (
+    <View style={{ flex: 1, padding: 20 }}>
+
+      {/* TITLE */}
+      <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 10 }}>
+        Student Management App
+      </Text>
+
+      {/* INPUT */}
+      <TextInput
+        placeholder="Enter student name"
+        value={name}
+        onChangeText={setName}
+        style={{
+          borderWidth: 1,
+          padding: 10,
+          marginBottom: 10
+        }}
+      />
+
+      <Button title="Add Student" onPress={addStudent} />
+
+      {/* LIST */}
+      <FlatList
+        style={{ marginTop: 20 }}
+        data={students}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            padding: 10,
+            borderWidth: 1,
+            marginBottom: 10
+          }}>
+
+            {/* IMAGE */}
+            <Image
+              source={{ uri: item.image }}
+              style={{ width: 50, height: 50, borderRadius: 25, marginRight: 10 }}
+            />
+
+            {/* NAME */}
+            <Text style={{ flex: 1, fontSize: 18 }}>
+              {item.name}
+            </Text>
+
+            {/* BUTTONS */}
+            <TouchableOpacity onPress={() => editStudent(item.id)}>
+              <Text style={{ color: 'blue', marginRight: 10 }}>Edit</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => deleteStudent(item.id)}>
+              <Text style={{ color: 'red' }}>Delete</Text>
+            </TouchableOpacity>
+
+          </View>
+        )}
+      />
+
+    </View>
+  );
+}
