@@ -6,20 +6,20 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Main Route Test
+// Base Route
 app.get('/', (req, res) => {
-  res.send('✅ Backend Server is Running Successfully!');
+  res.status(200).send('✅ Backend Server is Running Successfully!');
 });
 
 // Verification API Route
 app.get('/api/verify/:batch', (req, res) => {
   const { batch } = req.params;
-  res.json({
+  res.status(200).json({
     success: true,
     message: `Batch ${batch} verified successfully!`,
     batchNumber: batch
   });
 });
 
-// Vercel Serverless Export (Sab se zaroori line)
+// IMPORTANT: Express app instance ko export karein
 module.exports = app;
