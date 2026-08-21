@@ -101,7 +101,7 @@ export default function Index() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 6000);
 
-      // UPDATED TO LIVE VERCEL BACKEND URL
+      // UPDATED TO VERCEL BACKEND URL
       const response = await fetch(
         `https://medicine-backened.vercel.app/api/verify/${encodeURIComponent(searchTarget)}`,
         {
@@ -142,7 +142,7 @@ export default function Index() {
     } catch (error: any) {
       Alert.alert(
         'Connection Error',
-        'Unable to connect to backend (https://medicine-backened.vercel.app). Ensure server is running and internet is active.'
+        'Unable to connect to live backend (https://medicine-backened.vercel.app). Please check internet connection.'
       );
     } finally {
       setIsProcessing(false);
@@ -173,7 +173,7 @@ export default function Index() {
     setIsSubmittingReport(true);
 
     try {
-      // UPDATED TO LIVE VERCEL BACKEND URL
+      // UPDATED TO VERCEL BACKEND URL
       const response = await fetch('https://medicine-backened.vercel.app/api/report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
   modalSub: { fontSize: 13, color: '#64748B', marginTop: 4, marginBottom: 16 },
   inputLabel: { fontSize: 12, fontWeight: '700', color: '#475569', marginBottom: 6 },
   modalInput: { backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, fontSize: 13, marginBottom: 14, color: '#0F172A' },
-  submitReportBtn: { backgroundColor: '#EF4444', paddingVertical: 10, borderRadius: 10, alignItems: 'center' },
+  submitReportBtn: { backgroundColor: '#EF4444', paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
   submitReportText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
   cancelBtn: { paddingVertical: 10, alignItems: 'center', marginTop: 4 },
   cancelText: { color: '#64748B', fontSize: 13, fontWeight: '600' },
