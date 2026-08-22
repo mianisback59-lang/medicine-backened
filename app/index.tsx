@@ -65,7 +65,7 @@ export default function Index() {
     );
   }
 
-  // Safe Batch Code Cleaner (Does NOT break standard numeric or hyphenated codes)
+  // Precise Extractor (Handles Full Barcode + Manual Inputs)
   const extractCleanBatch = (rawCode: string): string => {
     if (!rawCode) return '';
     let cleaned = String(rawCode).replace(/[\r\n]+/g, '').trim();
@@ -75,11 +75,14 @@ export default function Index() {
       cleaned = parts[parts.length - 1] || cleaned;
     }
 
-    // Only extract GS1 if string starts with GS1 application identifier 01 and is long
-    if (cleaned.length > 18 && cleaned.startsWith('01') && cleaned.includes('10')) {
-      const gs1Match = cleaned.match(/10([A-Za-z0-9\-]{3,15})(11|17|21|240|$)/);
-      if (gs1Match && gs1Match[1]) {
-        return gs1Match[1];
+    if (cleaned.length <= 15) {
+      return cleaned;
+    }
+
+    if (cleaned.includes('10')) {
+      const match = cleaned.match(/10([A-Za-z0-9\-]{3,15}?)(11|17|21|240|[A-Za-z\s\/]|$)/);
+      if (match && match[1]) {
+        return match[1];
       }
     }
 
@@ -117,7 +120,6 @@ export default function Index() {
 
       clearTimeout(timeoutId);
       const apiResponse = await response.json();
-      console.log("📥 Live API Response:", apiResponse);
 
       const isOk = response.ok && apiResponse.success === true;
 
@@ -264,7 +266,7 @@ export default function Index() {
           <Text style={[styles.resultTitle, { color: result.color }]}>{result.title}</Text>
           <Text style={styles.resultMsg}>{result.msg}</Text>
 
-          {/* Authentic / Expired Case: Picture Table Layout */}
+          {/* Detailed Medicine Table for AUTHENTIC & EXPIRED */}
           {result.data && (result.status === 'AUTHENTIC' || result.status === 'EXPIRED') && (
             <View style={styles.detailsContainer}>
               <View style={styles.detailRow}>
@@ -272,7 +274,7 @@ export default function Index() {
                 <Text style={styles.detailValue}>{result.data.medicine_name || 'N/A'}</Text>
               </View>
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Manufacturer</Text>
+                <Text style={styles.detailLabel}>Brand / Manufacturer</Text>
                 <Text style={styles.detailValue}>{result.data.brand_name || 'N/A'}</Text>
               </View>
               <View style={styles.detailRow}>
@@ -280,7 +282,7 @@ export default function Index() {
                 <Text style={styles.detailValue}>{result.data.batch_number || activeBatch}</Text>
               </View>
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Mfg Date</Text>
+                <Text style={styles.detailLabel}>Manufacturing Date</Text>
                 <Text style={styles.detailValue}>{result.data.manufacturing_date || 'N/A'}</Text>
               </View>
               <View style={styles.detailRow}>
@@ -290,7 +292,7 @@ export default function Index() {
             </View>
           )}
 
-          {/* Fake Case: Red Report Button */}
+          {/* Fake Case Action */}
           {(result.status === 'FAKE' || result.status === 'SUSPICIOUS') && (
             <TouchableOpacity style={styles.reportBtn} onPress={() => setIsReportModalVisible(true)}>
               <Text style={styles.reportBtnText}>REPORT MEDICINE</Text>
@@ -316,7 +318,7 @@ export default function Index() {
         </View>
       )}
 
-      {/* REPORT MEDICINE MODAL */}
+      {/* REPORT MODAL */}
       <Modal visible={isReportModalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
@@ -404,9 +406,9 @@ const styles = StyleSheet.create({
   badgeText: { color: '#FFF', fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
   resultTitle: { fontSize: 18, fontWeight: '800', marginBottom: 4 },
   resultMsg: { fontSize: 13, color: '#475569', marginBottom: 14 },
-  detailsContainer: { backgroundColor: '#F8FAFC', padding: 12, borderRadius: 12, gap: 8, marginBottom: 14 },
-  detailRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  detailLabel: { fontSize: 13, color: '#64748B' },
+  detailsContainer: { backgroundColor: '#F8FAFC', padding: 12, borderRadius: 12, gap: 8, marginBottom: 14, borderWidth: 1, borderColor: '#E2E8F0' },
+  detailRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
+  detailLabel: { fontSize: 13, color: '#64748B', fontWeight: '500' },
   detailValue: { fontSize: 13, fontWeight: '700', color: '#0F172A' },
   reportBtn: { backgroundColor: '#EF4444', paddingVertical: 12, borderRadius: 12, alignItems: 'center', marginBottom: 8 },
   reportBtnText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
