@@ -16,7 +16,7 @@ app.get('/', (req, res) => {
   res.send('✅ Backend Server is Running Successfully!');
 });
 
-// 1. Medicine Schema & Model
+// 1. Medicine Schema
 const medicineSchema = new mongoose.Schema({
   id: Number,
   medicine_name: String,
@@ -31,7 +31,7 @@ const medicineSchema = new mongoose.Schema({
 
 const Medicine = mongoose.model('Medicine', medicineSchema);
 
-// 2. Report Schema & Model
+// 2. Report Schema
 const reportSchema = new mongoose.Schema({
   batch_number: { type: String, required: true },
   reason: { type: String, default: 'Counterfeit / Unverified scan' },
@@ -41,38 +41,38 @@ const reportSchema = new mongoose.Schema({
 
 const Report = mongoose.model('Report', reportSchema);
 
-// Normalization helper (hyphens aur special characters remove karke lowercasing)
+// Special characters aur extra space hatane ke liye helper
 const normalize = (str) => String(str || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
 
-// Smart Verification Route
+// Strict Verification Route
 app.get('/api/verify/:batch', async (req, res) => {
   try {
     const rawInput = decodeURIComponent(req.params.batch).replace(/[\r\n]+/g, '').trim();
     const cleanInput = normalize(rawInput);
     
-    console.log("🔍 Search Received - Raw:", rawInput, "| Clean:", cleanInput);
+    console.log("🔍 Incoming Verification Request:", rawInput);
 
     if (!cleanInput) {
       return res.status(400).json({
         success: false,
         status: "FAKE",
-        title: "🚨 INVALID CODE",
-        message: "Scanned text or batch code is empty."
+        title: "🚨 INVALID INPUT",
+        message: "Scanned input or batch code is empty."
       });
     }
 
+    // Database search
     const allMedicines = await Medicine.find({});
 
-    // Precise Matching Engine for GS1 QR Strings & Manual Inputs
     let found = allMedicines.find(med => {
       const dbBatchClean = normalize(med.batch_number);
       const dbHashClean = normalize(med.qr_hash);
 
-      // 1. Direct/Exact Match on Batch or Hash
+      // 1. Exact Match with Batch Number or QR Hash
       if (dbBatchClean && cleanInput === dbBatchClean) return true;
       if (dbHashClean && cleanInput === dbHashClean) return true;
 
-      // 2. Scanned QR String Contains DB Batch/Hash
+      // 2. Scanned String Contains Batch/Hash
       if (cleanInput.length > 5) {
         if (dbBatchClean && dbBatchClean.length >= 3 && cleanInput.includes(dbBatchClean)) return true;
         if (dbHashClean && dbHashClean.length >= 5 && cleanInput.includes(dbHashClean)) return true;
@@ -81,9 +81,9 @@ app.get('/api/verify/:batch', async (req, res) => {
       return false;
     });
 
-    // Code Database me na hone par FAKE Status return karega
+    // ABSOLUTE FIX: Agar DB me match na ho -> Directly FAKE return karega
     if (!found) {
-      console.log("❌ Result: NOT FOUND in Registry");
+      console.log("❌ Result: UNVERIFIED / FAKE CODE");
       return res.status(404).json({
         success: false,
         status: "FAKE",
@@ -93,11 +93,11 @@ app.get('/api/verify/:batch', async (req, res) => {
       });
     }
 
-    console.log(`🎯 Result: FOUND -> ${found.medicine_name} (${found.batch_number})`);
+    console.log(`🎯 Result: AUTHENTIC MATCH -> ${found.medicine_name}`);
 
     const dbStatus = String(found.status || '').toLowerCase();
 
-    // Blacklisted / Fake Status Check
+    // DB Blacklisted Status Check
     if (dbStatus.includes('fake') || dbStatus.includes('invalid') || dbStatus.includes('counterfeit')) {
       return res.json({
         success: false,
@@ -105,11 +105,11 @@ app.get('/api/verify/:batch', async (req, res) => {
         title: "🚨 COUNTERFEIT FLAGGED",
         batchNumber: found.batch_number || rawInput,
         data: found,
-        message: "Warning! This product batch has been blacklisted in database."
+        message: "Warning! This product batch has been officially blacklisted."
       });
     }
 
-    // Expiry Date Check
+    // Expiry Check
     const today = new Date().toISOString().split('T')[0];
     if (found.expiry_date && found.expiry_date < today) {
       return res.json({
@@ -122,7 +122,7 @@ app.get('/api/verify/:batch', async (req, res) => {
       });
     }
 
-    // Authentic Response
+    // Authentic Match Output
     return res.json({
       success: true,
       status: "AUTHENTIC",
