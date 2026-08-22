@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import {
   Alert,
   Button,
+  Image,
   Modal,
   ScrollView,
   StyleSheet,
@@ -21,6 +22,7 @@ interface Medicine {
   expiry_date?: string;
   qr_hash?: string;
   status?: string;
+  image_url?: string;
 }
 
 interface VerificationResult {
@@ -65,7 +67,6 @@ export default function Index() {
     );
   }
 
-  // Clean raw code lightly and pass full string to Smart Backend Matcher
   const extractCleanBatch = (rawCode: string): string => {
     if (!rawCode) return '';
     let cleaned = String(rawCode).replace(/[\r\n]+/g, '').trim();
@@ -111,8 +112,7 @@ export default function Index() {
       const apiResponse = await response.json();
       console.log("📥 Live API Response:", apiResponse);
 
-      // Flexible status check matching backend
-      const isSuccess = response.ok && apiResponse && (apiResponse.success === true || apiResponse.status === 'AUTHENTIC' || apiResponse.status === 'EXPIRED');
+      const isSuccess = response.ok && apiResponse && apiResponse.success === true;
 
       if (!isSuccess || apiResponse.status === 'FAKE') {
         setResult({
@@ -201,13 +201,13 @@ export default function Index() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
-      {/* Header */}
+      {/* App Header */}
       <View style={styles.headerContainer}>
         <Text style={styles.appTitle}>MedVerify AI</Text>
         <Text style={styles.appSubtitle}>Instant Authenticity & Safety Scanner</Text>
       </View>
 
-      {/* Camera Section */}
+      {/* Camera View */}
       <View style={styles.cameraCard}>
         <CameraView
           style={StyleSheet.absoluteFillObject}
@@ -225,11 +225,11 @@ export default function Index() {
         </TouchableOpacity>
       </View>
 
-      {/* Manual Input Search Box */}
+      {/* Manual Input Search Bar */}
       <View style={styles.manualSearchBox}>
         <TextInput
           style={styles.input}
-          placeholder="Enter Batch No (e.g. 510902)"
+          placeholder="Enter Batch No (e.g. CLR-2025-07 or 510902)"
           placeholderTextColor="#94A3B8"
           value={manualCode}
           onChangeText={setManualCode}
@@ -248,7 +248,7 @@ export default function Index() {
         </TouchableOpacity>
       </View>
 
-      {/* Verification Result Card */}
+      {/* Verification Card Result */}
       {result ? (
         <View style={[styles.resultCard, { borderColor: result.color }]}>
           <View style={[styles.badge, { backgroundColor: result.color }]}>
@@ -257,8 +257,17 @@ export default function Index() {
           <Text style={[styles.resultTitle, { color: result.color }]}>{result.title}</Text>
           <Text style={styles.resultMsg}>{result.msg}</Text>
 
+          {/* Authentic Details Display */}
           {result.data && (result.status === 'AUTHENTIC' || result.status === 'EXPIRED') && (
             <View style={styles.detailsContainer}>
+              {result.data.image_url ? (
+                <Image source={{ uri: result.data.image_url }} style={styles.medImage} resizeMode="contain" />
+              ) : (
+                <View style={styles.iconPlaceholder}>
+                  <Text style={{ fontSize: 40 }}>💊</Text>
+                </View>
+              )}
+
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Medicine Name</Text>
                 <Text style={styles.detailValue}>{result.data.medicine_name || 'N/A'}</Text>
@@ -277,14 +286,17 @@ export default function Index() {
               </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Expiry Date</Text>
-                <Text style={styles.detailValue}>{result.data.expiry_date || 'N/A'}</Text>
+                <Text style={[styles.detailValue, result.status === 'EXPIRED' && styles.expiredText]}>
+                  {result.data.expiry_date || 'N/A'}
+                </Text>
               </View>
             </View>
           )}
 
+          {/* Fake Medicine Action Button */}
           {(result.status === 'FAKE' || result.status === 'SUSPICIOUS') && (
             <TouchableOpacity style={styles.reportBtn} onPress={() => setIsReportModalVisible(true)}>
-              <Text style={styles.reportBtnText}>REPORT MEDICINE</Text>
+              <Text style={styles.reportBtnText}>🚨 REPORT FAKE MEDICINE</Text>
             </TouchableOpacity>
           )}
 
@@ -307,7 +319,7 @@ export default function Index() {
         </View>
       )}
 
-      {/* REPORT MEDICINE MODAL */}
+      {/* Report Modal Component */}
       <Modal visible={isReportModalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
@@ -344,7 +356,7 @@ export default function Index() {
                   disabled={isSubmittingReport}
                 >
                   <Text style={styles.submitReportText}>
-                    {isSubmittingReport ? 'Submitting...' : 'Submit Report to DRAP'}
+                    {isSubmittingReport ? 'Submitting...' : 'Submit Report to Database'}
                   </Text>
                 </TouchableOpacity>
 
@@ -357,7 +369,7 @@ export default function Index() {
                 <Text style={{ fontSize: 40, marginBottom: 10 }}>✅</Text>
                 <Text style={styles.modalTitle}>Report Submitted!</Text>
                 <Text style={[styles.modalSub, { textAlign: 'center', marginTop: 8 }]}>
-                  Batch <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text> has been flagged and sent to Drug Regulatory Authority.
+                  Batch <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text> report saved in MongoDB database successfully.
                 </Text>
                 <Text style={styles.refCode}>Ref ID: DRAP-2026-{Math.floor(1000 + Math.random() * 9000)}</Text>
 
@@ -390,21 +402,22 @@ const styles = StyleSheet.create({
   verifyBtnText: { color: '#FFF', fontWeight: '700', fontSize: 14 },
   placeholderBox: { marginTop: 30, padding: 20, borderRadius: 16, backgroundColor: '#F1F5F9', borderStyle: 'dashed', borderWidth: 1, borderColor: '#CBD5E1', alignItems: 'center' },
   placeholderText: { fontSize: 13, color: '#64748B', textAlign: 'center' },
-  resultCard: { backgroundColor: '#FFF', marginTop: 20, padding: 18, borderRadius: 20, borderWidth: 1.5, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
+  resultCard: { backgroundColor: '#FFF', marginTop: 20, padding: 18, borderRadius: 20, borderWidth: 1.5, elevation: 3 },
   badge: { alignSelf: 'flex-start', paddingVertical: 3, paddingHorizontal: 10, borderRadius: 6, marginBottom: 8 },
   badgeText: { color: '#FFF', fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
   resultTitle: { fontSize: 18, fontWeight: '800', marginBottom: 4 },
   resultMsg: { fontSize: 13, color: '#475569', marginBottom: 14 },
   detailsContainer: { backgroundColor: '#F8FAFC', padding: 12, borderRadius: 12, gap: 8, marginBottom: 14 },
+  medImage: { width: '100%', height: 120, borderRadius: 8, marginBottom: 8 },
+  iconPlaceholder: { alignItems: 'center', justifyContent: 'center', paddingVertical: 10 },
   detailRow: { flexDirection: 'row', justifyContent: 'space-between' },
   detailLabel: { fontSize: 13, color: '#64748B' },
   detailValue: { fontSize: 13, fontWeight: '700', color: '#0F172A' },
   expiredText: { color: '#EF4444' },
-  reportBtn: { backgroundColor: '#EF4444', paddingVertical: 12, borderRadius: 12, alignItems: 'center', marginBottom: 8 },
+  reportBtn: { backgroundColor: '#EF4444', paddingVertical: 12, borderRadius: 12, alignItems: 'center', marginBottom: 10 },
   reportBtnText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
   resetBtn: { backgroundColor: '#0F172A', paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
   resetBtnText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
-
   modalOverlay: { flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.6)', justifyContent: 'center', padding: 20 },
   modalContainer: { backgroundColor: '#FFF', borderRadius: 20, padding: 20, elevation: 5 },
   modalTitle: { fontSize: 18, fontWeight: '800', color: '#0F172A' },
