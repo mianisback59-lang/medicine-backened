@@ -65,22 +65,14 @@ export default function Index() {
     );
   }
 
-  // Strict Clean Batch Logic - No Fake Fallbacks
+  // Clean raw code lightly and pass full string to Smart Backend Matcher
   const extractCleanBatch = (rawCode: string): string => {
     if (!rawCode) return '';
-    let cleaned = String(rawCode).replace(/[\r\n]+/g, '').trim().replace(/[^\x20-\x7E]/g, '');
+    let cleaned = String(rawCode).replace(/[\r\n]+/g, '').trim();
 
     if (cleaned.includes('http://') || cleaned.includes('https://') || cleaned.includes('exp://')) {
       const parts = cleaned.split('/');
       cleaned = parts[parts.length - 1] || cleaned;
-    }
-
-    // GS1 2D DataMatrix Parser
-    if (cleaned.includes('10')) {
-      const gs1Match = cleaned.match(/10([A-Za-z0-9\-]{3,15})(11|17|21|240|$)/);
-      if (gs1Match && gs1Match[1]) {
-        return gs1Match[1];
-      }
     }
 
     return cleaned;
@@ -119,37 +111,33 @@ export default function Index() {
       const apiResponse = await response.json();
       console.log("📥 Live API Response:", apiResponse);
 
-      // STRICT VALIDATION CHECK
-      const isAuthentic =
-        response.ok &&
-        apiResponse &&
-        (apiResponse.status === 'AUTHENTIC' || apiResponse.success === true) &&
-        apiResponse.data &&
-        apiResponse.data.medicine_name;
+      // Flexible status check matching backend
+      const isSuccess = response.ok && apiResponse && (apiResponse.success === true || apiResponse.status === 'AUTHENTIC' || apiResponse.status === 'EXPIRED');
 
-      if (!isAuthentic) {
+      if (!isSuccess || apiResponse.status === 'FAKE') {
         setResult({
           status: 'FAKE',
-          title: '🚨 UNVERIFIED / COUNTERFEIT',
+          title: apiResponse.title || '🚨 UNVERIFIED / COUNTERFEIT',
           color: '#EF4444',
           batch: searchTarget,
           msg: apiResponse?.message || 'This batch number was not found in the official registry.',
         });
       } else {
-        const rawStatus = apiResponse.data.status || apiResponse.status || 'AUTHENTIC';
+        const rawStatus = apiResponse.status || (apiResponse.data && apiResponse.data.status) || 'AUTHENTIC';
         const statusColor =
           rawStatus === 'AUTHENTIC' ? '#10B981' : rawStatus === 'EXPIRED' ? '#F59E0B' : '#EF4444';
 
         setResult({
           status: rawStatus,
-          title: '✅ MEDICINE VERIFIED',
+          title: apiResponse.title || '✅ MEDICINE VERIFIED',
           color: statusColor,
           data: apiResponse.data,
-          batch: apiResponse.data.batch_number || searchTarget,
+          batch: (apiResponse.data && apiResponse.data.batch_number) || searchTarget,
           msg: apiResponse.message || 'Batch verified successfully in the registry!',
         });
       }
     } catch (error: any) {
+      console.error("Fetch Error:", error);
       setResult({
         status: 'FAKE',
         title: '🚨 UNVERIFIED / COUNTERFEIT',
@@ -269,30 +257,30 @@ export default function Index() {
           <Text style={[styles.resultTitle, { color: result.color }]}>{result.title}</Text>
           <Text style={styles.resultMsg}>{result.msg}</Text>
 
-          {result.data && result.status === 'AUTHENTIC' && (
-  <View style={styles.detailsContainer}>
-    <View style={styles.detailRow}>
-      <Text style={styles.detailLabel}>Medicine Name</Text>
-      <Text style={styles.detailValue}>{result.data.medicine_name || 'N/A'}</Text>
-    </View>
-    <View style={styles.detailRow}>
-      <Text style={styles.detailLabel}>Manufacturer</Text>
-      <Text style={styles.detailValue}>{result.data.brand_name || 'N/A'}</Text>
-    </View>
-    <View style={styles.detailRow}>
-      <Text style={styles.detailLabel}>Batch Code</Text>
-      <Text style={styles.detailValue}>{result.data.batch_number || activeBatch}</Text>
-    </View>
-    <View style={styles.detailRow}>
-      <Text style={styles.detailLabel}>Mfg Date</Text>
-      <Text style={styles.detailValue}>{result.data.manufacturing_date || 'N/A'}</Text>
-    </View>
-    <View style={styles.detailRow}>
-      <Text style={styles.detailLabel}>Expiry Date</Text>
-      <Text style={styles.detailValue}>{result.data.expiry_date || 'N/A'}</Text>
-    </View>
-  </View>
-)}
+          {result.data && (result.status === 'AUTHENTIC' || result.status === 'EXPIRED') && (
+            <View style={styles.detailsContainer}>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Medicine Name</Text>
+                <Text style={styles.detailValue}>{result.data.medicine_name || 'N/A'}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Manufacturer</Text>
+                <Text style={styles.detailValue}>{result.data.brand_name || 'N/A'}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Batch Code</Text>
+                <Text style={styles.detailValue}>{result.data.batch_number || activeBatch}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Mfg Date</Text>
+                <Text style={styles.detailValue}>{result.data.manufacturing_date || 'N/A'}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Expiry Date</Text>
+                <Text style={styles.detailValue}>{result.data.expiry_date || 'N/A'}</Text>
+              </View>
+            </View>
+          )}
 
           {(result.status === 'FAKE' || result.status === 'SUSPICIOUS') && (
             <TouchableOpacity style={styles.reportBtn} onPress={() => setIsReportModalVisible(true)}>
