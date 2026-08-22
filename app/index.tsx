@@ -67,15 +67,14 @@ export default function Index() {
     );
   }
 
+  // Extract clean code from raw inputs or URLs
   const extractCleanBatch = (rawCode: string): string => {
     if (!rawCode) return '';
-    let cleaned = String(rawCode).replace(/[\r\n]+/g, '').trim();
-
-    if (cleaned.includes('http://') || cleaned.includes('https://') || cleaned.includes('exp://')) {
+    let cleaned = String(rawCode).trim();
+    if (cleaned.includes('/')) {
       const parts = cleaned.split('/');
       cleaned = parts[parts.length - 1] || cleaned;
     }
-
     return cleaned;
   };
 
@@ -87,7 +86,7 @@ export default function Index() {
 
     if (isProcessing) return;
     setIsProcessing(true);
-    setResult(null);
+    setResult(null); // Reset previous result
 
     const searchTarget = extractCleanBatch(code);
     console.log("🚀 Verifying Batch Code:", searchTarget);
@@ -112,27 +111,26 @@ export default function Index() {
       const apiResponse = await response.json();
       console.log("📥 Live API Response:", apiResponse);
 
-      const isSuccess = response.ok && apiResponse && apiResponse.success === true;
-
-      if (!isSuccess || apiResponse.status === 'FAKE') {
+      // Check for exact response conditions
+      if (!response.ok || !apiResponse || apiResponse.success === false || apiResponse.status === 'FAKE') {
         setResult({
           status: 'FAKE',
-          title: apiResponse.title || '🚨 UNVERIFIED / COUNTERFEIT',
+          title: apiResponse?.title || '🚨 UNVERIFIED / COUNTERFEIT',
           color: '#EF4444',
           batch: searchTarget,
           msg: apiResponse?.message || 'This batch number was not found in the official registry.',
         });
       } else {
-        const rawStatus = apiResponse.status || (apiResponse.data && apiResponse.data.status) || 'AUTHENTIC';
+        const rawStatus = apiResponse.status || 'AUTHENTIC';
         const statusColor =
           rawStatus === 'AUTHENTIC' ? '#10B981' : rawStatus === 'EXPIRED' ? '#F59E0B' : '#EF4444';
 
         setResult({
           status: rawStatus,
-          title: apiResponse.title || '✅ MEDICINE VERIFIED',
+          title: apiResponse.title || '✅ VERIFIED AUTHENTIC',
           color: statusColor,
           data: apiResponse.data,
-          batch: (apiResponse.data && apiResponse.data.batch_number) || searchTarget,
+          batch: apiResponse.data?.batch_number || searchTarget,
           msg: apiResponse.message || 'Batch verified successfully in the registry!',
         });
       }
