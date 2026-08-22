@@ -65,29 +65,25 @@ export default function Index() {
     );
   }
 
-  // Improved Batch code cleaning logic
+  // Strict Clean Batch Logic - No Fake Fallbacks
   const extractCleanBatch = (rawCode: string): string => {
-    if (!rawCode) return 'UNKNOWN';
+    if (!rawCode) return '';
     let cleaned = String(rawCode).replace(/[\r\n]+/g, '').trim().replace(/[^\x20-\x7E]/g, '');
-    
-    if (cleaned.includes('exp://') || cleaned.includes('http://') || cleaned.includes('https://')) {
+
+    if (cleaned.includes('http://') || cleaned.includes('https://') || cleaned.includes('exp://')) {
       const parts = cleaned.split('/');
-      cleaned = parts[parts.length - 1] || parts[parts.length - 2] || cleaned;
-      if (cleaned.includes(':')) {
-        cleaned = cleaned.split(':')[0];
+      cleaned = parts[parts.length - 1] || cleaned;
+    }
+
+    // GS1 2D DataMatrix Parser
+    if (cleaned.includes('10')) {
+      const gs1Match = cleaned.match(/10([A-Za-z0-9\-]{3,15})(11|17|21|240|$)/);
+      if (gs1Match && gs1Match[1]) {
+        return gs1Match[1];
       }
     }
 
-    if (cleaned.includes('10510902') || cleaned.includes('510902')) {
-      return '510902';
-    }
-
-    const gs1Match = cleaned.match(/10([A-Za-z0-9]{5,10})(11|17|21|240)/);
-    if (gs1Match && gs1Match[1]) {
-      return gs1Match[1];
-    }
-
-    return cleaned || '510902';
+    return cleaned;
   };
 
   const verifyCode = async (code: string) => {
@@ -98,10 +94,10 @@ export default function Index() {
 
     if (isProcessing) return;
     setIsProcessing(true);
-    setResult(null); // Clear previous result
+    setResult(null);
 
     const searchTarget = extractCleanBatch(code);
-    console.log("🚀 Sending Code to Backend:", searchTarget);
+    console.log("🚀 Verifying Batch Code:", searchTarget);
 
     try {
       const controller = new AbortController();
@@ -121,42 +117,47 @@ export default function Index() {
 
       clearTimeout(timeoutId);
       const apiResponse = await response.json();
-      console.log("📥 Backend Response:", apiResponse);
+      console.log("📥 Live API Response:", apiResponse);
 
-      const isSuccess = response.ok && (apiResponse.success === true || apiResponse.status === 'AUTHENTIC');
+      // STRICT VALIDATION CHECK
+      const isAuthentic =
+        response.ok &&
+        apiResponse &&
+        (apiResponse.status === 'AUTHENTIC' || apiResponse.success === true) &&
+        apiResponse.data &&
+        apiResponse.data.medicine_name;
 
-      if (!isSuccess) {
+      if (!isAuthentic) {
         setResult({
           status: 'FAKE',
-          title: apiResponse.title || '🚨 UNVERIFIED / COUNTERFEIT',
+          title: '🚨 UNVERIFIED / COUNTERFEIT',
           color: '#EF4444',
           batch: searchTarget,
-          msg: apiResponse.message || 'This batch number was not found in the official registry.',
+          msg: apiResponse?.message || 'This batch number was not found in the official registry.',
         });
       } else {
-        const rawStatus = apiResponse.status || 'AUTHENTIC';
-        const statusColor = rawStatus === 'AUTHENTIC' ? '#10B981' : rawStatus === 'EXPIRED' ? '#F59E0B' : '#EF4444';
+        const rawStatus = apiResponse.data.status || apiResponse.status || 'AUTHENTIC';
+        const statusColor =
+          rawStatus === 'AUTHENTIC' ? '#10B981' : rawStatus === 'EXPIRED' ? '#F59E0B' : '#EF4444';
 
         setResult({
           status: rawStatus,
-          title: apiResponse.title || '✅ MEDICINE VERIFIED',
+          title: '✅ MEDICINE VERIFIED',
           color: statusColor,
-          data: apiResponse.data || {
-            medicine_name: 'Panadol / Standard Med',
-            brand_name: 'GSK / Authorized Manufacturer',
-            batch_number: apiResponse.batchNumber || searchTarget,
-            manufacturing_date: '2025-01-01',
-            expiry_date: '2027-01-01',
-          },
-          batch: apiResponse.batchNumber || searchTarget,
+          data: apiResponse.data,
+          batch: apiResponse.data.batch_number || searchTarget,
           msg: apiResponse.message || 'Batch verified successfully in the registry!',
         });
       }
     } catch (error: any) {
-      Alert.alert(
-        'Connection Error',
-        'Unable to connect to backend server. Please check your internet connection.'
-      );
+      // Direct to Fake/Unverified if error or unknown batch response
+      setResult({
+        status: 'FAKE',
+        title: '🚨 UNVERIFIED / COUNTERFEIT',
+        color: '#EF4444',
+        batch: searchTarget,
+        msg: 'Unable to verify batch or code not registered in database.',
+      });
     } finally {
       setIsProcessing(false);
     }
@@ -168,16 +169,13 @@ export default function Index() {
     }
   };
 
-  const activeBatch = extractCleanBatch(result?.data?.batch_number || result?.batch || 'N/A');
+  const activeBatch = result?.data?.batch_number || result?.batch || manualCode || 'N/A';
 
   const handleReportSubmit = async () => {
     if (isSubmittingReport) return;
 
     if (!reportReason.trim() || reportReason.trim().length < 5) {
-      Alert.alert(
-        "Required Field",
-        "Please enter a valid reason for reporting (minimum 5 characters)."
-      );
+      Alert.alert('Required Field', 'Please enter a valid reason for reporting (minimum 5 characters).');
       return;
     }
 
@@ -201,10 +199,7 @@ export default function Index() {
         Alert.alert('Submission Error', errorData.message || 'Failed to submit report.');
       }
     } catch (error) {
-      Alert.alert(
-        'Connection Error',
-        'Could not reach server. Please check your internet connection and try again.'
-      );
+      Alert.alert('Connection Error', 'Could not reach server. Please check your internet connection.');
     } finally {
       setIsSubmittingReport(false);
     }
@@ -275,7 +270,7 @@ export default function Index() {
           <Text style={[styles.resultTitle, { color: result.color }]}>{result.title}</Text>
           <Text style={styles.resultMsg}>{result.msg}</Text>
 
-          {result.data && (
+          {result.data && result.status === 'AUTHENTIC' && (
             <View style={styles.detailsContainer}>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Medicine Name</Text>
@@ -287,7 +282,7 @@ export default function Index() {
               </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Batch Code</Text>
-                <Text style={styles.detailValue}>{activeBatch}</Text>
+                <Text style={styles.detailValue}>{result.data.batch_number || activeBatch}</Text>
               </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Mfg Date</Text>
@@ -295,12 +290,7 @@ export default function Index() {
               </View>
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Expiry Date</Text>
-                <Text
-                  style={[
-                    styles.detailValue,
-                    result.status === 'EXPIRED' && { color: '#EF4444' },
-                  ]}
-                >
+                <Text style={[styles.detailValue, result.status === 'EXPIRED' && { color: '#EF4444' }]}>
                   {result.data.expiry_date || 'N/A'}
                 </Text>
               </View>
@@ -308,10 +298,7 @@ export default function Index() {
           )}
 
           {(result.status === 'FAKE' || result.status === 'SUSPICIOUS') && (
-            <TouchableOpacity
-              style={styles.reportBtn}
-              onPress={() => setIsReportModalVisible(true)}
-            >
+            <TouchableOpacity style={styles.reportBtn} onPress={() => setIsReportModalVisible(true)}>
               <Text style={styles.reportBtnText}>REPORT MEDICINE</Text>
             </TouchableOpacity>
           )}
@@ -367,10 +354,7 @@ export default function Index() {
                 />
 
                 <TouchableOpacity
-                  style={[
-                    styles.submitReportBtn,
-                    isSubmittingReport && { backgroundColor: '#94A3B8' },
-                  ]}
+                  style={[styles.submitReportBtn, isSubmittingReport && { backgroundColor: '#94A3B8' }]}
                   onPress={handleReportSubmit}
                   disabled={isSubmittingReport}
                 >
@@ -392,10 +376,7 @@ export default function Index() {
                 </Text>
                 <Text style={styles.refCode}>Ref ID: DRAP-2026-{Math.floor(1000 + Math.random() * 9000)}</Text>
 
-                <TouchableOpacity
-                  style={[styles.submitReportBtn, { width: '100%', marginTop: 20 }]}
-                  onPress={closeReportModal}
-                >
+                <TouchableOpacity style={[styles.submitReportBtn, { width: '100%', marginTop: 20 }]} onPress={closeReportModal}>
                   <Text style={styles.submitReportText}>Done</Text>
                 </TouchableOpacity>
               </View>
@@ -437,7 +418,7 @@ const styles = StyleSheet.create({
   reportBtnText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
   resetBtn: { backgroundColor: '#0F172A', paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
   resetBtnText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
-  
+
   modalOverlay: { flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.6)', justifyContent: 'center', padding: 20 },
   modalContainer: { backgroundColor: '#FFF', borderRadius: 20, padding: 20, elevation: 5 },
   modalTitle: { fontSize: 18, fontWeight: '800', color: '#0F172A' },
