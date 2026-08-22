@@ -1,178 +1,171 @@
 const express = require('express');
-const cors = require('cors');
 const mongoose = require('mongoose');
+const cors = require('cors');
+require('dotenv').config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// MongoDB Connection Link
-const MONGO_URI = "mongodb+srv://mianisback59_db_user:n0dxouZjCQFC1P0k@cluster0.zm6ckjm.mongodb.net/medverify?retryWrites=true&w=majority&appName=Cluster0";
-mongoose.connect(MONGO_URI)
-  .then(() => console.log('✅ Connected to MongoDB Atlas Cloud Database'))
-  .catch((err) => console.error('❌ MongoDB Connection Error:', err));
+// MongoDB Connection String Integrated
+const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://mianisback59_db_user:n0dxouZjCQFC1P0k@cluster0.zm6ckjm.mongodb.net/medverify?retryWrites=true&w=majority&appName=Cluster0";
 
-app.get('/', (req, res) => {
-  res.send('✅ Backend Server is Running Successfully!');
-});
+mongoose.connect(MONGO_URI)
+  .then(() => console.log('✅ Connected to MongoDB Atlas'))
+  .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
 // 1. Medicine Schema
 const medicineSchema = new mongoose.Schema({
-  id: Number,
   medicine_name: String,
   brand_name: String,
   batch_number: String,
   manufacturing_date: String,
   expiry_date: String,
   qr_hash: String,
-  status: String,
-  image_url: String
+  status: { type: String, default: 'AUTHENTIC' }
 });
 
-const Medicine = mongoose.model('Medicine', medicineSchema);
+const Medicine = mongoose.models.Medicine || mongoose.model('Medicine', medicineSchema);
 
-// 2. Report Schema
+// 2. Report Schema (Saves Counterfeit Reports directly to MongoDB)
 const reportSchema = new mongoose.Schema({
   batch_number: { type: String, required: true },
-  reason: { type: String, default: 'Counterfeit / Unverified scan' },
+  reason: { type: String, required: true },
   store_location: { type: String, default: 'Not specified' },
   reported_at: { type: Date, default: Date.now }
 });
 
-const Report = mongoose.model('Report', reportSchema);
+const Report = mongoose.models.Report || mongoose.model('Report', reportSchema);
 
-// Special characters aur extra space hatane ke liye helper
-const normalize = (str) => String(str || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+// --- ROUTES ---
 
-// Strict Verification Route
+// Health Check
+app.get('/', (req, res) => {
+  res.send('MedVerify AI Backend API is Running');
+});
+
+// Verification API Endpoint
 app.get('/api/verify/:batch', async (req, res) => {
   try {
     const rawInput = decodeURIComponent(req.params.batch).replace(/[\r\n]+/g, '').trim();
-    const cleanInput = normalize(rawInput);
-    
-    console.log("🔍 Incoming Verification Request:", rawInput);
+    console.log("🔍 Search Request For Batch:", rawInput);
 
-    if (!cleanInput) {
-      return res.status(400).json({
-        success: false,
-        status: "FAKE",
-        title: "🚨 INVALID INPUT",
-        message: "Scanned input or batch code is empty."
-      });
-    }
-
-    // Database search
-    const allMedicines = await Medicine.find({});
-
-    let found = allMedicines.find(med => {
-      const dbBatchClean = normalize(med.batch_number);
-      const dbHashClean = normalize(med.qr_hash);
-
-      // 1. Exact Match with Batch Number or QR Hash
-      if (dbBatchClean && cleanInput === dbBatchClean) return true;
-      if (dbHashClean && cleanInput === dbHashClean) return true;
-
-      // 2. Scanned String Contains Batch/Hash
-      if (cleanInput.length > 5) {
-        if (dbBatchClean && dbBatchClean.length >= 3 && cleanInput.includes(dbBatchClean)) return true;
-        if (dbHashClean && dbHashClean.length >= 5 && cleanInput.includes(dbHashClean)) return true;
-      }
-
-      return false;
-    });
-
-    // ABSOLUTE FIX: Agar DB me match na ho -> Directly FAKE return karega
-    if (!found) {
-      console.log("❌ Result: UNVERIFIED / FAKE CODE");
+    if (!rawInput || rawInput.length < 2) {
       return res.status(404).json({
         success: false,
         status: "FAKE",
         title: "🚨 UNVERIFIED / COUNTERFEIT",
-        batchNumber: rawInput,
-        message: "This batch number or scanned QR code was not found in the official registry."
+        message: "Invalid or too short batch code entered."
       });
     }
 
-    console.log(`🎯 Result: AUTHENTIC MATCH -> ${found.medicine_name}`);
+    // GS1 DataMatrix 10 AI Extractor
+    let targetBatch = rawInput;
+    if (rawInput.includes('10')) {
+      const gs1Match = rawInput.match(/10([A-Za-z0-9\-]{3,15})(11|17|21|240|$)/);
+      if (gs1Match && gs1Match[1]) {
+        targetBatch = gs1Match[1];
+      }
+    }
 
-    const dbStatus = String(found.status || '').toLowerCase();
+    const cleanInput = targetBatch.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
 
-    // DB Blacklisted Status Check
-    if (dbStatus.includes('fake') || dbStatus.includes('invalid') || dbStatus.includes('counterfeit')) {
+    // Query Database
+    const allMedicines = await Medicine.find({});
+    const found = allMedicines.find(med => {
+      const dbBatch = (med.batch_number || '').trim();
+      const dbClean = dbBatch.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+      const dbHash = (med.qr_hash || '').trim().toLowerCase();
+
+      return dbClean === cleanInput || dbHash === cleanInput || (dbClean.length >= 3 && cleanInput === dbClean);
+    });
+
+    // Handle Unverified / Fake
+    if (!found) {
+      return res.status(404).json({
+        success: false,
+        status: "FAKE",
+        title: "🚨 UNVERIFIED / COUNTERFEIT",
+        message: "This batch number was not found in the official registry."
+      });
+    }
+
+    // Check Blacklisted or Duplicate Flagged Status in Database
+    const dbStatus = String(found.status || 'AUTHENTIC').toUpperCase();
+    if (dbStatus.includes('FAKE') || dbStatus.includes('SUSPICIOUS') || dbStatus.includes('INVALID')) {
       return res.json({
         success: false,
         status: "FAKE",
         title: "🚨 COUNTERFEIT FLAGGED",
-        batchNumber: found.batch_number || rawInput,
-        data: found,
-        message: "Warning! This product batch has been officially blacklisted."
+        message: "Warning! This product batch has been officially blacklisted.",
+        data: {
+          medicine_name: found.medicine_name,
+          brand_name: found.brand_name,
+          batch_number: found.batch_number,
+          manufacturing_date: found.manufacturing_date,
+          expiry_date: found.expiry_date
+        }
       });
     }
 
-    // Expiry Check
+    // Expiry Check Logic
     const today = new Date().toISOString().split('T')[0];
-    if (found.expiry_date && found.expiry_date < today) {
-      return res.json({
-        success: true,
-        status: "EXPIRED",
-        title: "⚠️ EXPIRED MEDICINE",
-        batchNumber: found.batch_number || rawInput,
-        data: found,
-        message: `Product expired on ${found.expiry_date}. Do not consume.`
-      });
-    }
+    const isExpired = found.expiry_date && found.expiry_date < today;
 
-    // Authentic Match Output
     return res.json({
       success: true,
-      status: "AUTHENTIC",
-      title: "✅ VERIFIED AUTHENTIC",
-      batchNumber: found.batch_number || rawInput,
-      data: found,
-      message: "Guaranteed original product and safe for consumption."
+      status: isExpired ? "EXPIRED" : "AUTHENTIC",
+      title: isExpired ? "⚠️ EXPIRED MEDICINE" : "✅ VERIFIED AUTHENTIC",
+      message: isExpired ? `Product expired on ${found.expiry_date}. Do not distribute or consume.` : "Guaranteed original product and safe for consumption.",
+      data: {
+        medicine_name: found.medicine_name,
+        brand_name: found.brand_name,
+        batch_number: found.batch_number,
+        manufacturing_date: found.manufacturing_date,
+        expiry_date: found.expiry_date
+      }
     });
 
   } catch (error) {
-    console.error("Database Query Error:", error);
-    res.status(500).json({ success: false, status: "ERROR", message: "Server database query failed." });
+    console.error("Verification error:", error);
+    res.status(500).json({ success: false, status: "FAKE", message: "Server error querying database." });
   }
 });
 
-// Report Counterfeit API Route
+// Report Submission API Endpoint
 app.post('/api/report', async (req, res) => {
   try {
     const { batch_number, reason, store_location } = req.body;
-    console.log("📥 Storing Report in DB:", req.body);
+
+    if (!batch_number || !reason) {
+      return res.status(400).json({
+        success: false,
+        message: 'Batch number and reason are required.'
+      });
+    }
 
     const newReport = new Report({
-      batch_number: batch_number || 'UNKNOWN',
-      reason: reason || 'Counterfeit / Unverified scan',
-      store_location: store_location || 'Not specified',
-      reported_at: new Date()
+      batch_number,
+      reason,
+      store_location
     });
 
     await newReport.save();
-    console.log("✅ Report Saved to MongoDB Atlas!");
+    console.log("🚨 Counterfeit Report Saved to MongoDB:", newReport);
 
     return res.status(201).json({
       success: true,
-      status: "SUCCESS",
-      message: "Report saved successfully in database."
+      message: 'Report submitted successfully to database.',
+      reportId: newReport._id
     });
-
   } catch (error) {
-    console.error("❌ Error Saving Report:", error);
+    console.error("Report saving error:", error);
     return res.status(500).json({
       success: false,
-      status: "ERROR",
-      message: "Failed to save report in database."
+      message: 'Failed to save report to database.'
     });
   }
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
-module.exports = app;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
