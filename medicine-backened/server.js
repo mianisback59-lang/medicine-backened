@@ -43,7 +43,7 @@ app.get('/', (req, res) => {
   res.send('MedVerify AI Backend API is Running');
 });
 
-// Verification API Endpoint (Supports FND-2023-12, 570441, & GS1 Formats)
+// Verification API Endpoint (Supports FND-2023-12, 570441, & Complex GS1 Formats)
 app.get('/api/verify/:batch', async (req, res) => {
   try {
     const rawInput = decodeURIComponent(req.params.batch).replace(/[\r\n]+/g, '').trim();
@@ -58,14 +58,17 @@ app.get('/api/verify/:batch', async (req, res) => {
       });
     }
 
-    // Smart GS1 Parsing: Only extracts if string starts with GS1 Prefix (01) & is long
     let targetBatch = rawInput;
-    if (rawInput.length > 18 && rawInput.startsWith('01') && rawInput.includes('10')) {
-      const gs1Match = rawInput.match(/10([A-Za-z0-9\-]{3,15})(11|17|21|240|$)/);
+
+    // Fixed GS1 Extractor: Cuts exact batch number ignoring AI codes & trailing product names
+    if (rawInput.includes('10')) {
+      const gs1Match = rawInput.match(/10([A-Za-z0-9\-]{3,12}?)(11|17|21|240|[A-Za-z\s\/]|$)/);
       if (gs1Match && gs1Match[1]) {
         targetBatch = gs1Match[1];
       }
     }
+
+    console.log("🎯 Cleaned Target Batch for DB:", targetBatch);
 
     const rawInputLower = targetBatch.toLowerCase();
     const cleanInput = targetBatch.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
@@ -83,7 +86,8 @@ app.get('/api/verify/:batch', async (req, res) => {
         dbBatchRaw === rawInputLower ||
         dbHashRaw === rawInputLower ||
         dbClean === cleanInput ||
-        dbHashClean === cleanInput
+        dbHashClean === cleanInput ||
+        rawInput.toLowerCase().includes(dbClean)
       );
     });
 
