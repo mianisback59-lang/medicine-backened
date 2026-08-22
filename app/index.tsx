@@ -65,6 +65,7 @@ export default function Index() {
     );
   }
 
+  // Safe Batch Code Cleaner (Does NOT break standard numeric or hyphenated codes)
   const extractCleanBatch = (rawCode: string): string => {
     if (!rawCode) return '';
     let cleaned = String(rawCode).replace(/[\r\n]+/g, '').trim();
@@ -74,7 +75,8 @@ export default function Index() {
       cleaned = parts[parts.length - 1] || cleaned;
     }
 
-    if (cleaned.includes('10')) {
+    // Only extract GS1 if string starts with GS1 application identifier 01 and is long
+    if (cleaned.length > 18 && cleaned.startsWith('01') && cleaned.includes('10')) {
       const gs1Match = cleaned.match(/10([A-Za-z0-9\-]{3,15})(11|17|21|240|$)/);
       if (gs1Match && gs1Match[1]) {
         return gs1Match[1];
@@ -314,7 +316,7 @@ export default function Index() {
         </View>
       )}
 
-      {/* REPORT MEDICINE MODAL (MongoDB POST) */}
+      {/* REPORT MEDICINE MODAL */}
       <Modal visible={isReportModalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
