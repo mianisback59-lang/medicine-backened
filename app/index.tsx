@@ -150,7 +150,6 @@ export default function Index() {
         });
       }
     } catch (error: any) {
-      // Direct to Fake/Unverified if error or unknown batch response
       setResult({
         status: 'FAKE',
         title: '🚨 UNVERIFIED / COUNTERFEIT',
@@ -271,31 +270,29 @@ export default function Index() {
           <Text style={styles.resultMsg}>{result.msg}</Text>
 
           {result.data && result.status === 'AUTHENTIC' && (
-            <View style={styles.detailsContainer}>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Medicine Name</Text>
-                <Text style={styles.detailValue}>{result.data.medicine_name || 'N/A'}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Manufacturer</Text>
-                <Text style={styles.detailValue}>{result.data.brand_name || 'N/A'}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Batch Code</Text>
-                <Text style={styles.detailValue}>{result.data.batch_number || activeBatch}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Mfg Date</Text>
-                <Text style={styles.detailValue}>{result.data.manufacturing_date || 'N/A'}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Expiry Date</Text>
-                <Text style={[styles.detailValue, result.status === 'EXPIRED' && { color: '#EF4444' }]}>
-                  {result.data.expiry_date || 'N/A'}
-                </Text>
-              </View>
-            </View>
-          )}
+  <View style={styles.detailsContainer}>
+    <View style={styles.detailRow}>
+      <Text style={styles.detailLabel}>Medicine Name</Text>
+      <Text style={styles.detailValue}>{result.data.medicine_name || 'N/A'}</Text>
+    </View>
+    <View style={styles.detailRow}>
+      <Text style={styles.detailLabel}>Manufacturer</Text>
+      <Text style={styles.detailValue}>{result.data.brand_name || 'N/A'}</Text>
+    </View>
+    <View style={styles.detailRow}>
+      <Text style={styles.detailLabel}>Batch Code</Text>
+      <Text style={styles.detailValue}>{result.data.batch_number || activeBatch}</Text>
+    </View>
+    <View style={styles.detailRow}>
+      <Text style={styles.detailLabel}>Mfg Date</Text>
+      <Text style={styles.detailValue}>{result.data.manufacturing_date || 'N/A'}</Text>
+    </View>
+    <View style={styles.detailRow}>
+      <Text style={styles.detailLabel}>Expiry Date</Text>
+      <Text style={styles.detailValue}>{result.data.expiry_date || 'N/A'}</Text>
+    </View>
+  </View>
+)}
 
           {(result.status === 'FAKE' || result.status === 'SUSPICIOUS') && (
             <TouchableOpacity style={styles.reportBtn} onPress={() => setIsReportModalVisible(true)}>
@@ -414,6 +411,7 @@ const styles = StyleSheet.create({
   detailRow: { flexDirection: 'row', justifyContent: 'space-between' },
   detailLabel: { fontSize: 13, color: '#64748B' },
   detailValue: { fontSize: 13, fontWeight: '700', color: '#0F172A' },
+  expiredText: { color: '#EF4444' },
   reportBtn: { backgroundColor: '#EF4444', paddingVertical: 12, borderRadius: 12, alignItems: 'center', marginBottom: 8 },
   reportBtnText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
   resetBtn: { backgroundColor: '#0F172A', paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
