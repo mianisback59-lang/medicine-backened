@@ -7,7 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// MongoDB Connection String Integrated
+// MongoDB Connection String
 const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://mianisback59_db_user:n0dxouZjCQFC1P0k@cluster0.zm6ckjm.mongodb.net/medverify?retryWrites=true&w=majority&appName=Cluster0";
 
 mongoose.connect(MONGO_URI)
@@ -27,7 +27,7 @@ const medicineSchema = new mongoose.Schema({
 
 const Medicine = mongoose.models.Medicine || mongoose.model('Medicine', medicineSchema);
 
-// 2. Report Schema (Saves Counterfeit Reports directly to MongoDB)
+// 2. Report Schema
 const reportSchema = new mongoose.Schema({
   batch_number: { type: String, required: true },
   reason: { type: String, required: true },
@@ -39,12 +39,11 @@ const Report = mongoose.models.Report || mongoose.model('Report', reportSchema);
 
 // --- ROUTES ---
 
-// Health Check
 app.get('/', (req, res) => {
   res.send('MedVerify AI Backend API is Running');
 });
 
-// Verification API Endpoint
+// Verification API Endpoint (Supports FND-2023-12, 570441, & GS1 Formats)
 app.get('/api/verify/:batch', async (req, res) => {
   try {
     const rawInput = decodeURIComponent(req.params.batch).replace(/[\r\n]+/g, '').trim();
@@ -59,25 +58,33 @@ app.get('/api/verify/:batch', async (req, res) => {
       });
     }
 
-    // GS1 DataMatrix 10 AI Extractor
+    // Smart GS1 Parsing: Only extracts if string starts with GS1 Prefix (01) & is long
     let targetBatch = rawInput;
-    if (rawInput.includes('10')) {
+    if (rawInput.length > 18 && rawInput.startsWith('01') && rawInput.includes('10')) {
       const gs1Match = rawInput.match(/10([A-Za-z0-9\-]{3,15})(11|17|21|240|$)/);
       if (gs1Match && gs1Match[1]) {
         targetBatch = gs1Match[1];
       }
     }
 
+    const rawInputLower = targetBatch.toLowerCase();
     const cleanInput = targetBatch.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
 
-    // Query Database
+    // Flexible Query Matching
     const allMedicines = await Medicine.find({});
     const found = allMedicines.find(med => {
-      const dbBatch = (med.batch_number || '').trim();
-      const dbClean = dbBatch.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-      const dbHash = (med.qr_hash || '').trim().toLowerCase();
+      const dbBatchRaw = (med.batch_number || '').trim().toLowerCase();
+      const dbHashRaw = (med.qr_hash || '').trim().toLowerCase();
+      
+      const dbClean = dbBatchRaw.replace(/[^a-zA-Z0-9]/g, '');
+      const dbHashClean = dbHashRaw.replace(/[^a-zA-Z0-9]/g, '');
 
-      return dbClean === cleanInput || dbHash === cleanInput || (dbClean.length >= 3 && cleanInput === dbClean);
+      return (
+        dbBatchRaw === rawInputLower ||
+        dbHashRaw === rawInputLower ||
+        dbClean === cleanInput ||
+        dbHashClean === cleanInput
+      );
     });
 
     // Handle Unverified / Fake
@@ -90,7 +97,7 @@ app.get('/api/verify/:batch', async (req, res) => {
       });
     }
 
-    // Check Blacklisted or Duplicate Flagged Status in Database
+    // Check Blacklisted Status
     const dbStatus = String(found.status || 'AUTHENTIC').toUpperCase();
     if (dbStatus.includes('FAKE') || dbStatus.includes('SUSPICIOUS') || dbStatus.includes('INVALID')) {
       return res.json({
@@ -132,7 +139,7 @@ app.get('/api/verify/:batch', async (req, res) => {
   }
 });
 
-// Report Submission API Endpoint
+// Report Submission Endpoint
 app.post('/api/report', async (req, res) => {
   try {
     const { batch_number, reason, store_location } = req.body;
