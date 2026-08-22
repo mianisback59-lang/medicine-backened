@@ -410,6 +410,7 @@ const styles = StyleSheet.create({
   reportBtnText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
   resetBtn: { backgroundColor: '#0F172A', paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
   resetBtnText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
+  
   modalOverlay: { flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.6)', justifyContent: 'center', padding: 20 },
   modalContainer: { backgroundColor: '#FFF', borderRadius: 20, padding: 20, elevation: 5 },
   modalTitle: { fontSize: 18, fontWeight: '800', color: '#0F172A' },
