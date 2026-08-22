@@ -12,7 +12,6 @@ mongoose.connect(MONGO_URI)
   .then(() => console.log('✅ Connected to MongoDB Atlas Cloud Database'))
   .catch((err) => console.error('❌ MongoDB Connection Error:', err));
 
-// Home Route for Direct Vercel Testing
 app.get('/', (req, res) => {
   res.send('✅ Backend Server is Running Successfully!');
 });
@@ -26,7 +25,8 @@ const medicineSchema = new mongoose.Schema({
   manufacturing_date: String,
   expiry_date: String,
   qr_hash: String,
-  status: String
+  status: String,
+  image_url: String
 });
 
 const Medicine = mongoose.model('Medicine', medicineSchema);
@@ -41,89 +41,75 @@ const reportSchema = new mongoose.Schema({
 
 const Report = mongoose.model('Report', reportSchema);
 
-// Helper function: Faaltu special characters aur spaces hatane ke liye
+// Normalization helper (hyphens aur special characters remove karke lowercasing)
 const normalize = (str) => String(str || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
 
-// Verification API Route (Smart Search Enabled)
+// Smart Verification Route
 app.get('/api/verify/:batch', async (req, res) => {
   try {
     const rawInput = decodeURIComponent(req.params.batch).replace(/[\r\n]+/g, '').trim();
-    console.log("🔍 Backend Received Raw Text:", rawInput);
-
-    // 1. Full Database Items Fetch (For Smart Matching)
-    const allMedicines = await Medicine.find({});
     const cleanInput = normalize(rawInput);
+    
+    console.log("🔍 Search Received - Raw:", rawInput, "| Clean:", cleanInput);
 
-    // 2. Smart Fuzzy Matching Engine
+    if (!cleanInput) {
+      return res.status(400).json({
+        success: false,
+        status: "FAKE",
+        title: "🚨 INVALID CODE",
+        message: "Scanned text or batch code is empty."
+      });
+    }
+
+    const allMedicines = await Medicine.find({});
+
+    // Precise Matching Engine for GS1 QR Strings & Manual Inputs
     let found = allMedicines.find(med => {
       const dbBatchClean = normalize(med.batch_number);
       const dbHashClean = normalize(med.qr_hash);
 
-      if (!dbBatchClean) return false;
+      // 1. Direct/Exact Match on Batch or Hash
+      if (dbBatchClean && cleanInput === dbBatchClean) return true;
+      if (dbHashClean && cleanInput === dbHashClean) return true;
 
-      // Check A: Simple/Exact Match
-      if (cleanInput === dbBatchClean || cleanInput === dbHashClean) return true;
-
-      // Check B: Input Contains DB Batch Number (Barcode QR String Scenario)
-      if (dbBatchClean.length >= 3 && cleanInput.includes(dbBatchClean)) return true;
-
-      // Check C: DB Batch Number Contains Input (Partial Manual Entry Scenario)
-      if (cleanInput.length >= 3 && dbBatchClean.includes(cleanInput)) return true;
-
-      // Check D: QR Hash Partial Match
-      if (dbHashClean && dbHashClean.length >= 5 && cleanInput.includes(dbHashClean)) return true;
+      // 2. Scanned QR String Contains DB Batch/Hash
+      if (cleanInput.length > 5) {
+        if (dbBatchClean && dbBatchClean.length >= 3 && cleanInput.includes(dbBatchClean)) return true;
+        if (dbHashClean && dbHashClean.length >= 5 && cleanInput.includes(dbHashClean)) return true;
+      }
 
       return false;
     });
 
-    console.log("🎯 Match Result:", found ? `FOUND: ${found.medicine_name} (${found.batch_number})` : 'NOT FOUND');
-
-    // Fallback Mock Data if DB search fails for test batch
-    if (!found && (rawInput === '510902' || cleanInput.includes('510902'))) {
-      found = {
-        medicine_name: 'Panadol Extra',
-        brand_name: 'GSK Pakistan',
-        batch_number: '510902',
-        manufacturing_date: '2025-01-15',
-        expiry_date: '2027-01-15',
-        status: 'AUTHENTIC'
-      };
-    }
-
+    // Code Database me na hone par FAKE Status return karega
     if (!found) {
+      console.log("❌ Result: NOT FOUND in Registry");
       return res.status(404).json({
         success: false,
         status: "FAKE",
         title: "🚨 UNVERIFIED / COUNTERFEIT",
         batchNumber: rawInput,
-        message: "This batch number or QR code was not found in the official registry."
+        message: "This batch number or scanned QR code was not found in the official registry."
       });
     }
 
-    const itemStatus = String(found.status || 'AUTHENTIC').toUpperCase();
+    console.log(`🎯 Result: FOUND -> ${found.medicine_name} (${found.batch_number})`);
 
-    if (itemStatus.includes('FAKE') || itemStatus.includes('INVALID')) {
+    const dbStatus = String(found.status || '').toLowerCase();
+
+    // Blacklisted / Fake Status Check
+    if (dbStatus.includes('fake') || dbStatus.includes('invalid') || dbStatus.includes('counterfeit')) {
       return res.json({
         success: false,
         status: "FAKE",
         title: "🚨 COUNTERFEIT FLAGGED",
         batchNumber: found.batch_number || rawInput,
         data: found,
-        message: "Warning! This product batch has been officially blacklisted."
+        message: "Warning! This product batch has been blacklisted in database."
       });
     }
 
-    if (itemStatus.includes('SUSPICIOUS') || itemStatus.includes('DUPLICATE')) {
-      return res.json({
-        success: false,
-        status: "SUSPICIOUS",
-        title: "⚠️ SUSPICIOUS / DUPLICATE SCAN",
-        batchNumber: found.batch_number || rawInput,
-        data: found,
-        message: "Duplicate scan limit exceeded. This package code might be duplicated."
-      });
-    }
-
+    // Expiry Date Check
     const today = new Date().toISOString().split('T')[0];
     if (found.expiry_date && found.expiry_date < today) {
       return res.json({
@@ -132,10 +118,11 @@ app.get('/api/verify/:batch', async (req, res) => {
         title: "⚠️ EXPIRED MEDICINE",
         batchNumber: found.batch_number || rawInput,
         data: found,
-        message: `Product expired on ${found.expiry_date}. Do not distribute or consume.`
+        message: `Product expired on ${found.expiry_date}. Do not consume.`
       });
     }
 
+    // Authentic Response
     return res.json({
       success: true,
       status: "AUTHENTIC",
@@ -155,7 +142,7 @@ app.get('/api/verify/:batch', async (req, res) => {
 app.post('/api/report', async (req, res) => {
   try {
     const { batch_number, reason, store_location } = req.body;
-    console.log("📥 Incoming Report Data:", req.body);
+    console.log("📥 Storing Report in DB:", req.body);
 
     const newReport = new Report({
       batch_number: batch_number || 'UNKNOWN',
@@ -165,20 +152,20 @@ app.post('/api/report', async (req, res) => {
     });
 
     await newReport.save();
-    console.log("✅ Report Saved to MongoDB Atlas successfully!");
+    console.log("✅ Report Saved to MongoDB Atlas!");
 
     return res.status(201).json({
       success: true,
       status: "SUCCESS",
-      message: "Report successfully saved to cloud database."
+      message: "Report saved successfully in database."
     });
 
   } catch (error) {
-    console.error("❌ Error Saving Report to DB:", error);
+    console.error("❌ Error Saving Report:", error);
     return res.status(500).json({
       success: false,
       status: "ERROR",
-      message: "Failed to store report in database."
+      message: "Failed to save report in database."
     });
   }
 });
