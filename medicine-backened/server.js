@@ -41,33 +41,45 @@ const reportSchema = new mongoose.Schema({
 
 const Report = mongoose.model('Report', reportSchema);
 
-// Verification API Route
+// Helper function: Faaltu special characters aur spaces hatane ke liye
+const normalize = (str) => String(str || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+
+// Verification API Route (Smart Search Enabled)
 app.get('/api/verify/:batch', async (req, res) => {
   try {
-    let rawInput = decodeURIComponent(req.params.batch).replace(/[\r\n]+/g, '').trim();
+    const rawInput = decodeURIComponent(req.params.batch).replace(/[\r\n]+/g, '').trim();
     console.log("🔍 Backend Received Raw Text:", rawInput);
 
-    let extractedBatch = rawInput;
-    if (rawInput.includes('10')) {
-      const match = rawInput.match(/10([A-Za-z0-9]+)11/);
-      if (match && match[1]) {
-        extractedBatch = match[1];
-      }
-    }
+    // 1. Full Database Items Fetch (For Smart Matching)
+    const allMedicines = await Medicine.find({});
+    const cleanInput = normalize(rawInput);
 
-    console.log("🎯 Extracted Batch Target:", extractedBatch);
+    // 2. Smart Fuzzy Matching Engine
+    let found = allMedicines.find(med => {
+      const dbBatchClean = normalize(med.batch_number);
+      const dbHashClean = normalize(med.qr_hash);
 
-    let found = await Medicine.findOne({
-      $or: [
-        { batch_number: { $regex: new RegExp('^' + extractedBatch + '$', 'i') } },
-        { batch_number: { $regex: new RegExp('^' + rawInput + '$', 'i') } },
-        { qr_hash: rawInput },
-        { qr_hash: { $regex: extractedBatch, $options: 'i' } }
-      ]
+      if (!dbBatchClean) return false;
+
+      // Check A: Simple/Exact Match
+      if (cleanInput === dbBatchClean || cleanInput === dbHashClean) return true;
+
+      // Check B: Input Contains DB Batch Number (Barcode QR String Scenario)
+      if (dbBatchClean.length >= 3 && cleanInput.includes(dbBatchClean)) return true;
+
+      // Check C: DB Batch Number Contains Input (Partial Manual Entry Scenario)
+      if (cleanInput.length >= 3 && dbBatchClean.includes(cleanInput)) return true;
+
+      // Check D: QR Hash Partial Match
+      if (dbHashClean && dbHashClean.length >= 5 && cleanInput.includes(dbHashClean)) return true;
+
+      return false;
     });
 
+    console.log("🎯 Match Result:", found ? `FOUND: ${found.medicine_name} (${found.batch_number})` : 'NOT FOUND');
+
     // Fallback Mock Data if DB search fails for test batch
-    if (!found && (extractedBatch === '510902' || rawInput === '510902')) {
+    if (!found && (rawInput === '510902' || cleanInput.includes('510902'))) {
       found = {
         medicine_name: 'Panadol Extra',
         brand_name: 'GSK Pakistan',
@@ -83,28 +95,30 @@ app.get('/api/verify/:batch', async (req, res) => {
         success: false,
         status: "FAKE",
         title: "🚨 UNVERIFIED / COUNTERFEIT",
-        batchNumber: extractedBatch,
+        batchNumber: rawInput,
         message: "This batch number or QR code was not found in the official registry."
       });
     }
 
-    if (found.status && (found.status.toUpperCase().includes('FAKE') || found.status.toUpperCase().includes('INVALID'))) {
+    const itemStatus = String(found.status || 'AUTHENTIC').toUpperCase();
+
+    if (itemStatus.includes('FAKE') || itemStatus.includes('INVALID')) {
       return res.json({
         success: false,
         status: "FAKE",
         title: "🚨 COUNTERFEIT FLAGGED",
-        batchNumber: found.batch_number || extractedBatch,
+        batchNumber: found.batch_number || rawInput,
         data: found,
         message: "Warning! This product batch has been officially blacklisted."
       });
     }
 
-    if (found.status && (found.status.toUpperCase().includes('SUSPICIOUS') || found.status.toUpperCase().includes('DUPLICATE'))) {
+    if (itemStatus.includes('SUSPICIOUS') || itemStatus.includes('DUPLICATE')) {
       return res.json({
         success: false,
         status: "SUSPICIOUS",
         title: "⚠️ SUSPICIOUS / DUPLICATE SCAN",
-        batchNumber: found.batch_number || extractedBatch,
+        batchNumber: found.batch_number || rawInput,
         data: found,
         message: "Duplicate scan limit exceeded. This package code might be duplicated."
       });
@@ -116,7 +130,7 @@ app.get('/api/verify/:batch', async (req, res) => {
         success: true,
         status: "EXPIRED",
         title: "⚠️ EXPIRED MEDICINE",
-        batchNumber: found.batch_number || extractedBatch,
+        batchNumber: found.batch_number || rawInput,
         data: found,
         message: `Product expired on ${found.expiry_date}. Do not distribute or consume.`
       });
@@ -126,7 +140,7 @@ app.get('/api/verify/:batch', async (req, res) => {
       success: true,
       status: "AUTHENTIC",
       title: "✅ VERIFIED AUTHENTIC",
-      batchNumber: found.batch_number || extractedBatch,
+      batchNumber: found.batch_number || rawInput,
       data: found,
       message: "Guaranteed original product and safe for consumption."
     });
