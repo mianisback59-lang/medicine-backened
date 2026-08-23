@@ -7,12 +7,19 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// MongoDB Connection String
+// MongoDB Connection with Caching for Serverless (Vercel)
 const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://mianisback59_db_user:n0dxouZjCQFC1P0k@cluster0.zm6ckjm.mongodb.net/medverify?retryWrites=true&w=majority&appName=Cluster0";
 
-mongoose.connect(MONGO_URI)
-  .then(() => console.log('✅ Connected to MongoDB Atlas'))
-  .catch(err => console.error('❌ MongoDB Connection Error:', err));
+let cachedDb = null;
+
+async function connectToDatabase() {
+  if (cachedDb && mongoose.connection.readyState === 1) {
+    return cachedDb;
+  }
+  const opts = { bufferCommands: false };
+  cachedDb = await mongoose.connect(MONGO_URI, opts);
+  return cachedDb;
+}
 
 // Medicine Schema
 const medicineSchema = new mongoose.Schema({
@@ -32,9 +39,11 @@ app.get('/', (req, res) => {
   res.status(200).send('✅ Backend Server is Running Successfully!');
 });
 
-// Verification API Route with Database Check
+// Verification API Route with Optimized Database Check
 app.get('/api/verify/:batch', async (req, res) => {
   try {
+    await connectToDatabase();
+
     let rawInput = decodeURIComponent(req.params.batch).replace(/[\r\n]+/g, '').trim();
     console.log("🔍 Search Request For Batch:", rawInput);
 
@@ -109,5 +118,4 @@ app.get('/api/verify/:batch', async (req, res) => {
   }
 });
 
-// Vercel deployment ke liye export zaroori hai
 module.exports = app;
