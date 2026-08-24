@@ -32,7 +32,60 @@ interface VerificationResult {
   batch?: string;
 }
 
+// Translations Dictionary (English & Urdu)
+const translations = {
+  en: {
+    appTitle: "MedVerify AI",
+    appSubtitle: "Instant Authenticity & Safety Scanner",
+    langToggle: "اردو",
+    flashOn: "💡 Flash ON",
+    flashOff: "🔦 Flash OFF",
+    placeholder: "Enter Batch No (e.g. 510902)",
+    verifyBtn: "Verify",
+    scanPrompt: "Point your camera at a QR code or barcode to scan.",
+    reportMedicine: "REPORT MEDICINE",
+    scanAnother: "SCAN ANOTHER MEDICINE",
+    modalTitle: "Report Counterfeit Medicine",
+    reportingBatch: "Reporting Batch: ",
+    reasonLabel: "Reason for Reporting *",
+    reasonPlaceholder: "e.g. Broken seal, wrong packaging, fake QR code",
+    storeLabel: "Medical Store Name / Location (Optional)",
+    storePlaceholder: "e.g. City Pharmacy, Lahore",
+    submitReport: "Submit Report to DRAP",
+    submitting: "Submitting...",
+    cancel: "Cancel",
+    reportSuccess: "Report Submitted!",
+    done: "مکمل",
+  },
+  ur: {
+    appTitle: "میڈ ویریفائی اے آئی",
+    appSubtitle: "فوری اصلیت اور حفاظت کا سکینر",
+    langToggle: "English",
+    flashOn: "💡 flashOn",
+    flashOff: "🔦 flashOff",
+    placeholder: "بیچ نمبر درج کریں (مثلاً 510902)",
+    verifyBtn: "تصدیق کریں",
+    scanPrompt: "کیمرے کو QR یا بارکوڈ کی طرف کریں۔",
+    reportMedicine: "دوائی کی شکایت درج کریں",
+    scanAnother: "دوسری دوائی سکین کریں",
+    modalTitle: "جعلی دوائی کی رپورٹ کریں",
+    reportingBatch: "رپورٹ شدہ بیچ: ",
+    reasonLabel: "شکایت کی وجہ *",
+    reasonPlaceholder: "مثلاً ٹوٹی ہوئی سیل، غلط پیکنگ، جعلی کیو آر کوڈ",
+    storeLabel: "میڈیکل سٹور کا نام / مقام (اختیاری)",
+    storePlaceholder: "مثلاً سٹی فارمیسی، لاہور",
+    submitReport: "ڈریپ (DRAP) کو رپورٹ بھیجیں",
+    submitting: "جمع ہو رہا ہے...",
+    cancel: "منسوخ کریں",
+    reportSuccess: "رپورٹ جمع ہو گئی!",
+    done: "مکمل",
+  }
+};
+
 export default function Index() {
+  const [lang, setLang] = useState<'en' | 'ur'>('en');
+  const t = translations[lang];
+
   const [permission, requestPermission] = useCameraPermissions();
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [result, setResult] = useState<VerificationResult | null>(null);
@@ -126,10 +179,10 @@ export default function Index() {
       if (!isOk || !apiResponse.data || apiResponse.status === 'FAKE') {
         setResult({
           status: 'FAKE',
-          title: apiResponse.title || '🚨 UNVERIFIED / COUNTERFEIT',
+          title: lang === 'ur' ? '🚨 جعلی / غیر مصدقہ پروڈکٹ' : (apiResponse.title || '🚨 UNVERIFIED / COUNTERFEIT'),
           color: '#EF4444',
           batch: searchTarget,
-          msg: apiResponse?.message || 'This batch number was not found in the official registry.',
+          msg: lang === 'ur' ? 'یہ بیچ نمبر سرکاری ریکارڈ میں نہیں ملا۔' : (apiResponse?.message || 'This batch number was not found in the official registry.'),
         });
       } else {
         const rawStatus = apiResponse.status || 'AUTHENTIC';
@@ -138,21 +191,23 @@ export default function Index() {
 
         setResult({
           status: rawStatus as any,
-          title: apiResponse.title || (rawStatus === 'EXPIRED' ? '⚠️ EXPIRED MEDICINE' : '✅ VERIFIED AUTHENTIC'),
+          title: lang === 'ur' 
+            ? (rawStatus === 'EXPIRED' ? '⚠️ معیاد ختم شدہ دوائی' : '✅ اصلی اور تصدیق شدہ')
+            : (apiResponse.title || (rawStatus === 'EXPIRED' ? '⚠️ EXPIRED MEDICINE' : '✅ VERIFIED AUTHENTIC')),
           color: statusColor,
           data: apiResponse.data,
           batch: apiResponse.data.batch_number || searchTarget,
-          msg: apiResponse.message || 'Guaranteed original product and safe for consumption.',
+          msg: lang === 'ur' ? 'محفوظ اور اصل پروڈکٹ ہے۔' : (apiResponse.message || 'Guaranteed original product and safe for consumption.'),
         });
       }
     } catch (error: any) {
       console.error("Fetch error:", error);
       setResult({
         status: 'FAKE',
-        title: '🚨 UNVERIFIED / COUNTERFEIT',
+        title: lang === 'ur' ? '🚨 جعلی / غیر مصدقہ پروڈکٹ' : '🚨 UNVERIFIED / COUNTERFEIT',
         color: '#EF4444',
         batch: searchTarget,
-        msg: 'Unable to verify batch or code not registered in database.',
+        msg: lang === 'ur' ? 'بیچ کی تصدیق کرنے میں ناکامی یا کوڈ ڈیٹا بیس میں رجسٹرڈ نہیں۔' : 'Unable to verify batch or code not registered in database.',
       });
     } finally {
       setIsProcessing(false);
@@ -210,10 +265,17 @@ export default function Index() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
+      {/* Attractive Professional Language Toggle Button */}
+      <View style={styles.topBar}>
+        <TouchableOpacity style={styles.langBtn} onPress={() => setLang(lang === 'en' ? 'ur' : 'en')}>
+          <Text style={styles.langBtnText}>🌐 {t.langToggle}</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Header */}
       <View style={styles.headerContainer}>
-        <Text style={styles.appTitle}>MedVerify AI</Text>
-        <Text style={styles.appSubtitle}>Instant Authenticity & Safety Scanner</Text>
+        <Text style={styles.appTitle}>{t.appTitle}</Text>
+        <Text style={styles.appSubtitle}>{t.appSubtitle}</Text>
       </View>
 
       {/* Camera Section */}
@@ -230,15 +292,15 @@ export default function Index() {
         <View style={styles.overlayFrame} />
 
         <TouchableOpacity style={styles.torchBtn} onPress={() => setTorch(!torch)}>
-          <Text style={styles.torchBtnText}>{torch ? '🔦 Flash OFF' : '💡 Flash ON'}</Text>
+          <Text style={styles.torchBtnText}>{torch ? t.flashOff : t.flashOn}</Text>
         </TouchableOpacity>
       </View>
 
       {/* Manual Input Search Box */}
       <View style={styles.manualSearchBox}>
         <TextInput
-          style={styles.input}
-          placeholder="Enter Batch No (e.g. 510902)"
+          style={[styles.input, lang === 'ur' && { textAlign: 'right' }]}
+          placeholder={t.placeholder}
           placeholderTextColor="#94A3B8"
           value={manualCode}
           onChangeText={setManualCode}
@@ -253,7 +315,7 @@ export default function Index() {
             }
           }}
         >
-          <Text style={styles.verifyBtnText}>Verify</Text>
+          <Text style={styles.verifyBtnText}>{t.verifyBtn}</Text>
         </TouchableOpacity>
       </View>
 
@@ -270,23 +332,23 @@ export default function Index() {
           {result.data && (result.status === 'AUTHENTIC' || result.status === 'EXPIRED') && (
             <View style={styles.detailsContainer}>
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Medicine Name</Text>
+                <Text style={styles.detailLabel}>{lang === 'ur' ? 'دوائی کا نام' : 'Medicine Name'}</Text>
                 <Text style={styles.detailValue}>{result.data.medicine_name || 'N/A'}</Text>
               </View>
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Brand / Manufacturer</Text>
+                <Text style={styles.detailLabel}>{lang === 'ur' ? 'کمپنی / برانڈ' : 'Brand / Manufacturer'}</Text>
                 <Text style={styles.detailValue}>{result.data.brand_name || 'N/A'}</Text>
               </View>
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Batch Code</Text>
+                <Text style={styles.detailLabel}>{lang === 'ur' ? 'بیچ کوڈ' : 'Batch Code'}</Text>
                 <Text style={styles.detailValue}>{result.data.batch_number || activeBatch}</Text>
               </View>
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Manufacturing Date</Text>
+                <Text style={styles.detailLabel}>{lang === 'ur' ? 'تیاری کی تاریخ' : 'Manufacturing Date'}</Text>
                 <Text style={styles.detailValue}>{result.data.manufacturing_date || 'N/A'}</Text>
               </View>
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Expiry Date</Text>
+                <Text style={styles.detailLabel}>{lang === 'ur' ? 'تاریخِ میعاد' : 'Expiry Date'}</Text>
                 <Text style={styles.detailValue}>{result.data.expiry_date || 'N/A'}</Text>
               </View>
             </View>
@@ -295,7 +357,7 @@ export default function Index() {
           {/* Fake Case Action */}
           {(result.status === 'FAKE' || result.status === 'SUSPICIOUS') && (
             <TouchableOpacity style={styles.reportBtn} onPress={() => setIsReportModalVisible(true)}>
-              <Text style={styles.reportBtnText}>REPORT MEDICINE</Text>
+              <Text style={styles.reportBtnText}>{t.reportMedicine}</Text>
             </TouchableOpacity>
           )}
 
@@ -307,14 +369,12 @@ export default function Index() {
               setManualCode('');
             }}
           >
-            <Text style={styles.resetBtnText}>SCAN ANOTHER MEDICINE</Text>
+            <Text style={styles.resetBtnText}>{t.scanAnother}</Text>
           </TouchableOpacity>
         </View>
       ) : (
         <View style={styles.placeholderBox}>
-          <Text style={styles.placeholderText}>
-            Point your camera at a QR code or barcode to scan.
-          </Text>
+          <Text style={styles.placeholderText}>{t.scanPrompt}</Text>
         </View>
       )}
 
@@ -324,26 +384,26 @@ export default function Index() {
           <View style={styles.modalContainer}>
             {!isSubmitted ? (
               <>
-                <Text style={styles.modalTitle}>Report Counterfeit Medicine</Text>
+                <Text style={styles.modalTitle}>{t.modalTitle}</Text>
                 <Text style={styles.modalSub}>
-                  Reporting Batch: <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text>
+                  {t.reportingBatch} <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text>
                 </Text>
 
                 <Text style={styles.inputLabel}>
-                  Reason for Reporting <Text style={{ color: '#EF4444' }}>*</Text>
+                  {t.reasonLabel}
                 </Text>
                 <TextInput
                   style={styles.modalInput}
-                  placeholder="e.g. Broken seal, wrong packaging, fake QR code"
+                  placeholder={t.reasonPlaceholder}
                   placeholderTextColor="#94A3B8"
                   value={reportReason}
                   onChangeText={setReportReason}
                 />
 
-                <Text style={styles.inputLabel}>Medical Store Name / Location (Optional)</Text>
+                <Text style={styles.inputLabel}>{t.storeLabel}</Text>
                 <TextInput
                   style={styles.modalInput}
-                  placeholder="e.g. City Pharmacy, Lahore"
+                  placeholder={t.storePlaceholder}
                   placeholderTextColor="#94A3B8"
                   value={storeInfo}
                   onChangeText={setStoreInfo}
@@ -355,25 +415,25 @@ export default function Index() {
                   disabled={isSubmittingReport}
                 >
                   <Text style={styles.submitReportText}>
-                    {isSubmittingReport ? 'Submitting...' : 'Submit Report to DRAP'}
+                    {isSubmittingReport ? t.submitting : t.submitReport}
                   </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.cancelBtn} onPress={closeReportModal}>
-                  <Text style={styles.cancelText}>Cancel</Text>
+                  <Text style={styles.cancelText}>{t.cancel}</Text>
                 </TouchableOpacity>
               </>
             ) : (
               <View style={{ alignItems: 'center', paddingVertical: 10 }}>
                 <Text style={{ fontSize: 40, marginBottom: 10 }}>✅</Text>
-                <Text style={styles.modalTitle}>Report Submitted!</Text>
+                <Text style={styles.modalTitle}>{t.reportSuccess}</Text>
                 <Text style={[styles.modalSub, { textAlign: 'center', marginTop: 8 }]}>
                   Batch <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text> has been flagged and sent to Drug Regulatory Authority.
                 </Text>
                 <Text style={styles.refCode}>Ref ID: DRAP-2026-{Math.floor(1000 + Math.random() * 9000)}</Text>
 
                 <TouchableOpacity style={[styles.submitReportBtn, { width: '100%', marginTop: 20 }]} onPress={closeReportModal}>
-                  <Text style={styles.submitReportText}>Done</Text>
+                  <Text style={styles.submitReportText}>{t.done}</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -385,9 +445,21 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC', paddingHorizontal: 20, paddingTop: 50 },
+  container: { flex: 1, backgroundColor: '#F8FAFC', paddingHorizontal: 20, paddingTop: 40 },
   containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#F8FAFC' },
   permissionText: { fontSize: 16, textAlign: 'center', color: '#475569', marginBottom: 20 },
+  topBar: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 8 },
+  langBtn: { 
+    backgroundColor: '#0F172A', 
+    paddingVertical: 7, 
+    paddingHorizontal: 14, 
+    borderRadius: 20, 
+    shadowColor: '#000', 
+    shadowOpacity: 0.1, 
+    shadowRadius: 4, 
+    elevation: 2 
+  },
+  langBtnText: { color: '#FFF', fontWeight: '700', fontSize: 12, letterSpacing: 0.3 },
   headerContainer: { alignItems: 'center', marginBottom: 20 },
   appTitle: { fontSize: 26, fontWeight: '800', color: '#0F172A', letterSpacing: 0.5 },
   appSubtitle: { fontSize: 13, color: '#64748B', marginTop: 4 },
@@ -414,7 +486,7 @@ const styles = StyleSheet.create({
   reportBtnText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
   resetBtn: { backgroundColor: '#0F172A', paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
   resetBtnText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
-  
+
   modalOverlay: { flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.6)', justifyContent: 'center', padding: 20 },
   modalContainer: { backgroundColor: '#FFF', borderRadius: 20, padding: 20, elevation: 5 },
   modalTitle: { fontSize: 18, fontWeight: '800', color: '#0F172A' },
