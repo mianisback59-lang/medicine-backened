@@ -1,9 +1,11 @@
 import { BarcodeScanningResult, CameraView, useCameraPermissions } from 'expo-camera';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Alert,
   Button,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -92,6 +94,8 @@ export default function Index() {
   const [torch, setTorch] = useState<boolean>(false);
   const [manualCode, setManualCode] = useState<string>('');
 
+  const scrollViewRef = useRef<ScrollView>(null);
+
   // Report Modal States
   const [isReportModalVisible, setIsReportModalVisible] = useState<boolean>(false);
   const [reportReason, setReportReason] = useState<string>('');
@@ -153,7 +157,6 @@ export default function Index() {
     setResult(null);
 
     const searchTarget = extractCleanBatch(code);
-    console.log("🚀 Verifying Batch Code:", searchTarget);
 
     try {
       const controller = new AbortController();
@@ -200,8 +203,13 @@ export default function Index() {
           msg: lang === 'ur' ? 'محفوظ اور اصل پروڈکٹ ہے۔' : (apiResponse.message || 'Guaranteed original product and safe for consumption.'),
         });
       }
+
+      // Automatically scroll down so the result card and buttons are fully visible
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 150);
+
     } catch (error: any) {
-      console.error("Fetch error:", error);
       setResult({
         status: 'FAKE',
         title: lang === 'ur' ? '🚨 جعلی / غیر مصدقہ پروڈکٹ' : '🚨 UNVERIFIED / COUNTERFEIT',
@@ -209,6 +217,10 @@ export default function Index() {
         batch: searchTarget,
         msg: lang === 'ur' ? 'بیچ کی تصدیق کرنے میں ناکامی یا کوڈ ڈیٹا بیس میں رجسٹرڈ نہیں۔' : 'Unable to verify batch or code not registered in database.',
       });
+
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 150);
     } finally {
       setIsProcessing(false);
     }
@@ -264,210 +276,223 @@ export default function Index() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 50 }}>
-      
-      {/* Modern High-End Medical Header */}
-      <View style={styles.headerContainer}>
-        <View style={styles.titleArea}>
-          <View style={styles.badgeRow}>
-            <View style={styles.aiDot} />
-            <Text style={styles.aiBadgeText}>AI SECURE SYSTEM</Text>
+    <KeyboardAvoidingView 
+      style={{ flex: 1, backgroundColor: '#0A0F1D' }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView 
+        ref={scrollViewRef}
+        style={styles.container} 
+        contentContainerStyle={{ paddingBottom: 100 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        
+        {/* Modern High-End Medical Header */}
+        <View style={styles.headerContainer}>
+          <View style={styles.titleArea}>
+            <View style={styles.badgeRow}>
+              <View style={styles.aiDot} />
+              <Text style={styles.aiBadgeText}>AI SECURE SYSTEM</Text>
+            </View>
+            <Text style={styles.appTitle}>{t.appTitle}</Text>
+            <Text style={styles.appSubtitle}>{t.appSubtitle}</Text>
           </View>
-          <Text style={styles.appTitle}>{t.appTitle}</Text>
-          <Text style={styles.appSubtitle}>{t.appSubtitle}</Text>
+
+          <TouchableOpacity 
+            style={styles.premiumLangBtn} 
+            activeOpacity={0.8}
+            onPress={() => setLang(lang === 'en' ? 'ur' : 'en')}
+          >
+            <Text style={styles.langIcon}>🌐</Text>
+            <Text style={styles.langBtnText}>{t.langToggle}</Text>
+          </TouchableOpacity>
         </View>
 
-        <TouchableOpacity 
-          style={styles.premiumLangBtn} 
-          activeOpacity={0.8}
-          onPress={() => setLang(lang === 'en' ? 'ur' : 'en')}
-        >
-          <Text style={styles.langIcon}>🌐</Text>
-          <Text style={styles.langBtnText}>{t.langToggle}</Text>
-        </TouchableOpacity>
-      </View>
+        {/* Modern Glowing Camera Card */}
+        <View style={styles.cameraWrapper}>
+          <View style={styles.cameraCard}>
+            <CameraView
+              style={StyleSheet.absoluteFillObject}
+              facing="back"
+              enableTorch={torch}
+              onBarcodeScanned={isProcessing || result ? undefined : handleBarcodeScanned}
+              barcodeScannerSettings={{
+                barcodeTypes: ['qr', 'code128', 'ean13', 'ean8', 'datamatrix', 'pdf417'],
+              }}
+            />
+            <View style={styles.overlayFrame}>
+              <View style={[styles.corner, styles.topLeft]} />
+              <View style={[styles.corner, styles.topRight]} />
+              <View style={[styles.corner, styles.bottomLeft]} />
+              <View style={[styles.corner, styles.bottomRight]} />
+            </View>
 
-      {/* Modern Glowing Camera Card */}
-      <View style={styles.cameraWrapper}>
-        <View style={styles.cameraCard}>
-          <CameraView
-            style={StyleSheet.absoluteFillObject}
-            facing="back"
-            enableTorch={torch}
-            onBarcodeScanned={isProcessing || result ? undefined : handleBarcodeScanned}
-            barcodeScannerSettings={{
-              barcodeTypes: ['qr', 'code128', 'ean13', 'ean8', 'datamatrix', 'pdf417'],
+            <TouchableOpacity style={styles.torchBtn} onPress={() => setTorch(!torch)}>
+              <Text style={styles.torchBtnText}>{torch ? t.flashOff : t.flashOn}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Modern Input Search Box */}
+        <View style={styles.manualSearchBox}>
+          <TextInput
+            style={[styles.input, lang === 'ur' && { textAlign: 'right' }]}
+            placeholder={t.placeholder}
+            placeholderTextColor="#94A3B8"
+            value={manualCode}
+            onChangeText={setManualCode}
+            onFocus={() => {
+              setTimeout(() => {
+                scrollViewRef.current?.scrollToEnd({ animated: true });
+              }, 200);
             }}
           />
-          <View style={styles.overlayFrame}>
-            <View style={[styles.corner, styles.topLeft]} />
-            <View style={[styles.corner, styles.topRight]} />
-            <View style={[styles.corner, styles.bottomLeft]} />
-            <View style={[styles.corner, styles.bottomRight]} />
-          </View>
-
-          <TouchableOpacity style={styles.torchBtn} onPress={() => setTorch(!torch)}>
-            <Text style={styles.torchBtnText}>{torch ? t.flashOff : t.flashOn}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Modern Input Search Box */}
-      <View style={styles.manualSearchBox}>
-        <TextInput
-          style={[styles.input, lang === 'ur' && { textAlign: 'right' }]}
-          placeholder={t.placeholder}
-          placeholderTextColor="#94A3B8"
-          value={manualCode}
-          onChangeText={setManualCode}
-        />
-        <TouchableOpacity
-          style={styles.verifyBtn}
-          onPress={() => {
-            if (manualCode.trim().length > 0) {
-              verifyCode(manualCode);
-            } else {
-              Alert.alert('Notice', 'Please enter a batch number first.');
-            }
-          }}
-        >
-          <Text style={styles.verifyBtnText}>{t.verifyBtn}</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Verification Result Card */}
-      {result ? (
-        <View style={[styles.resultCard, { borderColor: result.color }]}>
-          <View style={[styles.badge, { backgroundColor: result.color }]}>
-            <Text style={styles.badgeText}>{result.status}</Text>
-          </View>
-          <Text style={[styles.resultTitle, { color: result.color }]}>{result.title}</Text>
-          <Text style={styles.resultMsg}>{result.msg}</Text>
-
-          {/* Detailed Medicine Table for AUTHENTIC & EXPIRED */}
-          {result.data && (result.status === 'AUTHENTIC' || result.status === 'EXPIRED') && (
-            <View style={styles.detailsContainer}>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>{lang === 'ur' ? 'دوائی کا نام' : 'Medicine Name'}</Text>
-                <Text style={styles.detailValue}>{result.data.medicine_name || 'N/A'}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>{lang === 'ur' ? 'کمپنی / برانڈ' : 'Brand / Manufacturer'}</Text>
-                <Text style={styles.detailValue}>{result.data.brand_name || 'N/A'}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>{lang === 'ur' ? 'بیچ کوڈ' : 'Batch Code'}</Text>
-                <Text style={styles.detailValue}>{result.data.batch_number || activeBatch}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>{lang === 'ur' ? 'تیاری کی تاریخ' : 'Manufacturing Date'}</Text>
-                <Text style={styles.detailValue}>{result.data.manufacturing_date || 'N/A'}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>{lang === 'ur' ? 'تاریخِ میعاد' : 'Expiry Date'}</Text>
-                <Text style={styles.detailValue}>{result.data.expiry_date || 'N/A'}</Text>
-              </View>
-            </View>
-          )}
-
-          {/* Fake Case Action */}
-          {(result.status === 'FAKE' || result.status === 'SUSPICIOUS') && (
-            <TouchableOpacity style={styles.reportBtn} onPress={() => setIsReportModalVisible(true)}>
-              <Text style={styles.reportBtnText}>{t.reportMedicine}</Text>
-            </TouchableOpacity>
-          )}
-
           <TouchableOpacity
-            style={styles.resetBtn}
+            style={styles.verifyBtn}
             onPress={() => {
-              setIsProcessing(false);
-              setResult(null);
-              setManualCode('');
+              if (manualCode.trim().length > 0) {
+                verifyCode(manualCode);
+              } else {
+                Alert.alert('Notice', 'Please enter a batch number first.');
+              }
             }}
           >
-            <Text style={styles.resetBtnText}>{t.scanAnother}</Text>
+            <Text style={styles.verifyBtnText}>{t.verifyBtn}</Text>
           </TouchableOpacity>
         </View>
-      ) : (
-        <View style={styles.placeholderBox}>
-          <Text style={styles.scannerIconPlaceholder}>📷</Text>
-          <Text style={styles.placeholderText}>{t.scanPrompt}</Text>
-        </View>
-      )}
 
-      {/* REPORT MODAL */}
-      <Modal visible={isReportModalVisible} animationType="slide" transparent={true}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            {!isSubmitted ? (
-              <>
-                <Text style={styles.modalTitle}>{t.modalTitle}</Text>
-                <Text style={styles.modalSub}>
-                  {t.reportingBatch} <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text>
-                </Text>
+        {/* Verification Result Card */}
+        {result ? (
+          <View style={[styles.resultCard, { borderColor: result.color }]}>
+            <View style={[styles.badge, { backgroundColor: result.color }]}>
+              <Text style={styles.badgeText}>{result.status}</Text>
+            </View>
+            <Text style={[styles.resultTitle, { color: result.color }]}>{result.title}</Text>
+            <Text style={styles.resultMsg}>{result.msg}</Text>
 
-                <Text style={styles.inputLabel}>
-                  {t.reasonLabel}
-                </Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder={t.reasonPlaceholder}
-                  placeholderTextColor="#94A3B8"
-                  value={reportReason}
-                  onChangeText={setReportReason}
-                />
-
-                <Text style={styles.inputLabel}>{t.storeLabel}</Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder={t.storePlaceholder}
-                  placeholderTextColor="#94A3B8"
-                  value={storeInfo}
-                  onChangeText={setStoreInfo}
-                />
-
-                <TouchableOpacity
-                  style={[styles.submitReportBtn, isSubmittingReport && { backgroundColor: '#94A3B8' }]}
-                  onPress={handleReportSubmit}
-                  disabled={isSubmittingReport}
-                >
-                  <Text style={styles.submitReportText}>
-                    {isSubmittingReport ? t.submitting : t.submitReport}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.cancelBtn} onPress={closeReportModal}>
-                  <Text style={styles.cancelText}>{t.cancel}</Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              <View style={{ alignItems: 'center', paddingVertical: 10 }}>
-                <Text style={{ fontSize: 40, marginBottom: 10 }}>✅</Text>
-                <Text style={styles.modalTitle}>{t.reportSuccess}</Text>
-                <Text style={[styles.modalSub, { textAlign: 'center', marginTop: 8 }]}>
-                  Batch <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text> has been flagged and sent to Drug Regulatory Authority.
-                </Text>
-                <Text style={styles.refCode}>Ref ID: DRAP-2026-{Math.floor(1000 + Math.random() * 9000)}</Text>
-
-                <TouchableOpacity style={[styles.submitReportBtn, { width: '100%', marginTop: 20 }]} onPress={closeReportModal}>
-                  <Text style={styles.submitReportText}>{t.done}</Text>
-                </TouchableOpacity>
+            {/* Detailed Medicine Table for AUTHENTIC & EXPIRED */}
+            {result.data && (result.status === 'AUTHENTIC' || result.status === 'EXPIRED') && (
+              <View style={styles.detailsContainer}>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>{lang === 'ur' ? 'دوائی کا نام' : 'Medicine Name'}</Text>
+                  <Text style={styles.detailValue}>{result.data.medicine_name || 'N/A'}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>{lang === 'ur' ? 'کمپنی / برانڈ' : 'Brand / Manufacturer'}</Text>
+                  <Text style={styles.detailValue}>{result.data.brand_name || 'N/A'}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>{lang === 'ur' ? 'بیچ کوڈ' : 'Batch Code'}</Text>
+                  <Text style={styles.detailValue}>{result.data.batch_number || activeBatch}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>{lang === 'ur' ? 'تیاری کی تاریخ' : 'Manufacturing Date'}</Text>
+                  <Text style={styles.detailValue}>{result.data.manufacturing_date || 'N/A'}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>{lang === 'ur' ? 'تاریخِ میعاد' : 'Expiry Date'}</Text>
+                  <Text style={styles.detailValue}>{result.data.expiry_date || 'N/A'}</Text>
+                </View>
               </View>
             )}
+
+            {/* Fake Case Action */}
+            {(result.status === 'FAKE' || result.status === 'SUSPICIOUS') && (
+              <TouchableOpacity style={styles.reportBtn} onPress={() => setIsReportModalVisible(true)}>
+                <Text style={styles.reportBtnText}>{t.reportMedicine}</Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              style={styles.resetBtn}
+              onPress={() => {
+                setIsProcessing(false);
+                setResult(null);
+                setManualCode('');
+              }}
+            >
+              <Text style={styles.resetBtnText}>{t.scanAnother}</Text>
+            </TouchableOpacity>
           </View>
-        </View>
-      </Modal>
-    </ScrollView>
+        ) : (
+          <View style={styles.placeholderBox}>
+            <Text style={styles.scannerIconPlaceholder}>📷</Text>
+            <Text style={styles.placeholderText}>{t.scanPrompt}</Text>
+          </View>
+        )}
+
+        {/* REPORT MODAL */}
+        <Modal visible={isReportModalVisible} animationType="slide" transparent={true}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              {!isSubmitted ? (
+                <>
+                  <Text style={styles.modalTitle}>{t.modalTitle}</Text>
+                  <Text style={styles.modalSub}>
+                    {t.reportingBatch} <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text>
+                  </Text>
+
+                  <Text style={styles.inputLabel}>
+                    {t.reasonLabel}
+                  </Text>
+                  <TextInput
+                    style={styles.modalInput}
+                    placeholder={t.reasonPlaceholder}
+                    placeholderTextColor="#94A3B8"
+                    value={reportReason}
+                    onChangeText={setReportReason}
+                  />
+
+                  <Text style={styles.inputLabel}>{t.storeLabel}</Text>
+                  <TextInput
+                    style={styles.modalInput}
+                    placeholder={t.storePlaceholder}
+                    placeholderTextColor="#94A3B8"
+                    value={storeInfo}
+                    onChangeText={setStoreInfo}
+                  />
+
+                  <TouchableOpacity
+                    style={[styles.submitReportBtn, isSubmittingReport && { backgroundColor: '#94A3B8' }]}
+                    onPress={handleReportSubmit}
+                    disabled={isSubmittingReport}
+                  >
+                    <Text style={styles.submitReportText}>
+                      {isSubmittingReport ? t.submitting : t.submitReport}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity style={styles.cancelBtn} onPress={closeReportModal}>
+                    <Text style={styles.cancelText}>{t.cancel}</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <View style={{ alignItems: 'center', paddingVertical: 10 }}>
+                  <Text style={{ fontSize: 40, marginBottom: 10 }}>✅</Text>
+                  <Text style={styles.modalTitle}>{t.reportSuccess}</Text>
+                  <Text style={[styles.modalSub, { textAlign: 'center', marginTop: 8 }]}>
+                    Batch <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text> has been flagged and sent to Drug Regulatory Authority.
+                  </Text>
+                  <Text style={styles.refCode}>Ref ID: DRAP-2026-{Math.floor(1000 + Math.random() * 9000)}</Text>
+
+                  <TouchableOpacity style={[styles.submitReportBtn, { width: '100%', marginTop: 20 }]} onPress={closeReportModal}>
+                    <Text style={styles.submitReportText}>{t.done}</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </View>
+        </Modal>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  // Rich Medical-Tech Background Gradient Accent
-  container: { flex: 1, backgroundColor: '#0A0F1D', paddingHorizontal: 20, paddingTop: 50 },
+  container: { flex: 1, paddingHorizontal: 20, paddingTop: 50 },
   containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#0A0F1D' },
   permissionText: { fontSize: 16, textAlign: 'center', color: '#94A3B8', marginBottom: 20 },
   
-  // Header Styles
   headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 },
   titleArea: { flex: 1 },
   badgeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 6 },
@@ -476,7 +501,6 @@ const styles = StyleSheet.create({
   appTitle: { fontSize: 26, fontWeight: '900', color: '#FFFFFF', letterSpacing: 0.5 },
   appSubtitle: { fontSize: 12, color: '#94A3B8', marginTop: 2 },
   
-  // Premium Language Toggle Button
   premiumLangBtn: { 
     flexDirection: 'row', 
     alignItems: 'center', 
@@ -495,7 +519,6 @@ const styles = StyleSheet.create({
   langIcon: { fontSize: 14 },
   langBtnText: { color: '#60A5FA', fontWeight: '800', fontSize: 12 },
 
-  // Glowing Camera Card & Scanner Overlay
   cameraWrapper: { 
     borderRadius: 24, 
     borderWidth: 1.5, 
@@ -510,7 +533,6 @@ const styles = StyleSheet.create({
   cameraCard: { height: 280, width: '100%', position: 'relative' },
   overlayFrame: { flex: 1, margin: 40, borderWidth: 1.5, borderColor: 'rgba(59, 130, 246, 0.6)', borderRadius: 16, backgroundColor: 'transparent', position: 'relative' },
   
-  // Glowing Viewfinder Corners
   corner: { position: 'absolute', width: 16, height: 16, borderColor: '#3B82F6' },
   topLeft: { top: -2, left: -2, borderTopWidth: 4, borderLeftWidth: 4 },
   topRight: { top: -2, right: -2, borderTopWidth: 4, borderRightWidth: 4 },
@@ -520,18 +542,15 @@ const styles = StyleSheet.create({
   torchBtn: { position: 'absolute', bottom: 14, right: 14, backgroundColor: 'rgba(15, 23, 42, 0.85)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', paddingVertical: 7, paddingHorizontal: 14, borderRadius: 20 },
   torchBtnText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
   
-  // Search Box
   manualSearchBox: { flexDirection: 'row', marginTop: 18, gap: 10 },
   input: { flex: 1, backgroundColor: '#1E293B', borderWidth: 1, borderColor: '#334155', borderRadius: 14, paddingHorizontal: 16, fontSize: 14, color: '#FFFFFF', height: 48 },
   verifyBtn: { backgroundColor: '#2563EB', justifyContent: 'center', paddingHorizontal: 20, borderRadius: 14, height: 48, shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 },
   verifyBtnText: { color: '#FFF', fontWeight: '800', fontSize: 14 },
   
-  // Placeholder Box
   placeholderBox: { marginTop: 24, padding: 24, borderRadius: 20, backgroundColor: '#111827', borderStyle: 'dashed', borderWidth: 1.5, borderColor: '#334155', alignItems: 'center' },
   scannerIconPlaceholder: { fontSize: 24, marginBottom: 6 },
   placeholderText: { fontSize: 13, color: '#94A3B8', textAlign: 'center', fontWeight: '500' },
   
-  // Result Card
   resultCard: { backgroundColor: '#111827', marginTop: 20, padding: 20, borderRadius: 22, borderWidth: 1.5, shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
   badge: { alignSelf: 'flex-start', paddingVertical: 4, paddingHorizontal: 12, borderRadius: 8, marginBottom: 10 },
   badgeText: { color: '#FFF', fontSize: 11, fontWeight: '900', letterSpacing: 0.8 },
@@ -546,7 +565,6 @@ const styles = StyleSheet.create({
   resetBtn: { backgroundColor: '#334155', paddingVertical: 14, borderRadius: 14, alignItems: 'center' },
   resetBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
 
-  // Modal
   modalOverlay: { flex: 1, backgroundColor: 'rgba(10, 15, 29, 0.85)', justifyContent: 'center', padding: 20 },
   modalContainer: { backgroundColor: '#111827', borderRadius: 24, padding: 22, borderWidth: 1, borderColor: '#334155', elevation: 10 },
   modalTitle: { fontSize: 18, fontWeight: '900', color: '#FFFFFF' },
