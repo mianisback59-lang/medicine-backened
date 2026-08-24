@@ -264,11 +264,15 @@ export default function Index() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 50 }}>
       
-      {/* Modern Header & Integrated Premium Language Button */}
+      {/* Modern High-End Medical Header */}
       <View style={styles.headerContainer}>
         <View style={styles.titleArea}>
+          <View style={styles.badgeRow}>
+            <View style={styles.aiDot} />
+            <Text style={styles.aiBadgeText}>AI SECURE SYSTEM</Text>
+          </View>
           <Text style={styles.appTitle}>{t.appTitle}</Text>
           <Text style={styles.appSubtitle}>{t.appSubtitle}</Text>
         </View>
@@ -283,25 +287,32 @@ export default function Index() {
         </TouchableOpacity>
       </View>
 
-      {/* Camera Section */}
-      <View style={styles.cameraCard}>
-        <CameraView
-          style={StyleSheet.absoluteFillObject}
-          facing="back"
-          enableTorch={torch}
-          onBarcodeScanned={isProcessing || result ? undefined : handleBarcodeScanned}
-          barcodeScannerSettings={{
-            barcodeTypes: ['qr', 'code128', 'ean13', 'ean8', 'datamatrix', 'pdf417'],
-          }}
-        />
-        <View style={styles.overlayFrame} />
+      {/* Modern Glowing Camera Card */}
+      <View style={styles.cameraWrapper}>
+        <View style={styles.cameraCard}>
+          <CameraView
+            style={StyleSheet.absoluteFillObject}
+            facing="back"
+            enableTorch={torch}
+            onBarcodeScanned={isProcessing || result ? undefined : handleBarcodeScanned}
+            barcodeScannerSettings={{
+              barcodeTypes: ['qr', 'code128', 'ean13', 'ean8', 'datamatrix', 'pdf417'],
+            }}
+          />
+          <View style={styles.overlayFrame}>
+            <View style={[styles.corner, styles.topLeft]} />
+            <View style={[styles.corner, styles.topRight]} />
+            <View style={[styles.corner, styles.bottomLeft]} />
+            <View style={[styles.corner, styles.bottomRight]} />
+          </View>
 
-        <TouchableOpacity style={styles.torchBtn} onPress={() => setTorch(!torch)}>
-          <Text style={styles.torchBtnText}>{torch ? t.flashOff : t.flashOn}</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.torchBtn} onPress={() => setTorch(!torch)}>
+            <Text style={styles.torchBtnText}>{torch ? t.flashOff : t.flashOn}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Manual Input Search Box */}
+      {/* Modern Input Search Box */}
       <View style={styles.manualSearchBox}>
         <TextInput
           style={[styles.input, lang === 'ur' && { textAlign: 'right' }]}
@@ -379,6 +390,7 @@ export default function Index() {
         </View>
       ) : (
         <View style={styles.placeholderBox}>
+          <Text style={styles.scannerIconPlaceholder}>📷</Text>
           <Text style={styles.placeholderText}>{t.scanPrompt}</Text>
         </View>
       )}
@@ -450,68 +462,100 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC', paddingHorizontal: 20, paddingTop: 40 },
-  containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#F8FAFC' },
-  permissionText: { fontSize: 16, textAlign: 'center', color: '#475569', marginBottom: 20 },
+  // Rich Medical-Tech Background Gradient Accent
+  container: { flex: 1, backgroundColor: '#0A0F1D', paddingHorizontal: 20, paddingTop: 50 },
+  containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#0A0F1D' },
+  permissionText: { fontSize: 16, textAlign: 'center', color: '#94A3B8', marginBottom: 20 },
   
-  // Updated Modern Header Styles
-  headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 },
+  // Header Styles
+  headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 },
   titleArea: { flex: 1 },
-  appTitle: { fontSize: 24, fontWeight: '800', color: '#0F172A', letterSpacing: 0.5 },
-  appSubtitle: { fontSize: 12, color: '#64748B', marginTop: 2 },
+  badgeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 6 },
+  aiDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#3B82F6' },
+  aiBadgeText: { fontSize: 10, fontWeight: '800', color: '#3B82F6', letterSpacing: 1 },
+  appTitle: { fontSize: 26, fontWeight: '900', color: '#FFFFFF', letterSpacing: 0.5 },
+  appSubtitle: { fontSize: 12, color: '#94A3B8', marginTop: 2 },
   
-  // Attractive Pill-Shaped Language Button Style
+  // Premium Language Toggle Button
   premiumLangBtn: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    backgroundColor: '#EFF6FF', 
+    backgroundColor: 'rgba(30, 41, 59, 0.8)', 
     borderWidth: 1, 
-    borderColor: '#BFDBFE', 
+    borderColor: 'rgba(59, 130, 246, 0.4)', 
     paddingVertical: 8, 
-    paddingHorizontal: 12, 
+    paddingHorizontal: 14, 
     borderRadius: 22, 
-    shadowColor: '#2563EB', 
-    shadowOpacity: 0.1, 
-    shadowRadius: 6, 
-    elevation: 2,
-    gap: 5
+    shadowColor: '#3B82F6', 
+    shadowOpacity: 0.2, 
+    shadowRadius: 8, 
+    elevation: 4,
+    gap: 6
   },
   langIcon: { fontSize: 14 },
-  langBtnText: { color: '#1D4ED8', fontWeight: '700', fontSize: 12 },
+  langBtnText: { color: '#60A5FA', fontWeight: '800', fontSize: 12 },
 
-  cameraCard: { height: 260, borderRadius: 20, overflow: 'hidden', backgroundColor: '#000', position: 'relative' },
-  overlayFrame: { flex: 1, margin: 35, borderWidth: 2, borderColor: '#3B82F6', borderRadius: 16, backgroundColor: 'transparent' },
-  torchBtn: { position: 'absolute', bottom: 12, right: 12, backgroundColor: 'rgba(15, 23, 42, 0.75)', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 20 },
-  torchBtnText: { color: '#FFF', fontSize: 12, fontWeight: '600' },
+  // Glowing Camera Card & Scanner Overlay
+  cameraWrapper: { 
+    borderRadius: 24, 
+    borderWidth: 1.5, 
+    borderColor: 'rgba(59, 130, 246, 0.3)', 
+    shadowColor: '#3B82F6', 
+    shadowOpacity: 0.25, 
+    shadowRadius: 12, 
+    elevation: 6, 
+    backgroundColor: '#000',
+    overflow: 'hidden'
+  },
+  cameraCard: { height: 280, width: '100%', position: 'relative' },
+  overlayFrame: { flex: 1, margin: 40, borderWidth: 1.5, borderColor: 'rgba(59, 130, 246, 0.6)', borderRadius: 16, backgroundColor: 'transparent', position: 'relative' },
+  
+  // Glowing Viewfinder Corners
+  corner: { position: 'absolute', width: 16, height: 16, borderColor: '#3B82F6' },
+  topLeft: { top: -2, left: -2, borderTopWidth: 4, borderLeftWidth: 4 },
+  topRight: { top: -2, right: -2, borderTopWidth: 4, borderRightWidth: 4 },
+  bottomLeft: { bottom: -2, left: -2, borderBottomWidth: 4, borderLeftWidth: 4 },
+  bottomRight: { bottom: -2, right: -2, borderBottomWidth: 4, borderRightWidth: 4 },
+
+  torchBtn: { position: 'absolute', bottom: 14, right: 14, backgroundColor: 'rgba(15, 23, 42, 0.85)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', paddingVertical: 7, paddingHorizontal: 14, borderRadius: 20 },
+  torchBtnText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
+  
+  // Search Box
   manualSearchBox: { flexDirection: 'row', marginTop: 18, gap: 10 },
-  input: { flex: 1, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 12, paddingHorizontal: 14, fontSize: 14, color: '#0F172A' },
-  verifyBtn: { backgroundColor: '#2563EB', justifyContent: 'center', paddingHorizontal: 18, borderRadius: 12 },
-  verifyBtnText: { color: '#FFF', fontWeight: '700', fontSize: 14 },
-  placeholderBox: { marginTop: 30, padding: 20, borderRadius: 16, backgroundColor: '#F1F5F9', borderStyle: 'dashed', borderWidth: 1, borderColor: '#CBD5E1', alignItems: 'center' },
-  placeholderText: { fontSize: 13, color: '#64748B', textAlign: 'center' },
-  resultCard: { backgroundColor: '#FFF', marginTop: 20, padding: 18, borderRadius: 20, borderWidth: 1.5, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
-  badge: { alignSelf: 'flex-start', paddingVertical: 3, paddingHorizontal: 10, borderRadius: 6, marginBottom: 8 },
-  badgeText: { color: '#FFF', fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
-  resultTitle: { fontSize: 18, fontWeight: '800', marginBottom: 4 },
-  resultMsg: { fontSize: 13, color: '#475569', marginBottom: 14 },
-  detailsContainer: { backgroundColor: '#F8FAFC', padding: 12, borderRadius: 12, gap: 8, marginBottom: 14, borderWidth: 1, borderColor: '#E2E8F0' },
-  detailRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
-  detailLabel: { fontSize: 13, color: '#64748B', fontWeight: '500' },
-  detailValue: { fontSize: 13, fontWeight: '700', color: '#0F172A' },
-  reportBtn: { backgroundColor: '#EF4444', paddingVertical: 12, borderRadius: 12, alignItems: 'center', marginBottom: 8 },
-  reportBtnText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
-  resetBtn: { backgroundColor: '#0F172A', paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
-  resetBtnText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
+  input: { flex: 1, backgroundColor: '#1E293B', borderWidth: 1, borderColor: '#334155', borderRadius: 14, paddingHorizontal: 16, fontSize: 14, color: '#FFFFFF', height: 48 },
+  verifyBtn: { backgroundColor: '#2563EB', justifyContent: 'center', paddingHorizontal: 20, borderRadius: 14, height: 48, shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 },
+  verifyBtnText: { color: '#FFF', fontWeight: '800', fontSize: 14 },
+  
+  // Placeholder Box
+  placeholderBox: { marginTop: 24, padding: 24, borderRadius: 20, backgroundColor: '#111827', borderStyle: 'dashed', borderWidth: 1.5, borderColor: '#334155', alignItems: 'center' },
+  scannerIconPlaceholder: { fontSize: 24, marginBottom: 6 },
+  placeholderText: { fontSize: 13, color: '#94A3B8', textAlign: 'center', fontWeight: '500' },
+  
+  // Result Card
+  resultCard: { backgroundColor: '#111827', marginTop: 20, padding: 20, borderRadius: 22, borderWidth: 1.5, shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
+  badge: { alignSelf: 'flex-start', paddingVertical: 4, paddingHorizontal: 12, borderRadius: 8, marginBottom: 10 },
+  badgeText: { color: '#FFF', fontSize: 11, fontWeight: '900', letterSpacing: 0.8 },
+  resultTitle: { fontSize: 18, fontWeight: '900', marginBottom: 6 },
+  resultMsg: { fontSize: 13, color: '#94A3B8', marginBottom: 16, lineHeight: 18 },
+  detailsContainer: { backgroundColor: '#1E293B', padding: 14, borderRadius: 14, gap: 10, marginBottom: 16, borderWidth: 1, borderColor: '#334155' },
+  detailRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: '#334155' },
+  detailLabel: { fontSize: 13, color: '#94A3B8', fontWeight: '500' },
+  detailValue: { fontSize: 13, fontWeight: '700', color: '#F8FAFC' },
+  reportBtn: { backgroundColor: '#EF4444', paddingVertical: 14, borderRadius: 14, alignItems: 'center', marginBottom: 10, shadowColor: '#EF4444', shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 },
+  reportBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
+  resetBtn: { backgroundColor: '#334155', paddingVertical: 14, borderRadius: 14, alignItems: 'center' },
+  resetBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
 
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.6)', justifyContent: 'center', padding: 20 },
-  modalContainer: { backgroundColor: '#FFF', borderRadius: 20, padding: 20, elevation: 5 },
-  modalTitle: { fontSize: 18, fontWeight: '800', color: '#0F172A' },
-  modalSub: { fontSize: 13, color: '#64748B', marginTop: 4, marginBottom: 16 },
-  inputLabel: { fontSize: 12, fontWeight: '700', color: '#475569', marginBottom: 6 },
-  modalInput: { backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, fontSize: 13, marginBottom: 14, color: '#0F172A' },
-  submitReportBtn: { backgroundColor: '#EF4444', paddingVertical: 10, borderRadius: 10, alignItems: 'center' },
-  submitReportText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
-  cancelBtn: { paddingVertical: 10, alignItems: 'center', marginTop: 4 },
-  cancelText: { color: '#64748B', fontSize: 13, fontWeight: '600' },
-  refCode: { fontSize: 12, fontWeight: '700', color: '#10B981', backgroundColor: '#ECFDF5', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, marginTop: 10 },
+  // Modal
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(10, 15, 29, 0.85)', justifyContent: 'center', padding: 20 },
+  modalContainer: { backgroundColor: '#111827', borderRadius: 24, padding: 22, borderWidth: 1, borderColor: '#334155', elevation: 10 },
+  modalTitle: { fontSize: 18, fontWeight: '900', color: '#FFFFFF' },
+  modalSub: { fontSize: 13, color: '#94A3B8', marginTop: 4, marginBottom: 18 },
+  inputLabel: { fontSize: 12, fontWeight: '700', color: '#CBD5E1', marginBottom: 6 },
+  modalInput: { backgroundColor: '#1E293B', borderWidth: 1, borderColor: '#334155', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 13, marginBottom: 16, color: '#FFFFFF' },
+  submitReportBtn: { backgroundColor: '#EF4444', paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
+  submitReportText: { color: '#FFF', fontWeight: '800', fontSize: 13 },
+  cancelBtn: { paddingVertical: 12, alignItems: 'center', marginTop: 6 },
+  cancelText: { color: '#94A3B8', fontSize: 13, fontWeight: '700' },
+  refCode: { fontSize: 12, fontWeight: '800', color: '#34D399', backgroundColor: 'rgba(52, 211, 153, 0.1)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, marginTop: 12, overflow: 'hidden' },
 });
