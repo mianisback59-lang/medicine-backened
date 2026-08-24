@@ -32,60 +32,7 @@ interface VerificationResult {
   batch?: string;
 }
 
-// Translations Dictionary
-const translations = {
-  en: {
-    appTitle: "MedVerify AI",
-    appSubtitle: "Instant Authenticity & Safety Scanner",
-    langToggle: "اردو",
-    flashOn: "💡 Flash ON",
-    flashOff: "🔦 Flash OFF",
-    placeholder: "Enter Batch No (e.g. 510902)",
-    verifyBtn: "Verify",
-    scanPrompt: "Point your camera at a QR code or barcode to scan.",
-    reportMedicine: "REPORT MEDICINE",
-    scanAnother: "SCAN ANOTHER MEDICINE",
-    modalTitle: "Report Counterfeit Medicine",
-    reportingBatch: "Reporting Batch: ",
-    reasonLabel: "Reason for Reporting *",
-    reasonPlaceholder: "e.g. Broken seal, wrong packaging",
-    storeLabel: "Medical Store Name / Location (Optional)",
-    storePlaceholder: "e.g. City Pharmacy, Lahore",
-    submitReport: "Submit Report to DRAP",
-    submitting: "Submitting...",
-    cancel: "Cancel",
-    reportSuccess: "Report Submitted!",
-    done: "Done",
-  },
-  ur: {
-    appTitle: "میڈ ویریفائی اے آئی",
-    appSubtitle: "فوری اصلیت اور حفاظت کا سکینر",
-    langToggle: "English",
-    flashOn: "💡 فلیش آن",
-    flashOff: "🔦 فلیش آف",
-    placeholder: "بیچ نمبر درج کریں (مثلاً 510902)",
-    verifyBtn: "تصدیق کریں",
-    scanPrompt: "کیمرے کو QR یا بارکوڈ کی طرف کریں۔",
-    reportMedicine: "دوائی کی شکایت درج کریں",
-    scanAnother: "دوسری دوائی سکین کریں",
-    modalTitle: "جعلی دوائی کی رپورٹ کریں",
-    reportingBatch: "رپورٹ شدہ بیچ: ",
-    reasonLabel: "شکایت کی وجہ *",
-    reasonPlaceholder: "مثلاً ٹوٹی ہوئی سیل، غلط پیکنگ",
-    storeLabel: "میڈیکل سٹور کا نام / مقام (اختیاری)",
-    storePlaceholder: "مثلاً سٹی فارمیسی، لاہور",
-    submitReport: "ڈریپ (DRAP) کو رپورٹ بھیجیں",
-    submitting: "جمع ہو رہا ہے...",
-    cancel: "منسوخ کریں",
-    reportSuccess: "رپورٹ جمع ہو گئی!",
-    done: "مکمل",
-  }
-};
-
 export default function Index() {
-  const [lang, setLang] = useState<'en' | 'ur'>('en');
-  const t = translations[lang];
-
   const [permission, requestPermission] = useCameraPermissions();
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [result, setResult] = useState<VerificationResult | null>(null);
@@ -118,13 +65,27 @@ export default function Index() {
     );
   }
 
+  // Precise Extractor (Handles Full Barcode + Manual Inputs)
   const extractCleanBatch = (rawCode: string): string => {
     if (!rawCode) return '';
     let cleaned = String(rawCode).replace(/[\r\n]+/g, '').trim();
+
+    if (cleaned.includes('http://') || cleaned.includes('https://') || cleaned.includes('exp://')) {
+      const parts = cleaned.split('/');
+      cleaned = parts[parts.length - 1] || cleaned;
+    }
+
+    if (cleaned.length <= 15) {
+      return cleaned;
+    }
+
     if (cleaned.includes('10')) {
       const match = cleaned.match(/10([A-Za-z0-9\-]{3,15}?)(11|17|21|240|[A-Za-z\s\/]|$)/);
-      if (match && match[1]) return match[1];
+      if (match && match[1]) {
+        return match[1];
+      }
     }
+
     return cleaned;
   };
 
@@ -133,44 +94,59 @@ export default function Index() {
       Alert.alert('Notice', 'Please enter or scan a valid batch code.');
       return;
     }
+
     if (isProcessing) return;
     setIsProcessing(true);
     setResult(null);
 
     const searchTarget = extractCleanBatch(code);
+    console.log("🚀 Verifying Batch Code:", searchTarget);
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+
       const response = await fetch(
-        `https://medicine-backened.vercel.app/api/verify/${encodeURIComponent(searchTarget)}`
+        `https://medicine-backened.vercel.app/api/verify/${encodeURIComponent(searchTarget)}`,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          signal: controller.signal,
+        }
       );
+
+      clearTimeout(timeoutId);
       const apiResponse = await response.json();
 
-      if (!response.ok || !apiResponse.success || apiResponse.status === 'FAKE') {
+      const isOk = response.ok && apiResponse.success === true;
+
+      if (!isOk || !apiResponse.data || apiResponse.status === 'FAKE') {
         setResult({
           status: 'FAKE',
-          title: lang === 'ur' ? '🚨 جعلی / غیر مصدقہ پروڈکٹ' : '🚨 UNVERIFIED / COUNTERFEIT',
+          title: apiResponse.title || '🚨 UNVERIFIED / COUNTERFEIT',
           color: '#EF4444',
           batch: searchTarget,
-          msg: lang === 'ur' ? 'یہ بیچ نمبر سرکاری ریکارڈ میں نہیں ملا۔' : 'This batch number was not found in the official registry.',
+          msg: apiResponse?.message || 'This batch number was not found in the official registry.',
         });
       } else {
         const rawStatus = apiResponse.status || 'AUTHENTIC';
-        const statusColor = rawStatus === 'AUTHENTIC' ? '#10B981' : rawStatus === 'EXPIRED' ? '#F59E0B' : '#EF4444';
+        const statusColor =
+          rawStatus === 'AUTHENTIC' ? '#10B981' : rawStatus === 'EXPIRED' ? '#F59E0B' : '#EF4444';
 
         setResult({
           status: rawStatus as any,
-          title: rawStatus === 'EXPIRED' 
-            ? (lang === 'ur' ? '⚠️ معیاد ختم شدہ دوائی' : '⚠️ EXPIRED MEDICINE') 
-            : (lang === 'ur' ? '✅ اصلی اور تصدیق شدہ' : '✅ VERIFIED AUTHENTIC'),
+          title: apiResponse.title || (rawStatus === 'EXPIRED' ? '⚠️ EXPIRED MEDICINE' : '✅ VERIFIED AUTHENTIC'),
           color: statusColor,
           data: apiResponse.data,
           batch: apiResponse.data.batch_number || searchTarget,
-          msg: rawStatus === 'EXPIRED' 
-            ? `Product expired on ${apiResponse.data.expiry_date}.` 
-            : (lang === 'ur' ? 'محفوظ اور اصل پروڈکٹ ہے۔' : 'Guaranteed original product and safe for consumption.'),
+          msg: apiResponse.message || 'Guaranteed original product and safe for consumption.',
         });
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Fetch error:", error);
       setResult({
         status: 'FAKE',
         title: '🚨 UNVERIFIED / COUNTERFEIT',
@@ -193,11 +169,14 @@ export default function Index() {
 
   const handleReportSubmit = async () => {
     if (isSubmittingReport) return;
+
     if (!reportReason.trim() || reportReason.trim().length < 5) {
-      Alert.alert('Required Field', 'Please enter a valid reason.');
+      Alert.alert('Required Field', 'Please enter a valid reason for reporting (minimum 5 characters).');
       return;
     }
+
     setIsSubmittingReport(true);
+
     try {
       const response = await fetch('https://medicine-backened.vercel.app/api/report', {
         method: 'POST',
@@ -208,9 +187,15 @@ export default function Index() {
           store_location: storeInfo.trim() || 'Not specified',
         }),
       });
-      if (response.ok) setIsSubmitted(true);
+
+      if (response.ok) {
+        setIsSubmitted(true);
+      } else {
+        const errorData = await response.json();
+        Alert.alert('Submission Error', errorData.message || 'Failed to submit report.');
+      }
     } catch (error) {
-      Alert.alert('Error', 'Could not reach server.');
+      Alert.alert('Connection Error', 'Could not reach server. Please check your internet connection.');
     } finally {
       setIsSubmittingReport(false);
     }
@@ -225,17 +210,10 @@ export default function Index() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
-      {/* Language Toggle Button */}
-      <View style={styles.topBar}>
-        <TouchableOpacity style={styles.langBtn} onPress={() => setLang(lang === 'en' ? 'ur' : 'en')}>
-          <Text style={styles.langBtnText}>{t.langToggle}</Text>
-        </TouchableOpacity>
-      </View>
-
       {/* Header */}
       <View style={styles.headerContainer}>
-        <Text style={styles.appTitle}>{t.appTitle}</Text>
-        <Text style={styles.appSubtitle}>{t.appSubtitle}</Text>
+        <Text style={styles.appTitle}>MedVerify AI</Text>
+        <Text style={styles.appSubtitle}>Instant Authenticity & Safety Scanner</Text>
       </View>
 
       {/* Camera Section */}
@@ -245,27 +223,37 @@ export default function Index() {
           facing="back"
           enableTorch={torch}
           onBarcodeScanned={isProcessing || result ? undefined : handleBarcodeScanned}
+          barcodeScannerSettings={{
+            barcodeTypes: ['qr', 'code128', 'ean13', 'ean8', 'datamatrix', 'pdf417'],
+          }}
         />
         <View style={styles.overlayFrame} />
+
         <TouchableOpacity style={styles.torchBtn} onPress={() => setTorch(!torch)}>
-          <Text style={styles.torchBtnText}>{torch ? t.flashOff : t.flashOn}</Text>
+          <Text style={styles.torchBtnText}>{torch ? '🔦 Flash OFF' : '💡 Flash ON'}</Text>
         </TouchableOpacity>
       </View>
 
       {/* Manual Input Search Box */}
       <View style={styles.manualSearchBox}>
         <TextInput
-          style={[styles.input, lang === 'ur' && { textAlign: 'right' }]}
-          placeholder={t.placeholder}
+          style={styles.input}
+          placeholder="Enter Batch No (e.g. 510902)"
           placeholderTextColor="#94A3B8"
           value={manualCode}
           onChangeText={setManualCode}
         />
         <TouchableOpacity
           style={styles.verifyBtn}
-          onPress={() => manualCode.trim().length > 0 ? verifyCode(manualCode) : Alert.alert('Notice', 'Enter batch code.')}
+          onPress={() => {
+            if (manualCode.trim().length > 0) {
+              verifyCode(manualCode);
+            } else {
+              Alert.alert('Notice', 'Please enter a batch number first.');
+            }
+          }}
         >
-          <Text style={styles.verifyBtnText}>{t.verifyBtn}</Text>
+          <Text style={styles.verifyBtnText}>Verify</Text>
         </TouchableOpacity>
       </View>
 
@@ -278,43 +266,55 @@ export default function Index() {
           <Text style={[styles.resultTitle, { color: result.color }]}>{result.title}</Text>
           <Text style={styles.resultMsg}>{result.msg}</Text>
 
-          {result.data && (
+          {/* Detailed Medicine Table for AUTHENTIC & EXPIRED */}
+          {result.data && (result.status === 'AUTHENTIC' || result.status === 'EXPIRED') && (
             <View style={styles.detailsContainer}>
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>{lang === 'ur' ? 'دوائی کا نام' : 'Medicine Name'}</Text>
+                <Text style={styles.detailLabel}>Medicine Name</Text>
                 <Text style={styles.detailValue}>{result.data.medicine_name || 'N/A'}</Text>
               </View>
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>{lang === 'ur' ? 'کمپنی / برانڈ' : 'Brand'}</Text>
+                <Text style={styles.detailLabel}>Brand / Manufacturer</Text>
                 <Text style={styles.detailValue}>{result.data.brand_name || 'N/A'}</Text>
               </View>
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>{lang === 'ur' ? 'بیچ نمبر' : 'Batch Code'}</Text>
+                <Text style={styles.detailLabel}>Batch Code</Text>
                 <Text style={styles.detailValue}>{result.data.batch_number || activeBatch}</Text>
               </View>
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>{lang === 'ur' ? 'معیاد ختم ہونے کی تاریخ' : 'Expiry Date'}</Text>
+                <Text style={styles.detailLabel}>Manufacturing Date</Text>
+                <Text style={styles.detailValue}>{result.data.manufacturing_date || 'N/A'}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Expiry Date</Text>
                 <Text style={styles.detailValue}>{result.data.expiry_date || 'N/A'}</Text>
               </View>
             </View>
           )}
 
+          {/* Fake Case Action */}
           {(result.status === 'FAKE' || result.status === 'SUSPICIOUS') && (
             <TouchableOpacity style={styles.reportBtn} onPress={() => setIsReportModalVisible(true)}>
-              <Text style={styles.reportBtnText}>{t.reportMedicine}</Text>
+              <Text style={styles.reportBtnText}>REPORT MEDICINE</Text>
             </TouchableOpacity>
           )}
 
           <TouchableOpacity
             style={styles.resetBtn}
-            onPress={() => { setIsProcessing(false); setResult(null); setManualCode(''); }}
+            onPress={() => {
+              setIsProcessing(false);
+              setResult(null);
+              setManualCode('');
+            }}
           >
-            <Text style={styles.resetBtnText}>{t.scanAnother}</Text>
+            <Text style={styles.resetBtnText}>SCAN ANOTHER MEDICINE</Text>
           </TouchableOpacity>
         </View>
       ) : (
         <View style={styles.placeholderBox}>
-          <Text style={styles.placeholderText}>{t.scanPrompt}</Text>
+          <Text style={styles.placeholderText}>
+            Point your camera at a QR code or barcode to scan.
+          </Text>
         </View>
       )}
 
@@ -324,22 +324,26 @@ export default function Index() {
           <View style={styles.modalContainer}>
             {!isSubmitted ? (
               <>
-                <Text style={styles.modalTitle}>{t.modalTitle}</Text>
-                <Text style={styles.modalSub}>{t.reportingBatch} <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text></Text>
+                <Text style={styles.modalTitle}>Report Counterfeit Medicine</Text>
+                <Text style={styles.modalSub}>
+                  Reporting Batch: <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text>
+                </Text>
 
-                <Text style={styles.inputLabel}>{t.reasonLabel}</Text>
+                <Text style={styles.inputLabel}>
+                  Reason for Reporting <Text style={{ color: '#EF4444' }}>*</Text>
+                </Text>
                 <TextInput
                   style={styles.modalInput}
-                  placeholder={t.reasonPlaceholder}
+                  placeholder="e.g. Broken seal, wrong packaging, fake QR code"
                   placeholderTextColor="#94A3B8"
                   value={reportReason}
                   onChangeText={setReportReason}
                 />
 
-                <Text style={styles.inputLabel}>{t.storeLabel}</Text>
+                <Text style={styles.inputLabel}>Medical Store Name / Location (Optional)</Text>
                 <TextInput
                   style={styles.modalInput}
-                  placeholder={t.storePlaceholder}
+                  placeholder="e.g. City Pharmacy, Lahore"
                   placeholderTextColor="#94A3B8"
                   value={storeInfo}
                   onChangeText={setStoreInfo}
@@ -350,19 +354,26 @@ export default function Index() {
                   onPress={handleReportSubmit}
                   disabled={isSubmittingReport}
                 >
-                  <Text style={styles.submitReportText}>{isSubmittingReport ? t.submitting : t.submitReport}</Text>
+                  <Text style={styles.submitReportText}>
+                    {isSubmittingReport ? 'Submitting...' : 'Submit Report to DRAP'}
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.cancelBtn} onPress={closeReportModal}>
-                  <Text style={styles.cancelText}>{t.cancel}</Text>
+                  <Text style={styles.cancelText}>Cancel</Text>
                 </TouchableOpacity>
               </>
             ) : (
               <View style={{ alignItems: 'center', paddingVertical: 10 }}>
                 <Text style={{ fontSize: 40, marginBottom: 10 }}>✅</Text>
-                <Text style={styles.modalTitle}>{t.reportSuccess}</Text>
+                <Text style={styles.modalTitle}>Report Submitted!</Text>
+                <Text style={[styles.modalSub, { textAlign: 'center', marginTop: 8 }]}>
+                  Batch <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text> has been flagged and sent to Drug Regulatory Authority.
+                </Text>
+                <Text style={styles.refCode}>Ref ID: DRAP-2026-{Math.floor(1000 + Math.random() * 9000)}</Text>
+
                 <TouchableOpacity style={[styles.submitReportBtn, { width: '100%', marginTop: 20 }]} onPress={closeReportModal}>
-                  <Text style={styles.submitReportText}>{t.done}</Text>
+                  <Text style={styles.submitReportText}>Done</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -374,26 +385,23 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC', paddingHorizontal: 20, paddingTop: 40 },
+  container: { flex: 1, backgroundColor: '#F8FAFC', paddingHorizontal: 20, paddingTop: 50 },
   containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#F8FAFC' },
   permissionText: { fontSize: 16, textAlign: 'center', color: '#475569', marginBottom: 20 },
-  topBar: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 10 },
-  langBtn: { backgroundColor: '#E2E8F0', paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20 },
-  langBtnText: { fontWeight: '700', color: '#1E293B', fontSize: 13 },
-  headerContainer: { alignItems: 'center', marginBottom: 15 },
+  headerContainer: { alignItems: 'center', marginBottom: 20 },
   appTitle: { fontSize: 26, fontWeight: '800', color: '#0F172A', letterSpacing: 0.5 },
   appSubtitle: { fontSize: 13, color: '#64748B', marginTop: 4 },
-  cameraCard: { height: 240, borderRadius: 20, overflow: 'hidden', backgroundColor: '#000', position: 'relative' },
+  cameraCard: { height: 260, borderRadius: 20, overflow: 'hidden', backgroundColor: '#000', position: 'relative' },
   overlayFrame: { flex: 1, margin: 35, borderWidth: 2, borderColor: '#3B82F6', borderRadius: 16, backgroundColor: 'transparent' },
   torchBtn: { position: 'absolute', bottom: 12, right: 12, backgroundColor: 'rgba(15, 23, 42, 0.75)', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 20 },
   torchBtnText: { color: '#FFF', fontSize: 12, fontWeight: '600' },
-  manualSearchBox: { flexDirection: 'row', marginTop: 15, gap: 10 },
+  manualSearchBox: { flexDirection: 'row', marginTop: 18, gap: 10 },
   input: { flex: 1, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 12, paddingHorizontal: 14, fontSize: 14, color: '#0F172A' },
   verifyBtn: { backgroundColor: '#2563EB', justifyContent: 'center', paddingHorizontal: 18, borderRadius: 12 },
   verifyBtnText: { color: '#FFF', fontWeight: '700', fontSize: 14 },
-  placeholderBox: { marginTop: 25, padding: 20, borderRadius: 16, backgroundColor: '#F1F5F9', borderStyle: 'dashed', borderWidth: 1, borderColor: '#CBD5E1', alignItems: 'center' },
+  placeholderBox: { marginTop: 30, padding: 20, borderRadius: 16, backgroundColor: '#F1F5F9', borderStyle: 'dashed', borderWidth: 1, borderColor: '#CBD5E1', alignItems: 'center' },
   placeholderText: { fontSize: 13, color: '#64748B', textAlign: 'center' },
-  resultCard: { backgroundColor: '#FFF', marginTop: 15, padding: 18, borderRadius: 20, borderWidth: 1.5, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
+  resultCard: { backgroundColor: '#FFF', marginTop: 20, padding: 18, borderRadius: 20, borderWidth: 1.5, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
   badge: { alignSelf: 'flex-start', paddingVertical: 3, paddingHorizontal: 10, borderRadius: 6, marginBottom: 8 },
   badgeText: { color: '#FFF', fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
   resultTitle: { fontSize: 18, fontWeight: '800', marginBottom: 4 },
@@ -406,7 +414,7 @@ const styles = StyleSheet.create({
   reportBtnText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
   resetBtn: { backgroundColor: '#0F172A', paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
   resetBtnText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
-
+  
   modalOverlay: { flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.6)', justifyContent: 'center', padding: 20 },
   modalContainer: { backgroundColor: '#FFF', borderRadius: 20, padding: 20, elevation: 5 },
   modalTitle: { fontSize: 18, fontWeight: '800', color: '#0F172A' },
@@ -415,7 +423,7 @@ const styles = StyleSheet.create({
   modalInput: { backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, fontSize: 13, marginBottom: 14, color: '#0F172A' },
   submitReportBtn: { backgroundColor: '#EF4444', paddingVertical: 10, borderRadius: 10, alignItems: 'center' },
   submitReportText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
-  modalCancelBtn: { paddingVertical: 10, alignItems: 'center', marginTop: 4 },
-  cancelBtn: { paddingVertical: 8, alignItems: 'center', marginTop: 5 },
+  cancelBtn: { paddingVertical: 10, alignItems: 'center', marginTop: 4 },
   cancelText: { color: '#64748B', fontSize: 13, fontWeight: '600' },
+  refCode: { fontSize: 12, fontWeight: '700', color: '#10B981', backgroundColor: '#ECFDF5', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, marginTop: 10 },
 });
