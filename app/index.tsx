@@ -1,8 +1,9 @@
 import { BarcodeScanningResult, CameraView, useCameraPermissions } from 'expo-camera';
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Alert,
   Button,
+  Keyboard, // <-- Yeh import add kiya hai
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -34,7 +35,6 @@ interface VerificationResult {
   batch?: string;
 }
 
-// Translations Dictionary (English & Urdu)
 const translations = {
   en: {
     appTitle: "MedVerify AI",
@@ -94,8 +94,6 @@ export default function Index() {
   const [torch, setTorch] = useState<boolean>(false);
   const [manualCode, setManualCode] = useState<string>('');
 
-  const scrollViewRef = useRef<ScrollView>(null);
-
   // Report Modal States
   const [isReportModalVisible, setIsReportModalVisible] = useState<boolean>(false);
   const [reportReason, setReportReason] = useState<string>('');
@@ -122,7 +120,6 @@ export default function Index() {
     );
   }
 
-  // Precise Extractor (Handles Full Barcode + Manual Inputs)
   const extractCleanBatch = (rawCode: string): string => {
     if (!rawCode) return '';
     let cleaned = String(rawCode).replace(/[\r\n]+/g, '').trim();
@@ -147,6 +144,9 @@ export default function Index() {
   };
 
   const verifyCode = async (code: string) => {
+    // Keyboard ko foran band karne ke liye
+    Keyboard.dismiss();
+
     if (!code || code.trim() === '') {
       Alert.alert('Notice', 'Please enter or scan a valid batch code.');
       return;
@@ -204,10 +204,6 @@ export default function Index() {
         });
       }
 
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 150);
-
     } catch (error: any) {
       setResult({
         status: 'FAKE',
@@ -216,10 +212,6 @@ export default function Index() {
         batch: searchTarget,
         msg: lang === 'ur' ? 'بیچ کی تصدیق کرنے میں ناکامی یا کوڈ ڈیٹا بیس میں رجسٹرڈ نہیں۔' : 'Unable to verify batch or code not registered in database.',
       });
-
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 150);
     } finally {
       setIsProcessing(false);
     }
@@ -281,13 +273,13 @@ export default function Index() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       <ScrollView 
-        ref={scrollViewRef}
         style={styles.container} 
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: 40, paddingTop: 40 }}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
         
-        {/* Modern High-End Medical Header */}
+        {/* Header */}
         <View style={styles.headerContainer}>
           <View style={styles.titleArea}>
             <View style={styles.badgeRow}>
@@ -308,7 +300,7 @@ export default function Index() {
           </TouchableOpacity>
         </View>
 
-        {/* Modern Glowing Camera Card */}
+        {/* Camera Card */}
         <View style={styles.cameraWrapper}>
           <View style={styles.cameraCard}>
             <CameraView
@@ -331,6 +323,29 @@ export default function Index() {
               <Text style={styles.torchBtnText}>{torch ? t.flashOff : t.flashOn}</Text>
             </TouchableOpacity>
           </View>
+        </View>
+
+        {/* Search Bar */}
+        <View style={styles.manualSearchBox}>
+          <TextInput
+            style={[styles.input, lang === 'ur' && { textAlign: 'right' }]}
+            placeholder={t.placeholder}
+            placeholderTextColor="#94A3B8"
+            value={manualCode}
+            onChangeText={setManualCode}
+          />
+          <TouchableOpacity
+            style={styles.verifyBtn}
+            onPress={() => {
+              if (manualCode.trim().length > 0) {
+                verifyCode(manualCode);
+              } else {
+                Alert.alert('Notice', 'Please enter a batch number first.');
+              }
+            }}
+          >
+            <Text style={styles.verifyBtnText}>{t.verifyBtn}</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Verification Result Card */}
@@ -393,29 +408,6 @@ export default function Index() {
 
       </ScrollView>
 
-      {/* Sticky Bottom Search Bar - Always stays right above the keyboard */}
-      <View style={styles.stickySearchContainer}>
-        <TextInput
-          style={[styles.input, lang === 'ur' && { textAlign: 'right' }]}
-          placeholder={t.placeholder}
-          placeholderTextColor="#94A3B8"
-          value={manualCode}
-          onChangeText={setManualCode}
-        />
-        <TouchableOpacity
-          style={styles.verifyBtn}
-          onPress={() => {
-            if (manualCode.trim().length > 0) {
-              verifyCode(manualCode);
-            } else {
-              Alert.alert('Notice', 'Please enter a batch number first.');
-            }
-          }}
-        >
-          <Text style={styles.verifyBtnText}>{t.verifyBtn}</Text>
-        </TouchableOpacity>
-      </View>
-
       {/* REPORT MODAL */}
       <Modal visible={isReportModalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
@@ -427,9 +419,7 @@ export default function Index() {
                   {t.reportingBatch} <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text>
                 </Text>
 
-                <Text style={styles.inputLabel}>
-                  {t.reasonLabel}
-                </Text>
+                <Text style={styles.inputLabel}>{t.reasonLabel}</Text>
                 <TextInput
                   style={styles.modalInput}
                   placeholder={t.reasonPlaceholder}
@@ -483,11 +473,11 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 20, paddingTop: 50 },
+  container: { flex: 1, paddingHorizontal: 20 },
   containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#0A0F1D' },
   permissionText: { fontSize: 16, textAlign: 'center', color: '#94A3B8', marginBottom: 20 },
   
-  headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 },
+  headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   titleArea: { flex: 1 },
   badgeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 6 },
   aiDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#3B82F6' },
@@ -524,8 +514,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     overflow: 'hidden'
   },
-  cameraCard: { height: 260, width: '100%', position: 'relative' },
-  overlayFrame: { flex: 1, margin: 35, borderWidth: 1.5, borderColor: 'rgba(59, 130, 246, 0.6)', borderRadius: 16, backgroundColor: 'transparent', position: 'relative' },
+  cameraCard: { height: 230, width: '100%', position: 'relative' },
+  overlayFrame: { flex: 1, margin: 30, borderWidth: 1.5, borderColor: 'rgba(59, 130, 246, 0.6)', borderRadius: 16, backgroundColor: 'transparent', position: 'relative' },
   
   corner: { position: 'absolute', width: 16, height: 16, borderColor: '#3B82F6' },
   topLeft: { top: -2, left: -2, borderTopWidth: 4, borderLeftWidth: 4 },
@@ -533,29 +523,19 @@ const styles = StyleSheet.create({
   bottomLeft: { bottom: -2, left: -2, borderBottomWidth: 4, borderLeftWidth: 4 },
   bottomRight: { bottom: -2, right: -2, borderBottomWidth: 4, borderRightWidth: 4 },
 
-  torchBtn: { position: 'absolute', bottom: 14, right: 14, backgroundColor: 'rgba(15, 23, 42, 0.85)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', paddingVertical: 7, paddingHorizontal: 14, borderRadius: 20 },
-  torchBtnText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
+  torchBtn: { position: 'absolute', bottom: 12, right: 12, backgroundColor: 'rgba(15, 23, 42, 0.85)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16 },
+  torchBtnText: { color: '#FFF', fontSize: 11, fontWeight: '700' },
   
-  // Sticky Bottom Search Bar Styling (Stays directly above the keyboard automatically)
-  stickySearchContainer: { 
-    flexDirection: 'row', 
-    paddingHorizontal: 20, 
-    paddingVertical: 12, 
-    backgroundColor: '#0A0F1D', 
-    borderTopWidth: 1, 
-    borderTopColor: '#1E293B', 
-    gap: 10, 
-    alignItems: 'center' 
-  },
+  manualSearchBox: { flexDirection: 'row', marginTop: 16, marginBottom: 16, gap: 10 },
   input: { flex: 1, backgroundColor: '#1E293B', borderWidth: 1, borderColor: '#334155', borderRadius: 14, paddingHorizontal: 16, fontSize: 14, color: '#FFFFFF', height: 48 },
   verifyBtn: { backgroundColor: '#2563EB', justifyContent: 'center', paddingHorizontal: 20, borderRadius: 14, height: 48, shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 },
   verifyBtnText: { color: '#FFF', fontWeight: '800', fontSize: 14 },
   
-  placeholderBox: { marginTop: 24, padding: 24, borderRadius: 20, backgroundColor: '#111827', borderStyle: 'dashed', borderWidth: 1.5, borderColor: '#334155', alignItems: 'center' },
-  scannerIconPlaceholder: { fontSize: 24, marginBottom: 6 },
+  placeholderBox: { marginTop: 8, padding: 18, borderRadius: 20, backgroundColor: '#111827', borderStyle: 'dashed', borderWidth: 1.5, borderColor: '#334155', alignItems: 'center' },
+  scannerIconPlaceholder: { fontSize: 22, marginBottom: 4 },
   placeholderText: { fontSize: 13, color: '#94A3B8', textAlign: 'center', fontWeight: '500' },
   
-  resultCard: { backgroundColor: '#111827', marginTop: 20, padding: 20, borderRadius: 22, borderWidth: 1.5, shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
+  resultCard: { backgroundColor: '#111827', marginTop: 10, padding: 20, borderRadius: 22, borderWidth: 1.5, shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
   badge: { alignSelf: 'flex-start', paddingVertical: 4, paddingHorizontal: 12, borderRadius: 8, marginBottom: 10 },
   badgeText: { color: '#FFF', fontSize: 11, fontWeight: '900', letterSpacing: 0.8 },
   resultTitle: { fontSize: 18, fontWeight: '900', marginBottom: 6 },
