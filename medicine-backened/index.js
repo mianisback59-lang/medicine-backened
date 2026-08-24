@@ -9,7 +9,7 @@ app.use(express.json());
 // MongoDB Connection String
 const MONGO_URI = process.env.MONGO_URI;
 
-// Serverless connection caching for vercel
+// Serverless connection caching for 
 let cachedDb = null;
 async function connectToDatabase() {
   if (cachedDb && mongoose.connection.readyState === 1) {
