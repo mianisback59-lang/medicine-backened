@@ -204,7 +204,6 @@ export default function Index() {
         });
       }
 
-      // Automatically scroll down so the result card and buttons are fully visible
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 150);
@@ -279,11 +278,12 @@ export default function Index() {
     <KeyboardAvoidingView 
       style={{ flex: 1, backgroundColor: '#0A0F1D' }} 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       <ScrollView 
         ref={scrollViewRef}
         style={styles.container} 
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 40 }}
         keyboardShouldPersistTaps="handled"
       >
         
@@ -333,34 +333,6 @@ export default function Index() {
           </View>
         </View>
 
-        {/* Modern Input Search Box */}
-        <View style={styles.manualSearchBox}>
-          <TextInput
-            style={[styles.input, lang === 'ur' && { textAlign: 'right' }]}
-            placeholder={t.placeholder}
-            placeholderTextColor="#94A3B8"
-            value={manualCode}
-            onChangeText={setManualCode}
-            onFocus={() => {
-              setTimeout(() => {
-                scrollViewRef.current?.scrollToEnd({ animated: true });
-              }, 200);
-            }}
-          />
-          <TouchableOpacity
-            style={styles.verifyBtn}
-            onPress={() => {
-              if (manualCode.trim().length > 0) {
-                verifyCode(manualCode);
-              } else {
-                Alert.alert('Notice', 'Please enter a batch number first.');
-              }
-            }}
-          >
-            <Text style={styles.verifyBtnText}>{t.verifyBtn}</Text>
-          </TouchableOpacity>
-        </View>
-
         {/* Verification Result Card */}
         {result ? (
           <View style={[styles.resultCard, { borderColor: result.color }]}>
@@ -370,7 +342,6 @@ export default function Index() {
             <Text style={[styles.resultTitle, { color: result.color }]}>{result.title}</Text>
             <Text style={styles.resultMsg}>{result.msg}</Text>
 
-            {/* Detailed Medicine Table for AUTHENTIC & EXPIRED */}
             {result.data && (result.status === 'AUTHENTIC' || result.status === 'EXPIRED') && (
               <View style={styles.detailsContainer}>
                 <View style={styles.detailRow}>
@@ -396,7 +367,6 @@ export default function Index() {
               </View>
             )}
 
-            {/* Fake Case Action */}
             {(result.status === 'FAKE' || result.status === 'SUSPICIOUS') && (
               <TouchableOpacity style={styles.reportBtn} onPress={() => setIsReportModalVisible(true)}>
                 <Text style={styles.reportBtnText}>{t.reportMedicine}</Text>
@@ -421,69 +391,93 @@ export default function Index() {
           </View>
         )}
 
-        {/* REPORT MODAL */}
-        <Modal visible={isReportModalVisible} animationType="slide" transparent={true}>
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContainer}>
-              {!isSubmitted ? (
-                <>
-                  <Text style={styles.modalTitle}>{t.modalTitle}</Text>
-                  <Text style={styles.modalSub}>
-                    {t.reportingBatch} <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text>
-                  </Text>
-
-                  <Text style={styles.inputLabel}>
-                    {t.reasonLabel}
-                  </Text>
-                  <TextInput
-                    style={styles.modalInput}
-                    placeholder={t.reasonPlaceholder}
-                    placeholderTextColor="#94A3B8"
-                    value={reportReason}
-                    onChangeText={setReportReason}
-                  />
-
-                  <Text style={styles.inputLabel}>{t.storeLabel}</Text>
-                  <TextInput
-                    style={styles.modalInput}
-                    placeholder={t.storePlaceholder}
-                    placeholderTextColor="#94A3B8"
-                    value={storeInfo}
-                    onChangeText={setStoreInfo}
-                  />
-
-                  <TouchableOpacity
-                    style={[styles.submitReportBtn, isSubmittingReport && { backgroundColor: '#94A3B8' }]}
-                    onPress={handleReportSubmit}
-                    disabled={isSubmittingReport}
-                  >
-                    <Text style={styles.submitReportText}>
-                      {isSubmittingReport ? t.submitting : t.submitReport}
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity style={styles.cancelBtn} onPress={closeReportModal}>
-                    <Text style={styles.cancelText}>{t.cancel}</Text>
-                  </TouchableOpacity>
-                </>
-              ) : (
-                <View style={{ alignItems: 'center', paddingVertical: 10 }}>
-                  <Text style={{ fontSize: 40, marginBottom: 10 }}>✅</Text>
-                  <Text style={styles.modalTitle}>{t.reportSuccess}</Text>
-                  <Text style={[styles.modalSub, { textAlign: 'center', marginTop: 8 }]}>
-                    Batch <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text> has been flagged and sent to Drug Regulatory Authority.
-                  </Text>
-                  <Text style={styles.refCode}>Ref ID: DRAP-2026-{Math.floor(1000 + Math.random() * 9000)}</Text>
-
-                  <TouchableOpacity style={[styles.submitReportBtn, { width: '100%', marginTop: 20 }]} onPress={closeReportModal}>
-                    <Text style={styles.submitReportText}>{t.done}</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-          </View>
-        </Modal>
       </ScrollView>
+
+      {/* Sticky Bottom Search Bar - Always stays right above the keyboard */}
+      <View style={styles.stickySearchContainer}>
+        <TextInput
+          style={[styles.input, lang === 'ur' && { textAlign: 'right' }]}
+          placeholder={t.placeholder}
+          placeholderTextColor="#94A3B8"
+          value={manualCode}
+          onChangeText={setManualCode}
+        />
+        <TouchableOpacity
+          style={styles.verifyBtn}
+          onPress={() => {
+            if (manualCode.trim().length > 0) {
+              verifyCode(manualCode);
+            } else {
+              Alert.alert('Notice', 'Please enter a batch number first.');
+            }
+          }}
+        >
+          <Text style={styles.verifyBtnText}>{t.verifyBtn}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* REPORT MODAL */}
+      <Modal visible={isReportModalVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            {!isSubmitted ? (
+              <>
+                <Text style={styles.modalTitle}>{t.modalTitle}</Text>
+                <Text style={styles.modalSub}>
+                  {t.reportingBatch} <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text>
+                </Text>
+
+                <Text style={styles.inputLabel}>
+                  {t.reasonLabel}
+                </Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder={t.reasonPlaceholder}
+                  placeholderTextColor="#94A3B8"
+                  value={reportReason}
+                  onChangeText={setReportReason}
+                />
+
+                <Text style={styles.inputLabel}>{t.storeLabel}</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder={t.storePlaceholder}
+                  placeholderTextColor="#94A3B8"
+                  value={storeInfo}
+                  onChangeText={setStoreInfo}
+                />
+
+                <TouchableOpacity
+                  style={[styles.submitReportBtn, isSubmittingReport && { backgroundColor: '#94A3B8' }]}
+                  onPress={handleReportSubmit}
+                  disabled={isSubmittingReport}
+                >
+                  <Text style={styles.submitReportText}>
+                    {isSubmittingReport ? t.submitting : t.submitReport}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.cancelBtn} onPress={closeReportModal}>
+                  <Text style={styles.cancelText}>{t.cancel}</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <View style={{ alignItems: 'center', paddingVertical: 10 }}>
+                <Text style={{ fontSize: 40, marginBottom: 10 }}>✅</Text>
+                <Text style={styles.modalTitle}>{t.reportSuccess}</Text>
+                <Text style={[styles.modalSub, { textAlign: 'center', marginTop: 8 }]}>
+                  Batch <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text> has been flagged and sent to Drug Regulatory Authority.
+                </Text>
+                <Text style={styles.refCode}>Ref ID: DRAP-2026-{Math.floor(1000 + Math.random() * 9000)}</Text>
+
+                <TouchableOpacity style={[styles.submitReportBtn, { width: '100%', marginTop: 20 }]} onPress={closeReportModal}>
+                  <Text style={styles.submitReportText}>{t.done}</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -530,8 +524,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     overflow: 'hidden'
   },
-  cameraCard: { height: 280, width: '100%', position: 'relative' },
-  overlayFrame: { flex: 1, margin: 40, borderWidth: 1.5, borderColor: 'rgba(59, 130, 246, 0.6)', borderRadius: 16, backgroundColor: 'transparent', position: 'relative' },
+  cameraCard: { height: 260, width: '100%', position: 'relative' },
+  overlayFrame: { flex: 1, margin: 35, borderWidth: 1.5, borderColor: 'rgba(59, 130, 246, 0.6)', borderRadius: 16, backgroundColor: 'transparent', position: 'relative' },
   
   corner: { position: 'absolute', width: 16, height: 16, borderColor: '#3B82F6' },
   topLeft: { top: -2, left: -2, borderTopWidth: 4, borderLeftWidth: 4 },
@@ -542,7 +536,17 @@ const styles = StyleSheet.create({
   torchBtn: { position: 'absolute', bottom: 14, right: 14, backgroundColor: 'rgba(15, 23, 42, 0.85)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', paddingVertical: 7, paddingHorizontal: 14, borderRadius: 20 },
   torchBtnText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
   
-  manualSearchBox: { flexDirection: 'row', marginTop: 18, gap: 10 },
+  // Sticky Bottom Search Bar Styling (Stays directly above the keyboard automatically)
+  stickySearchContainer: { 
+    flexDirection: 'row', 
+    paddingHorizontal: 20, 
+    paddingVertical: 12, 
+    backgroundColor: '#0A0F1D', 
+    borderTopWidth: 1, 
+    borderTopColor: '#1E293B', 
+    gap: 10, 
+    alignItems: 'center' 
+  },
   input: { flex: 1, backgroundColor: '#1E293B', borderWidth: 1, borderColor: '#334155', borderRadius: 14, paddingHorizontal: 16, fontSize: 14, color: '#FFFFFF', height: 48 },
   verifyBtn: { backgroundColor: '#2563EB', justifyContent: 'center', paddingHorizontal: 20, borderRadius: 14, height: 48, shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 },
   verifyBtnText: { color: '#FFF', fontWeight: '800', fontSize: 14 },
