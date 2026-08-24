@@ -1,10 +1,11 @@
+require('dotenv').config();
 const dns = require('node:dns');
 dns.setDefaultResultOrder('ipv4first');
 dns.setServers(['8.8.8.8', '8.8.4.4']);
 const mongoose = require('mongoose');
 
 // Username set kar diya gaya hai
-const MONGO_URI = "mongodb+srv://mianisback59_db_user:n0dxouZjCQFC1P0k@cluster0.zm6ckjm.mongodb.net/medverify?retryWrites=true&w=majority&appName=Cluster0";
+const MONGO_URI = process.env.MONGO_URI;
 
 const medicineSchema = new mongoose.Schema({
   id: Number,
