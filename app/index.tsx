@@ -55,14 +55,14 @@ const translations = {
     submitting: "Submitting...",
     cancel: "Cancel",
     reportSuccess: "Report Submitted!",
-    done: "مکمل",
+    done: "Done",
   },
   ur: {
     appTitle: "میڈ ویریفائی اے آئی",
     appSubtitle: "فوری اصلیت اور حفاظت کا سکینر",
     langToggle: "English",
-    flashOn: "💡 flashOn",
-    flashOff: "🔦 flashOff",
+    flashOn: "💡 فلیش آن",
+    flashOff: "🔦 فلیش آف",
     placeholder: "بیچ نمبر درج کریں (مثلاً 510902)",
     verifyBtn: "تصدیق کریں",
     scanPrompt: "کیمرے کو QR یا بارکوڈ کی طرف کریں۔",
@@ -265,17 +265,22 @@ export default function Index() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
-      {/* Attractive Professional Language Toggle Button */}
-      <View style={styles.topBar}>
-        <TouchableOpacity style={styles.langBtn} onPress={() => setLang(lang === 'en' ? 'ur' : 'en')}>
-          <Text style={styles.langBtnText}>🌐 {t.langToggle}</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Header */}
+      
+      {/* Modern Header & Integrated Premium Language Button */}
       <View style={styles.headerContainer}>
-        <Text style={styles.appTitle}>{t.appTitle}</Text>
-        <Text style={styles.appSubtitle}>{t.appSubtitle}</Text>
+        <View style={styles.titleArea}>
+          <Text style={styles.appTitle}>{t.appTitle}</Text>
+          <Text style={styles.appSubtitle}>{t.appSubtitle}</Text>
+        </View>
+
+        <TouchableOpacity 
+          style={styles.premiumLangBtn} 
+          activeOpacity={0.8}
+          onPress={() => setLang(lang === 'en' ? 'ur' : 'en')}
+        >
+          <Text style={styles.langIcon}>🌐</Text>
+          <Text style={styles.langBtnText}>{t.langToggle}</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Camera Section */}
@@ -448,21 +453,32 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC', paddingHorizontal: 20, paddingTop: 40 },
   containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#F8FAFC' },
   permissionText: { fontSize: 16, textAlign: 'center', color: '#475569', marginBottom: 20 },
-  topBar: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 8 },
-  langBtn: { 
-    backgroundColor: '#0F172A', 
-    paddingVertical: 7, 
-    paddingHorizontal: 14, 
-    borderRadius: 20, 
-    shadowColor: '#000', 
+  
+  // Updated Modern Header Styles
+  headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 },
+  titleArea: { flex: 1 },
+  appTitle: { fontSize: 24, fontWeight: '800', color: '#0F172A', letterSpacing: 0.5 },
+  appSubtitle: { fontSize: 12, color: '#64748B', marginTop: 2 },
+  
+  // Attractive Pill-Shaped Language Button Style
+  premiumLangBtn: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: '#EFF6FF', 
+    borderWidth: 1, 
+    borderColor: '#BFDBFE', 
+    paddingVertical: 8, 
+    paddingHorizontal: 12, 
+    borderRadius: 22, 
+    shadowColor: '#2563EB', 
     shadowOpacity: 0.1, 
-    shadowRadius: 4, 
-    elevation: 2 
+    shadowRadius: 6, 
+    elevation: 2,
+    gap: 5
   },
-  langBtnText: { color: '#FFF', fontWeight: '700', fontSize: 12, letterSpacing: 0.3 },
-  headerContainer: { alignItems: 'center', marginBottom: 20 },
-  appTitle: { fontSize: 26, fontWeight: '800', color: '#0F172A', letterSpacing: 0.5 },
-  appSubtitle: { fontSize: 13, color: '#64748B', marginTop: 4 },
+  langIcon: { fontSize: 14 },
+  langBtnText: { color: '#1D4ED8', fontWeight: '700', fontSize: 12 },
+
   cameraCard: { height: 260, borderRadius: 20, overflow: 'hidden', backgroundColor: '#000', position: 'relative' },
   overlayFrame: { flex: 1, margin: 35, borderWidth: 2, borderColor: '#3B82F6', borderRadius: 16, backgroundColor: 'transparent' },
   torchBtn: { position: 'absolute', bottom: 12, right: 12, backgroundColor: 'rgba(15, 23, 42, 0.75)', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 20 },
