@@ -1,9 +1,9 @@
 import { BarcodeScanningResult, CameraView, useCameraPermissions } from 'expo-camera';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Button,
-  Keyboard, // <-- Yeh import add kiya hai
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -88,6 +88,9 @@ export default function Index() {
   const [lang, setLang] = useState<'en' | 'ur'>('en');
   const t = translations[lang];
 
+  // 1. ScrollView ko reference dene ke liye Ref create kiya hai
+  const scrollViewRef = useRef<ScrollView>(null);
+
   const [permission, requestPermission] = useCameraPermissions();
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [result, setResult] = useState<VerificationResult | null>(null);
@@ -100,6 +103,15 @@ export default function Index() {
   const [storeInfo, setStoreInfo] = useState<string>('');
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [isSubmittingReport, setIsSubmittingReport] = useState<boolean>(false);
+
+  // 2. Auto Scroll Logic: Jab bhi 'result' state update ho, niche scroll kar do
+  useEffect(() => {
+    if (result) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 250); // 250ms taake UI Render hone ke baad smooth scroll ho
+    }
+  }, [result]);
 
   if (!permission) {
     return (
@@ -144,7 +156,6 @@ export default function Index() {
   };
 
   const verifyCode = async (code: string) => {
-    // Keyboard ko foran band karne ke liye
     Keyboard.dismiss();
 
     if (!code || code.trim() === '') {
@@ -273,6 +284,7 @@ export default function Index() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       <ScrollView 
+        ref={scrollViewRef} // <-- Ref Yahan Attach Kar Diya
         style={styles.container} 
         contentContainerStyle={{ paddingBottom: 40, paddingTop: 40 }}
         keyboardShouldPersistTaps="handled"
