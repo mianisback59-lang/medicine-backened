@@ -109,7 +109,7 @@ export default function Index() {
     if (result) {
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 250); // 250ms taake UI Render hone ke baad smooth scroll ho
+      }, 300); // 300ms delay for smooth scroll transition
     }
   }, [result]);
 
