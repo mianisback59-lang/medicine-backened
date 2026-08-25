@@ -104,14 +104,16 @@ export default function Index() {
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [isSubmittingReport, setIsSubmittingReport] = useState<boolean>(false);
 
-  // 2. Auto Scroll Logic: Jab bhi 'result' state update ho, niche scroll kar do
-  useEffect(() => {
-    if (result) {
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 300); // 300ms delay for smooth scroll transition
-    }
-  }, [result]);
+ // Animated Smooth Auto-Scroll
+useEffect(() => {
+  if (result) {
+    const timer = setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 300); // UI load hone ke foran baad smooth scroll apply karega
+
+    return () => clearTimeout(timer);
+  }
+}, [result]);
 
   if (!permission) {
     return (
