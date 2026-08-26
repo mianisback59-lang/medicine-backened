@@ -105,20 +105,29 @@ export default function Index() {
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [isSubmittingReport, setIsSubmittingReport] = useState<boolean>(false);
 
-  // Text-To-Speech AI Voice Alert Logic
+  // Clear & Effective Multilingual Voice Alert Logic
   const playVoiceAlert = (status: string) => {
     try {
+      Speech.stop(); // Purani aawaz ko rokein taake double aawaz na bane
+
+      let speechText = '';
+      let speechLang = lang === 'ur' ? 'ur-PK' : 'en-US';
+
       if (status === 'FAKE' || status === 'SUSPICIOUS') {
-        Speech.speak('Warning! Fake or unverified medicine detected.', {
-          language: 'en',
-          pitch: 1.0,
-          rate: 0.9,
-        });
+        speechText = lang === 'ur' 
+          ? 'خطرہ! یہ دوائی جعلی یا غیر مصدقہ ہے۔' 
+          : 'Warning! Fake or unverified medicine detected.';
       } else if (status === 'EXPIRED') {
-        Speech.speak('Warning! Expired medicine detected.', {
-          language: 'en',
-          pitch: 1.0,
-          rate: 0.9,
+        speechText = lang === 'ur' 
+          ? 'خبردار! اس دوائی کی معیاد ختم ہو چکی ہے۔' 
+          : 'Warning! Expired medicine detected.';
+      }
+
+      if (speechText) {
+        Speech.speak(speechText, {
+          language: speechLang,
+          pitch: 1.1, // High clarity & assertive tone
+          rate: 0.85, // Slow speed for clean understanding
         });
       }
     } catch (error) {
