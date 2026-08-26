@@ -1,3 +1,4 @@
+import { Audio } from 'expo-av';
 import { BarcodeScanningResult, CameraView, useCameraPermissions } from 'expo-camera';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -104,16 +105,30 @@ export default function Index() {
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [isSubmittingReport, setIsSubmittingReport] = useState<boolean>(false);
 
- // Animated Smooth Auto-Scroll
-useEffect(() => {
-  if (result) {
-    const timer = setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    }, 300); // UI load hone ke foran baad smooth scroll apply karega
+  // Audio Play Logic for Warning Alarm
+  const playAlertSound = async (status: string) => {
+    try {
+      if (status === 'FAKE' || status === 'EXPIRED' || status === 'SUSPICIOUS') {
+        const { sound } = await Audio.Sound.createAsync(
+          { uri: 'https://www.myinstants.com/media/sounds/alarm-clock-short.mp3' }
+        );
+        await sound.playAsync();
+      }
+    } catch (error) {
+      console.log('Error playing alert sound:', error);
+    }
+  };
 
-    return () => clearTimeout(timer);
-  }
-}, [result]);
+  // Animated Smooth Auto-Scroll
+  useEffect(() => {
+    if (result) {
+      const timer = setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 300); // UI load hone ke foran baad smooth scroll apply karega
+
+      return () => clearTimeout(timer);
+    }
+  }, [result]);
 
   if (!permission) {
     return (
@@ -200,6 +215,7 @@ useEffect(() => {
           batch: searchTarget,
           msg: lang === 'ur' ? 'یہ بیچ نمبر سرکاری ریکارڈ میں نہیں ملا۔' : (apiResponse?.message || 'This batch number was not found in the official registry.'),
         });
+        playAlertSound('FAKE');
       } else {
         const rawStatus = apiResponse.status || 'AUTHENTIC';
         const statusColor =
@@ -215,6 +231,7 @@ useEffect(() => {
           batch: apiResponse.data.batch_number || searchTarget,
           msg: lang === 'ur' ? 'محفوظ اور اصل پروڈکٹ ہے۔' : (apiResponse.message || 'Guaranteed original product and safe for consumption.'),
         });
+        playAlertSound(rawStatus);
       }
 
     } catch (error: any) {
@@ -225,6 +242,7 @@ useEffect(() => {
         batch: searchTarget,
         msg: lang === 'ur' ? 'بیچ کی تصدیق کرنے میں ناکامی یا کوڈ ڈیٹا بیس میں رجسٹرڈ نہیں۔' : 'Unable to verify batch or code not registered in database.',
       });
+      playAlertSound('FAKE');
     } finally {
       setIsProcessing(false);
     }
