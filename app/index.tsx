@@ -1,10 +1,15 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BarcodeScanningResult, CameraView, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import * as Speech from 'expo-speech';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Button,
+  Keyboard,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -14,441 +19,656 @@ import {
   View,
 } from 'react-native';
 
+interface Medicine {
+  id?: number;
+  medicine_name?: string;
+  brand_name?: string;
+  batch_number?: string;
+  manufacturing_date?: string;
+  expiry_date?: string;
+  qr_hash?: string;
+  status?: string;
+}
+
+interface VerificationResult {
+  status: 'AUTHENTIC' | 'EXPIRED' | 'FAKE' | 'SUSPICIOUS';
+  title: string;
+  color: string;
+  msg: string;
+  data?: Medicine;
+  batch?: string;
+}
+
 const translations = {
   en: {
-    badge: "AI SECURE SYSTEM",
-    title: "MedVerify AI",
-    subtitle: "Instant Authenticity & Safety Scanner",
+    appTitle: "MedVerify AI",
+    appSubtitle: "Instant Authenticity & Safety Scanner",
     langToggle: "اردو",
-    loginTab: "Sign In",
-    signupTab: "Create Account",
-    fullNameLabel: "Full Name",
-    fullNamePlaceholder: "John Doe",
-    emailLabel: "Email Address",
-    emailPlaceholder: "name@example.com",
-    passwordLabel: "Password",
-    passwordPlaceholder: "••••••••",
-    forgotPass: "Forgot Password?",
-    loginBtn: "Sign In",
-    signupBtn: "Create Account",
-    noAccount: "Don't have an account? ",
-    hasAccount: "Already have an account? ",
-    toggleSignUp: "Sign Up",
-    toggleSignIn: "Sign In",
-    invalidEmail: "Please enter a valid email address.",
-    shortPassword: "Password must be at least 6 characters long.",
-    forgotAlertTitle: "Reset Password",
-    forgotAlertMsg: "Please contact support or check your backend reset service.",
+    flashOn: "💡 Flash ON",
+    flashOff: "🔦 Flash OFF",
+    placeholder: "Enter Batch No (e.g. 510902)",
+    verifyBtn: "Verify",
+    scanPrompt: "Point your camera at a QR code or barcode to scan.",
+    reportMedicine: "REPORT MEDICINE",
+    scanAnother: "SCAN ANOTHER MEDICINE",
+    modalTitle: "Report Counterfeit Medicine",
+    reportingBatch: "Reporting Batch: ",
+    reasonLabel: "Reason for Reporting *",
+    reasonPlaceholder: "e.g. Broken seal, wrong packaging, fake QR code",
+    storeLabel: "Medical Store Name / Location (Optional)",
+    storePlaceholder: "e.g. City Pharmacy, Lahore",
+    submitReport: "Submit Report to DRAP",
+    submitting: "Submitting...",
+    cancel: "Cancel",
+    reportSuccess: "Report Submitted!",
+    done: "Done",
+    logout: "Logout",
   },
   ur: {
-    badge: "AI سیکور سسٹم",
-    title: "میڈ ویریفائی اے آئی",
-    subtitle: "فوری اصلیت اور حفاظت کا سکینر",
+    appTitle: "میڈ ویریفائی اے آئی",
+    appSubtitle: "فوری اصلیت اور حفاظت کا سکینر",
     langToggle: "English",
-    loginTab: "سائن ان",
-    signupTab: "نیا اکاؤنٹ بنائیں",
-    fullNameLabel: "پورا نام",
-    fullNamePlaceholder: "علی خان",
-    emailLabel: "ای میل ایڈریس",
-    emailPlaceholder: "name@example.com",
-    passwordLabel: "پاس ورڈ",
-    passwordPlaceholder: "••••••••",
-    forgotPass: "پاس ورڈ بھول گئے؟",
-    loginBtn: "سائن ان کریں",
-    signupBtn: "اکاؤنٹ بنائیں",
-    noAccount: "کیا اکاؤنٹ نہیں ہے؟ ",
-    hasAccount: "پہلے سے اکاؤنٹ موجود ہے؟ ",
-    toggleSignUp: "سائن اپ کریں",
-    toggleSignIn: "سائن ان کریں",
-    invalidEmail: "براہ کرم درست ای میل ایڈریس درج کریں۔",
-    shortPassword: "پاس ورڈ کم از کم 6 حروف پر مشتمل ہونا چاہیے۔",
-    forgotAlertTitle: "پاس ورڈ ری سیٹ",
-    forgotAlertMsg: "پاس ورڈ تبدیل کرنے کے لیے سپورٹ ٹیم سے رابطہ کریں۔",
+    flashOn: "💡 فلیش آن",
+    flashOff: "🔦 فلیش آف",
+    placeholder: "بیچ نمبر درج کریں (مثلاً 510902)",
+    verifyBtn: "تصدیق کریں",
+    scanPrompt: "کیمرے کو QR یا بارکوڈ کی طرف کریں۔",
+    reportMedicine: "دوائی کی شکایت درج کریں",
+    scanAnother: "دوسری دوائی سکین کریں",
+    modalTitle: "جعلی دوائی کی رپورٹ کریں",
+    reportingBatch: "رپورٹ شدہ بیچ: ",
+    reasonLabel: "شکایت کی وجہ *",
+    reasonPlaceholder: "مثلاً ٹوٹی ہوئی سیل، غلط پیکنگ، جعلی کیو آر کوڈ",
+    storeLabel: "میڈیکل سٹور کا نام / مقام (اختیاری)",
+    storePlaceholder: "مثلاً سٹی فارمیسی، لاہور",
+    submitReport: "ڈریپ (DRAP) کو رپورٹ بھیجیں",
+    submitting: "جمع ہو رہا ہے...",
+    cancel: "منسوخ کریں",
+    reportSuccess: "رپورٹ جمع ہو گئی!",
+    done: "مکمل",
+    logout: "لاگ آؤٹ",
   }
 };
 
-export default function AuthScreen() {
+export default function Index() {
   const router = useRouter();
   const [lang, setLang] = useState<'en' | 'ur'>('en');
   const t = translations[lang];
 
-  const [isLogin, setIsLogin] = useState<boolean>(true);
-  const [fullName, setFullName] = useState<string>('');
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
+  const scrollViewRef = useRef<ScrollView>(null);
+
   const [checkingAuth, setCheckingAuth] = useState<boolean>(true);
+  const [permission, requestPermission] = useCameraPermissions();
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [result, setResult] = useState<VerificationResult | null>(null);
+  const [torch, setTorch] = useState<boolean>(false);
+  const [manualCode, setManualCode] = useState<string>('');
 
-  // Input Focus States for UI micro-interactions
-  const [focusedInput, setFocusedInput] = useState<string | null>(null);
+  // Report Modal States
+  const [isReportModalVisible, setIsReportModalVisible] = useState<boolean>(false);
+  const [reportReason, setReportReason] = useState<string>('');
+  const [storeInfo, setStoreInfo] = useState<string>('');
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  const [isSubmittingReport, setIsSubmittingReport] = useState<boolean>(false);
 
+  // Check Auth on Mount
   useEffect(() => {
-    checkLoginStatus();
+    checkUserLogin();
   }, []);
 
-  const checkLoginStatus = async () => {
+  const checkUserLogin = async () => {
     try {
-      const userToken = await AsyncStorage.getItem('userToken');
-      if (userToken) {
-        router.replace('/');
+      const token = await AsyncStorage.getItem('userToken');
+      const savedLang = await AsyncStorage.getItem('appLanguage');
+      if (savedLang === 'ur' || savedLang === 'en') {
+        setLang(savedLang);
       }
-    } catch (error) {
-      console.log('Error checking auth status:', error);
+      if (!token) {
+        router.replace('/auth');
+      }
+    } catch (e) {
+      console.log('Auth Check Error:', e);
     } finally {
       setCheckingAuth(false);
     }
   };
 
-  const toggleLanguage = async () => {
-    const newLang = lang === 'en' ? 'ur' : 'en';
-    setLang(newLang);
-    await AsyncStorage.setItem('appLanguage', newLang);
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('userToken');
+    router.replace('/auth');
   };
 
-  // Email Validation Utility
-  const validateEmail = (emailStr: string) => {
-    const regEx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regEx.test(emailStr);
-  };
-
-  const handleForgotPassword = async () => {
-    const cleanEmail = email.trim().toLowerCase();
-
-    if (!cleanEmail) {
-      Alert.alert(
-        lang === 'ur' ? 'ای میل درکار ہے' : 'Email Required',
-        lang === 'ur' 
-          ? 'براہ کرم پاس ورڈ ری سیٹ کے لیے پہلے اپنا ای میل درج کریں۔' 
-          : 'Please enter your email address first.'
-      );
-      return;
-    }
-
-    if (!validateEmail(cleanEmail)) {
-      Alert.alert('Validation Error', t.invalidEmail);
-      return;
-    }
-
-    setLoading(true);
-
+  // Clear & Effective Multilingual Voice Alert Logic
+  const playVoiceAlert = (status: string) => {
     try {
-      const apiUrl = 'https://medicine-backened.vercel.app/api/forgot-password';
+      Speech.stop();
 
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 
-          'Accept': 'application/json',
-          'Content-Type': 'application/json' 
-        },
-        body: JSON.stringify({ email: cleanEmail }),
-      });
+      let speechText = '';
+      let speechLang = lang === 'ur' ? 'ur-PK' : 'en-US';
 
-      const data = await response.json();
+      if (status === 'FAKE' || status === 'SUSPICIOUS') {
+        speechText = lang === 'ur' 
+          ? 'خطرہ! یہ دوائی جعلی یا غیر مصدقہ ہے۔' 
+          : 'Warning! Fake or unverified medicine detected.';
+      } else if (status === 'EXPIRED') {
+        speechText = lang === 'ur' 
+          ? 'خبردار! اس دوائی کی معیاد ختم ہو چکی ہے۔' 
+          : 'Warning! Expired medicine detected.';
+      }
 
-      if (response.ok && data.success) {
-        Alert.alert(
-          'Success',
-          lang === 'ur' 
-            ? 'پاس ورڈ ری سیٹ کا لنک آپ کی ای میل پر بھیج دیا گیا ہے۔' 
-            : 'Password reset instructions have been sent to your email.'
-        );
-      } else {
-        Alert.alert(
-          'Failed',
-          data.message || (lang === 'ur' ? 'ای میل پر ری سیٹ لنک نہیں بھیجا جا سکا۔' : 'Could not send reset link.')
-        );
+      if (speechText) {
+        Speech.speak(speechText, {
+          language: speechLang,
+          pitch: 1.1,
+          rate: 0.85,
+        });
       }
     } catch (error) {
-      Alert.alert('Network Error', 'Could not connect to the backend server.');
-    } finally {
-      setLoading(false);
+      console.log('Error playing voice alert:', error);
     }
   };
 
-  const handleAuth = async () => {
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanPassword = password.trim();
+  // Animated Smooth Auto-Scroll
+  useEffect(() => {
+    if (result) {
+      const timer = setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 300);
 
-    // 1. Basic Empty Validation
-    if (!cleanEmail || !cleanPassword) {
-      Alert.alert('Error', lang === 'ur' ? 'براہ کرم تمام خانے پُر کریں۔' : 'Please fill in all required fields.');
-      return;
+      return () => clearTimeout(timer);
     }
-
-    if (!isLogin && !fullName.trim()) {
-      Alert.alert('Error', lang === 'ur' ? 'براہ کرم اپنا پورا نام درج کریں۔' : 'Please enter your full name.');
-      return;
-    }
-
-    // 2. Strict Format Validation
-    if (!validateEmail(cleanEmail)) {
-      Alert.alert('Validation Error', t.invalidEmail);
-      return;
-    }
-
-    if (cleanPassword.length < 6) {
-      Alert.alert('Validation Error', t.shortPassword);
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const endpoint = isLogin ? '/api/login' : '/api/register';
-      const apiUrl = `https://medicine-backened.vercel.app${endpoint}`;
-
-      const payload: any = {
-        email: cleanEmail,
-        password: cleanPassword,
-      };
-
-      if (!isLogin) {
-        payload.name = fullName.trim();
-      }
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 
-          'Accept': 'application/json',
-          'Content-Type': 'application/json' 
-        },
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      const data = await response.json();
-
-      if (response.ok && (data.success || data.token)) {
-        await AsyncStorage.setItem('userToken', data.token || cleanEmail);
-        await AsyncStorage.setItem('appLanguage', lang);
-        
-        Alert.alert(
-          'Success',
-          isLogin ? (lang === 'ur' ? 'کامیابی سے سائن ان ہو گئے!' : 'Successfully Logged In!') : (lang === 'ur' ? 'اکاؤنٹ کامیابی سے بن گیا!' : 'Account Created Successfully!'),
-          [{ text: 'OK', onPress: () => router.replace('/') }]
-        );
-      } else {
-        Alert.alert(
-          'Authentication Failed', 
-          data.message || (lang === 'ur' ? 'معلومات درست نہیں ہیں۔' : 'Please check your email and password.')
-        );
-      }
-
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
-        Alert.alert('Timeout Error', 'Server is taking too long to respond. Please try again.');
-      } else {
-        Alert.alert('Network Error', 'Could not connect to the backend server.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [result]);
 
   if (checkingAuth) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <View style={styles.containerCenter}>
         <ActivityIndicator size="large" color="#3B82F6" />
       </View>
     );
   }
 
-  const isFormValid = email.length > 3 && password.length >= 6 && (isLogin || fullName.length > 2);
+  if (!permission) {
+    return (
+      <View style={styles.containerCenter}>
+        <Text style={styles.permissionText}>Loading camera status...</Text>
+      </View>
+    );
+  }
+
+  if (!permission.granted) {
+    return (
+      <View style={styles.containerCenter}>
+        <Text style={styles.permissionText}>
+          Camera permission is required to verify medicine authenticity.
+        </Text>
+        <Button onPress={requestPermission} title="Grant Permission" color="#2563EB" />
+      </View>
+    );
+  }
+
+  const extractCleanBatch = (rawCode: string): string => {
+    if (!rawCode) return '';
+    let cleaned = String(rawCode).replace(/[\r\n]+/g, '').trim();
+
+    if (cleaned.includes('http://') || cleaned.includes('https://') || cleaned.includes('exp://')) {
+      const parts = cleaned.split('/');
+      cleaned = parts[parts.length - 1] || cleaned;
+    }
+
+    if (cleaned.length <= 15) {
+      return cleaned;
+    }
+
+    if (cleaned.includes('10')) {
+      const match = cleaned.match(/10([A-Za-z0-9\-]{3,15}?)(11|17|21|240|[A-Za-z\s\/]|$)/);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+
+    return cleaned;
+  };
+
+  const verifyCode = async (code: string) => {
+    Keyboard.dismiss();
+
+    if (!code || code.trim() === '') {
+      Alert.alert('Notice', 'Please enter or scan a valid batch code.');
+      return;
+    }
+
+    if (isProcessing) return;
+    setIsProcessing(true);
+    setResult(null);
+
+    const searchTarget = extractCleanBatch(code);
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+      const response = await fetch(
+        `https://medicine-backened.vercel.app/api/verify/${encodeURIComponent(searchTarget)}`,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          signal: controller.signal,
+        }
+      );
+
+      clearTimeout(timeoutId);
+      const apiResponse = await response.json();
+
+      const isOk = response.ok && apiResponse.success === true;
+
+      if (!isOk || !apiResponse.data || apiResponse.status === 'FAKE') {
+        setResult({
+          status: 'FAKE',
+          title: lang === 'ur' ? '🚨 جعلی / غیر مصدقہ پروڈکٹ' : (apiResponse.title || '🚨 UNVERIFIED / COUNTERFEIT'),
+          color: '#EF4444',
+          batch: searchTarget,
+          msg: lang === 'ur' ? 'یہ بیچ نمبر سرکاری ریکارڈ میں نہیں ملا۔' : (apiResponse?.message || 'This batch number was not found in the official registry.'),
+        });
+        playVoiceAlert('FAKE');
+      } else {
+        const rawStatus = apiResponse.status || 'AUTHENTIC';
+        const statusColor =
+          rawStatus === 'AUTHENTIC' ? '#10B981' : rawStatus === 'EXPIRED' ? '#F59E0B' : '#EF4444';
+
+        setResult({
+          status: rawStatus as any,
+          title: lang === 'ur' 
+            ? (rawStatus === 'EXPIRED' ? '⚠️ معیاد ختم شدہ دوائی' : '✅ اصلی اور تصدیق شدہ')
+            : (apiResponse.title || (rawStatus === 'EXPIRED' ? '⚠️ EXPIRED MEDICINE' : '✅ VERIFIED AUTHENTIC')),
+          color: statusColor,
+          data: apiResponse.data,
+          batch: apiResponse.data.batch_number || searchTarget,
+          msg: lang === 'ur' ? 'محفوظ اور اصل پروڈکٹ ہے۔' : (apiResponse.message || 'Guaranteed original product and safe for consumption.'),
+        });
+        playVoiceAlert(rawStatus);
+      }
+
+    } catch (error: any) {
+      setResult({
+        status: 'FAKE',
+        title: lang === 'ur' ? '🚨 جعلی / غیر مصدقہ پروڈکٹ' : '🚨 UNVERIFIED / COUNTERFEIT',
+        color: '#EF4444',
+        batch: searchTarget,
+        msg: lang === 'ur' ? 'بیچ کی تصدیق کرنے میں ناکامی یا کوڈ ڈیٹا بیس میں رجسٹرڈ نہیں۔' : 'Unable to verify batch or code not registered in database.',
+      });
+      playVoiceAlert('FAKE');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleBarcodeScanned = ({ data }: BarcodeScanningResult): void => {
+    if (!isProcessing && !result && data) {
+      verifyCode(data);
+    }
+  };
+
+  const activeBatch = result?.data?.batch_number || result?.batch || manualCode || 'N/A';
+
+  const handleReportSubmit = async () => {
+    if (isSubmittingReport) return;
+
+    if (!reportReason.trim() || reportReason.trim().length < 5) {
+      Alert.alert('Required Field', 'Please enter a valid reason for reporting (minimum 5 characters).');
+      return;
+    }
+
+    setIsSubmittingReport(true);
+
+    try {
+      const response = await fetch('https://medicine-backened.vercel.app/api/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          batch_number: activeBatch,
+          reason: reportReason.trim(),
+          store_location: storeInfo.trim() || 'Not specified',
+        }),
+      });
+
+      if (response.ok) {
+        setIsSubmitted(true);
+      } else {
+        const errorData = await response.json();
+        Alert.alert('Submission Error', errorData.message || 'Failed to submit report.');
+      }
+    } catch (error) {
+      Alert.alert('Connection Error', 'Could not reach server. Please check your internet connection.');
+    } finally {
+      setIsSubmittingReport(false);
+    }
+  };
+
+  const closeReportModal = () => {
+    setIsReportModalVisible(false);
+    setIsSubmitted(false);
+    setReportReason('');
+    setStoreInfo('');
+  };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
+    <KeyboardAvoidingView 
+      style={{ flex: 1, backgroundColor: '#0A0F1D' }} 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+      <ScrollView 
+        ref={scrollViewRef}
+        style={styles.container} 
+        contentContainerStyle={{ paddingBottom: 40, paddingTop: 40 }}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
+        
+        {/* Header */}
         <View style={styles.headerContainer}>
           <View style={styles.titleArea}>
             <View style={styles.badgeRow}>
               <View style={styles.aiDot} />
-              <Text style={styles.aiBadgeText}>{t.badge}</Text>
+              <Text style={styles.aiBadgeText}>AI SECURE SYSTEM</Text>
             </View>
-            <Text style={styles.appTitle}>{t.title}</Text>
-            <Text style={styles.appSubtitle}>{t.subtitle}</Text>
+            <Text style={styles.appTitle}>{t.appTitle}</Text>
+            <Text style={styles.appSubtitle}>{t.appSubtitle}</Text>
           </View>
 
-          <TouchableOpacity
-            style={styles.premiumLangBtn}
-            activeOpacity={0.8}
-            onPress={toggleLanguage}
-          >
-            <Text style={styles.langIcon}>🌐</Text>
-            <Text style={styles.langBtnText}>{t.langToggle}</Text>
-          </TouchableOpacity>
+          <View style={styles.actionBtnsRow}>
+            <TouchableOpacity 
+              style={styles.premiumLangBtn} 
+              activeOpacity={0.8}
+              onPress={async () => {
+                const newLang = lang === 'en' ? 'ur' : 'en';
+                setLang(newLang);
+                await AsyncStorage.setItem('appLanguage', newLang);
+              }}
+            >
+              <Text style={styles.langIcon}>🌐</Text>
+              <Text style={styles.langBtnText}>{t.langToggle}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.logoutHeaderBtn} 
+              activeOpacity={0.8}
+              onPress={handleLogout}
+            >
+              <Text style={styles.logoutHeaderIcon}>🚪</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        <View style={styles.card}>
-          <View style={styles.tabContainer}>
-            <TouchableOpacity
-              style={[styles.tabBtn, isLogin && styles.activeTabBtn]}
-              onPress={() => setIsLogin(true)}
-            >
-              <Text style={[styles.tabText, isLogin && styles.activeTabText]}>
-                {t.loginTab}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.tabBtn, !isLogin && styles.activeTabBtn]}
-              onPress={() => setIsLogin(false)}
-            >
-              <Text style={[styles.tabText, !isLogin && styles.activeTabText]}>
-                {t.signupTab}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {!isLogin && (
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, lang === 'ur' && { textAlign: 'right' }]}>{t.fullNameLabel}</Text>
-              <TextInput
-                style={[
-                  styles.input,
-                  focusedInput === 'name' && styles.focusedInput,
-                  lang === 'ur' && { textAlign: 'right' }
-                ]}
-                placeholder={t.fullNamePlaceholder}
-                placeholderTextColor="#64748B"
-                value={fullName}
-                onChangeText={setFullName}
-                onFocus={() => setFocusedInput('name')}
-                onBlur={() => setFocusedInput(null)}
-              />
-            </View>
-          )}
-
-          <View style={styles.inputGroup}>
-            <Text style={[styles.label, lang === 'ur' && { textAlign: 'right' }]}>{t.emailLabel}</Text>
-            <TextInput
-              style={[
-                styles.input,
-                focusedInput === 'email' && styles.focusedInput,
-                lang === 'ur' && { textAlign: 'right' }
-              ]}
-              placeholder={t.emailPlaceholder}
-              placeholderTextColor="#64748B"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              value={email}
-              onChangeText={setEmail}
-              onFocus={() => setFocusedInput('email')}
-              onBlur={() => setFocusedInput(null)}
+        {/* Camera Card */}
+        <View style={styles.cameraWrapper}>
+          <View style={styles.cameraCard}>
+            <CameraView
+              style={StyleSheet.absoluteFillObject}
+              facing="back"
+              enableTorch={torch}
+              onBarcodeScanned={isProcessing || result ? undefined : handleBarcodeScanned}
+              barcodeScannerSettings={{
+                barcodeTypes: ['qr', 'code128', 'ean13', 'ean8', 'datamatrix', 'pdf417'],
+              }}
             />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={[styles.label, lang === 'ur' && { textAlign: 'right' }]}>{t.passwordLabel}</Text>
-            <View style={[
-              styles.passwordContainer,
-              focusedInput === 'password' && styles.focusedInput
-            ]}>
-              <TextInput
-                style={[styles.passwordInput, lang === 'ur' && { textAlign: 'right' }]}
-                placeholder={t.passwordPlaceholder}
-                placeholderTextColor="#64748B"
-                secureTextEntry={!showPassword}
-                value={password}
-                onChangeText={setPassword}
-                onFocus={() => setFocusedInput('password')}
-                onBlur={() => setFocusedInput(null)}
-              />
-              <TouchableOpacity
-                style={styles.eyeBtn}
-                onPress={() => setShowPassword(!showPassword)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.eyeIcon}>{showPassword ? '👁️' : '🙈'}</Text>
-              </TouchableOpacity>
+            <View style={styles.overlayFrame}>
+              <View style={[styles.corner, styles.topLeft]} />
+              <View style={[styles.corner, styles.topRight]} />
+              <View style={[styles.corner, styles.bottomLeft]} />
+              <View style={[styles.corner, styles.bottomRight]} />
             </View>
-          </View>
 
-          {isLogin && (
-            <TouchableOpacity style={styles.forgotPassBtn} onPress={handleForgotPassword} activeOpacity={0.7}>
-              <Text style={styles.forgotPassText}>{t.forgotPass}</Text>
-            </TouchableOpacity>
-          )}
-
-          <TouchableOpacity
-            style={[
-              styles.submitBtn, 
-              (!isFormValid || loading) && styles.disabledBtn
-            ]}
-            onPress={handleAuth}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.submitBtnText}>
-                {isLogin ? t.loginBtn : t.signupBtn}
-              </Text>
-            )}
-          </TouchableOpacity>
-
-          <View style={styles.switchRow}>
-            <Text style={styles.switchText}>
-              {isLogin ? t.noAccount : t.hasAccount}
-            </Text>
-            <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
-              <Text style={styles.switchLink}>
-                {isLogin ? t.toggleSignUp : t.toggleSignIn}
-              </Text>
+            <TouchableOpacity style={styles.torchBtn} onPress={() => setTorch(!torch)}>
+              <Text style={styles.torchBtnText}>{torch ? t.flashOff : t.flashOn}</Text>
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Search Bar */}
+        <View style={styles.manualSearchBox}>
+          <TextInput
+            style={[styles.input, lang === 'ur' && { textAlign: 'right' }]}
+            placeholder={t.placeholder}
+            placeholderTextColor="#94A3B8"
+            value={manualCode}
+            onChangeText={setManualCode}
+          />
+          <TouchableOpacity
+            style={styles.verifyBtn}
+            onPress={() => {
+              if (manualCode.trim().length > 0) {
+                verifyCode(manualCode);
+              } else {
+                Alert.alert('Notice', 'Please enter a batch number first.');
+              }
+            }}
+          >
+            <Text style={styles.verifyBtnText}>{t.verifyBtn}</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Verification Result Card */}
+        {result ? (
+          <View style={[styles.resultCard, { borderColor: result.color }]}>
+            <View style={[styles.badge, { backgroundColor: result.color }]}>
+              <Text style={styles.badgeText}>{result.status}</Text>
+            </View>
+            <Text style={[styles.resultTitle, { color: result.color }]}>{result.title}</Text>
+            <Text style={styles.resultMsg}>{result.msg}</Text>
+
+            {result.data && (result.status === 'AUTHENTIC' || result.status === 'EXPIRED') && (
+              <View style={styles.detailsContainer}>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>{lang === 'ur' ? 'دوائی کا نام' : 'Medicine Name'}</Text>
+                  <Text style={styles.detailValue}>{result.data.medicine_name || 'N/A'}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>{lang === 'ur' ? 'کمپنی / برانڈ' : 'Brand / Manufacturer'}</Text>
+                  <Text style={styles.detailValue}>{result.data.brand_name || 'N/A'}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>{lang === 'ur' ? 'بیچ کوڈ' : 'Batch Code'}</Text>
+                  <Text style={styles.detailValue}>{result.data.batch_number || activeBatch}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>{lang === 'ur' ? 'تیاری کی تاریخ' : 'Manufacturing Date'}</Text>
+                  <Text style={styles.detailValue}>{result.data.manufacturing_date || 'N/A'}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>{lang === 'ur' ? 'تاریخِ میعاد' : 'Expiry Date'}</Text>
+                  <Text style={styles.detailValue}>{result.data.expiry_date || 'N/A'}</Text>
+                </View>
+              </View>
+            )}
+
+            {(result.status === 'FAKE' || result.status === 'SUSPICIOUS') && (
+              <TouchableOpacity style={styles.reportBtn} onPress={() => setIsReportModalVisible(true)}>
+                <Text style={styles.reportBtnText}>{t.reportMedicine}</Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              style={styles.resetBtn}
+              onPress={() => {
+                setIsProcessing(false);
+                setResult(null);
+                setManualCode('');
+              }}
+            >
+              <Text style={styles.resetBtnText}>{t.scanAnother}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.placeholderBox}>
+            <Text style={styles.scannerIconPlaceholder}>📷</Text>
+            <Text style={styles.placeholderText}>{t.scanPrompt}</Text>
+          </View>
+        )}
+
       </ScrollView>
+
+      {/* REPORT MODAL */}
+      <Modal visible={isReportModalVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            {!isSubmitted ? (
+              <>
+                <Text style={styles.modalTitle}>{t.modalTitle}</Text>
+                <Text style={styles.modalSub}>
+                  {t.reportingBatch} <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text>
+                </Text>
+
+                <Text style={styles.inputLabel}>{t.reasonLabel}</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder={t.reasonPlaceholder}
+                  placeholderTextColor="#94A3B8"
+                  value={reportReason}
+                  onChangeText={setReportReason}
+                />
+
+                <Text style={styles.inputLabel}>{t.storeLabel}</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder={t.storePlaceholder}
+                  placeholderTextColor="#94A3B8"
+                  value={storeInfo}
+                  onChangeText={setStoreInfo}
+                />
+
+                <TouchableOpacity
+                  style={[styles.submitReportBtn, isSubmittingReport && { backgroundColor: '#94A3B8' }]}
+                  onPress={handleReportSubmit}
+                  disabled={isSubmittingReport}
+                >
+                  <Text style={styles.submitReportText}>
+                    {isSubmittingReport ? t.submitting : t.submitReport}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.cancelBtn} onPress={closeReportModal}>
+                  <Text style={styles.cancelText}>{t.cancel}</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <View style={{ alignItems: 'center', paddingVertical: 10 }}>
+                <Text style={{ fontSize: 40, marginBottom: 10 }}>✅</Text>
+                <Text style={styles.modalTitle}>{t.reportSuccess}</Text>
+                <Text style={[styles.modalSub, { textAlign: 'center', marginTop: 8 }]}>
+                  Batch <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text> has been flagged and sent to Drug Regulatory Authority.
+                </Text>
+                <Text style={styles.refCode}>Ref ID: DRAP-2026-{Math.floor(1000 + Math.random() * 9000)}</Text>
+
+                <TouchableOpacity style={[styles.submitReportBtn, { width: '100%', marginTop: 20 }]} onPress={closeReportModal}>
+                  <Text style={styles.submitReportText}>{t.done}</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0A0F1D' },
-  scrollContent: { paddingHorizontal: 20, paddingTop: 60, paddingBottom: 40 },
-  headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30 },
+  container: { flex: 1, paddingHorizontal: 20 },
+  containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#0A0F1D' },
+  permissionText: { fontSize: 16, textAlign: 'center', color: '#94A3B8', marginBottom: 20 },
+  
+  headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   titleArea: { flex: 1 },
   badgeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 6 },
   aiDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#3B82F6' },
   aiBadgeText: { fontSize: 10, fontWeight: '800', color: '#3B82F6', letterSpacing: 1 },
   appTitle: { fontSize: 26, fontWeight: '900', color: '#FFFFFF', letterSpacing: 0.5 },
   appSubtitle: { fontSize: 12, color: '#94A3B8', marginTop: 2 },
-  premiumLangBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(30, 41, 59, 0.8)', borderWidth: 1, borderColor: 'rgba(59, 130, 246, 0.4)', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 22, gap: 6 },
-  langIcon: { fontSize: 14 },
-  langBtnText: { color: '#60A5FA', fontWeight: '800', fontSize: 12 },
-  card: { backgroundColor: '#111827', borderRadius: 24, borderWidth: 1.5, borderColor: 'rgba(59, 130, 246, 0.3)', padding: 22, shadowColor: '#3B82F6', shadowOpacity: 0.15, shadowRadius: 10, elevation: 6 },
-  tabContainer: { flexDirection: 'row', backgroundColor: '#1E293B', borderRadius: 14, padding: 4, marginBottom: 24 },
-  tabBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 10 },
-  activeTabBtn: { backgroundColor: '#2563EB' },
-  tabText: { color: '#94A3B8', fontSize: 13, fontWeight: '700' },
-  activeTabText: { color: '#FFFFFF', fontWeight: '800' },
-  inputGroup: { marginBottom: 16 },
-  label: { fontSize: 12, fontWeight: '700', color: '#CBD5E1', marginBottom: 6 },
-  input: { backgroundColor: '#1E293B', borderWidth: 1, borderColor: '#334155', borderRadius: 14, paddingHorizontal: 16, fontSize: 14, color: '#FFFFFF', height: 48 },
-  focusedInput: { borderColor: '#3B82F6' },
-  passwordContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1E293B', borderWidth: 1, borderColor: '#334155', borderRadius: 14, height: 48 },
-  passwordInput: { flex: 1, paddingHorizontal: 16, fontSize: 14, color: '#FFFFFF', height: '100%' },
-  eyeBtn: { paddingHorizontal: 14, justifyContent: 'center', alignItems: 'center', height: '100%' },
-  eyeIcon: { fontSize: 16 },
-  forgotPassBtn: { alignSelf: 'flex-end', marginBottom: 20 },
-  forgotPassText: { color: '#60A5FA', fontSize: 12, fontWeight: '600' },
-  submitBtn: { backgroundColor: '#2563EB', height: 50, borderRadius: 14, justifyContent: 'center', alignItems: 'center', shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 8, elevation: 4, marginTop: 8 },
-  disabledBtn: { opacity: 0.5 },
-  submitBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800', letterSpacing: 0.5 },
-  switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 20 },
-  switchText: { color: '#94A3B8', fontSize: 13 },
-  switchLink: { color: '#60A5FA', fontSize: 13, fontWeight: '800' },
+  
+  actionBtnsRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  premiumLangBtn: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: 'rgba(30, 41, 59, 0.8)', 
+    borderWidth: 1, 
+    borderColor: 'rgba(59, 130, 246, 0.4)', 
+    paddingVertical: 8, 
+    paddingHorizontal: 12, 
+    borderRadius: 22, 
+    elevation: 4,
+    gap: 4
+  },
+  langIcon: { fontSize: 13 },
+  langBtnText: { color: '#60A5FA', fontWeight: '800', fontSize: 11 },
+  logoutHeaderBtn: {
+  backgroundColor: 'rgba(239, 68, 68, 0.15)',
+  borderWidth: 1,
+  borderColor: 'rgba(239, 68, 68, 0.4)',
+  padding: 8,
+  borderRadius: 22,
+  justifyContent: 'center', // <-- Yahan justifyContent kar dein
+  alignItems: 'center',
+},
+  logoutHeaderIcon: { fontSize: 13 },
+
+  cameraWrapper: { 
+    borderRadius: 24, 
+    borderWidth: 1.5, 
+    borderColor: 'rgba(59, 130, 246, 0.3)', 
+    shadowColor: '#3B82F6', 
+    shadowOpacity: 0.25, 
+    shadowRadius: 12, 
+    elevation: 6, 
+    backgroundColor: '#000',
+    overflow: 'hidden'
+  },
+  cameraCard: { height: 230, width: '100%', position: 'relative' },
+  overlayFrame: { flex: 1, margin: 30, borderWidth: 1.5, borderColor: 'rgba(59, 130, 246, 0.6)', borderRadius: 16, backgroundColor: 'transparent', position: 'relative' },
+  
+  corner: { position: 'absolute', width: 16, height: 16, borderColor: '#3B82F6' },
+  topLeft: { top: -2, left: -2, borderTopWidth: 4, borderLeftWidth: 4 },
+  topRight: { top: -2, right: -2, borderTopWidth: 4, borderRightWidth: 4 },
+  bottomLeft: { bottom: -2, left: -2, borderBottomWidth: 4, borderLeftWidth: 4 },
+  bottomRight: { bottom: -2, right: -2, borderBottomWidth: 4, borderRightWidth: 4 },
+
+  torchBtn: { position: 'absolute', bottom: 12, right: 12, backgroundColor: 'rgba(15, 23, 42, 0.85)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16 },
+  torchBtnText: { color: '#FFF', fontSize: 11, fontWeight: '700' },
+  
+  manualSearchBox: { flexDirection: 'row', marginTop: 16, marginBottom: 16, gap: 10 },
+  input: { flex: 1, backgroundColor: '#1E293B', borderWidth: 1, borderColor: '#334155', borderRadius: 14, paddingHorizontal: 16, fontSize: 14, color: '#FFFFFF', height: 48 },
+  verifyBtn: { backgroundColor: '#2563EB', justifyContent: 'center', paddingHorizontal: 20, borderRadius: 14, height: 48, shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 },
+  verifyBtnText: { color: '#FFF', fontWeight: '800', fontSize: 14 },
+  
+  placeholderBox: { marginTop: 8, padding: 18, borderRadius: 20, backgroundColor: '#111827', borderStyle: 'dashed', borderWidth: 1.5, borderColor: '#334155', alignItems: 'center' },
+  scannerIconPlaceholder: { fontSize: 22, marginBottom: 4 },
+  placeholderText: { fontSize: 13, color: '#94A3B8', textAlign: 'center', fontWeight: '500' },
+  
+  resultCard: { backgroundColor: '#111827', marginTop: 10, padding: 20, borderRadius: 22, borderWidth: 1.5, shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
+  badge: { alignSelf: 'flex-start', paddingVertical: 4, paddingHorizontal: 12, borderRadius: 8, marginBottom: 10 },
+  badgeText: { color: '#FFF', fontSize: 11, fontWeight: '900', letterSpacing: 0.8 },
+  resultTitle: { fontSize: 18, fontWeight: '900', marginBottom: 6 },
+  resultMsg: { fontSize: 13, color: '#94A3B8', marginBottom: 16, lineHeight: 18 },
+  detailsContainer: { backgroundColor: '#1E293B', padding: 14, borderRadius: 14, gap: 10, marginBottom: 16, borderWidth: 1, borderColor: '#334155' },
+  detailRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: '#334155' },
+  detailLabel: { fontSize: 13, color: '#94A3B8', fontWeight: '500' },
+  detailValue: { fontSize: 13, fontWeight: '700', color: '#F8FAFC' },
+  reportBtn: { backgroundColor: '#EF4444', paddingVertical: 14, borderRadius: 14, alignItems: 'center', marginBottom: 10, shadowColor: '#EF4444', shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 },
+  reportBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
+  resetBtn: { backgroundColor: '#334155', paddingVertical: 14, borderRadius: 14, alignItems: 'center' },
+  resetBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
+
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(10, 15, 29, 0.85)', justifyContent: 'center', padding: 20 },
+  modalContainer: { backgroundColor: '#111827', borderRadius: 24, padding: 22, borderWidth: 1, borderColor: '#334155', elevation: 10 },
+  modalTitle: { fontSize: 18, fontWeight: '900', color: '#FFFFFF' },
+  modalSub: { fontSize: 13, color: '#94A3B8', marginTop: 4, marginBottom: 18 },
+  inputLabel: { fontSize: 12, fontWeight: '700', color: '#CBD5E1', marginBottom: 6 },
+  modalInput: { backgroundColor: '#1E293B', borderWidth: 1, borderColor: '#334155', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 13, marginBottom: 16, color: '#FFFFFF' },
+  submitReportBtn: { backgroundColor: '#EF4444', paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
+  submitReportText: { color: '#FFF', fontWeight: '800', fontSize: 13 },
+  cancelBtn: { paddingVertical: 12, alignItems: 'center', marginTop: 6 },
+  cancelText: { color: '#94A3B8', fontSize: 13, fontWeight: '700' },
+  refCode: { fontSize: 12, fontWeight: '800', color: '#34D399', backgroundColor: 'rgba(52, 211, 153, 0.1)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, marginTop: 12, overflow: 'hidden' },
 });
