@@ -112,8 +112,58 @@ export default function AuthScreen() {
     return regEx.test(emailStr);
   };
 
-  const handleForgotPassword = () => {
-    Alert.alert(t.forgotAlertTitle, t.forgotAlertMsg);
+  const handleForgotPassword = async () => {
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (!cleanEmail) {
+      Alert.alert(
+        lang === 'ur' ? 'ای میل درکار ہے' : 'Email Required',
+        lang === 'ur' 
+          ? 'براہ کرم پاس ورڈ ری سیٹ کے لیے پہلے اپنا ای میل درج کریں۔' 
+          : 'Please enter your email address first.'
+      );
+      return;
+    }
+
+    if (!validateEmail(cleanEmail)) {
+      Alert.alert('Validation Error', t.invalidEmail);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const apiUrl = 'https://medicine-backened.vercel.app/api/forgot-password';
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 
+          'Accept': 'application/json',
+          'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify({ email: cleanEmail }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        Alert.alert(
+          'Success',
+          lang === 'ur' 
+            ? 'پاس ورڈ ری سیٹ کا لنک آپ کی ای میل پر بھیج دیا گیا ہے۔' 
+            : 'Password reset instructions have been sent to your email.'
+        );
+      } else {
+        Alert.alert(
+          'Failed',
+          data.message || (lang === 'ur' ? 'ای میل پر ری سیٹ لنک نہیں بھیجا جا سکا۔' : 'Could not send reset link.')
+        );
+      }
+    } catch (error) {
+      Alert.alert('Network Error', 'Could not connect to the backend server.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAuth = async () => {
@@ -177,7 +227,12 @@ export default function AuthScreen() {
       if (response.ok && (data.success || data.token)) {
         await AsyncStorage.setItem('userToken', data.token || cleanEmail);
         await AsyncStorage.setItem('appLanguage', lang);
-        router.replace('/'); 
+        
+        Alert.alert(
+          'Success',
+          isLogin ? (lang === 'ur' ? 'کامیابی سے سائن ان ہو گئے!' : 'Successfully Logged In!') : (lang === 'ur' ? 'اکاؤنٹ کامیابی سے بن گیا!' : 'Account Created Successfully!'),
+          [{ text: 'OK', onPress: () => router.replace('/') }]
+        );
       } else {
         Alert.alert(
           'Authentication Failed', 
@@ -323,7 +378,7 @@ export default function AuthScreen() {
           </View>
 
           {isLogin && (
-            <TouchableOpacity style={styles.forgotPassBtn} onPress={handleForgotPassword}>
+            <TouchableOpacity style={styles.forgotPassBtn} onPress={handleForgotPassword} activeOpacity={0.7}>
               <Text style={styles.forgotPassText}>{t.forgotPass}</Text>
             </TouchableOpacity>
           )}
