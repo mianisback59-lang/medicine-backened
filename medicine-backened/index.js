@@ -5,6 +5,8 @@ dns.setServers(['8.8.8.8', '8.8.4.4']);
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const nodemailer = require('nodemailer'); // Nodemailer Added
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -12,7 +14,7 @@ app.use(express.json());
 // MongoDB Connection String
 const MONGO_URI = process.env.MONGO_URI;
 
-// Serverless connection caching for 
+// Serverless connection caching
 let cachedDb = null;
 async function connectToDatabase() {
   if (cachedDb && mongoose.connection.readyState === 1) {
@@ -21,6 +23,15 @@ async function connectToDatabase() {
   cachedDb = await mongoose.connect(MONGO_URI, { bufferCommands: false });
   return cachedDb;
 }
+
+// Nodemailer Transporter Configuration
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 // 1. Medicine Schema
 const medicineSchema = new mongoose.Schema({
@@ -46,7 +57,7 @@ const reportSchema = new mongoose.Schema({
 
 const Report = mongoose.models.Report || mongoose.model('Report', reportSchema);
 
-// 3. User Schema (New Addition)
+// 3. User Schema
 const userSchema = new mongoose.Schema({
   name: { type: String, default: '' },
   email: { type: String, required: true, unique: true },
@@ -62,7 +73,7 @@ app.get('/', (req, res) => {
   res.status(200).send('✅ MedVerify AI Backend API is Running Successfully!');
 });
 
-// --- AUTHENTICATION ROUTES (New Addition) ---
+// --- AUTHENTICATION ROUTES ---
 
 // Register Endpoint
 app.post('/api/register', async (req, res) => {
@@ -124,6 +135,61 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+// Forgot Password Endpoint (REAL EMAIL SENDING ADDED)
+app.post('/api/forgot-password', async (req, res) => {
+  try {
+    await connectToDatabase();
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email address is required.' });
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: cleanEmail });
+
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'No account found with this email address.' 
+      });
+    }
+
+    // 6-Digit Verification/Reset OTP Code
+    const resetCode = Math.floor(100000 + Math.random() * 900000);
+
+    const mailOptions = {
+      from: `"MedVerify AI" <${process.env.EMAIL_USER}>`,
+      to: cleanEmail,
+      subject: 'Password Reset Request - MedVerify AI',
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #0A0F1D; color: #ffffff; border-radius: 10px;">
+          <h2 style="color: #3B82F6;">MedVerify AI</h2>
+          <p>Hi ${user.name || 'User'},</p>
+          <p>Aap ne password reset karne ki request ki hai.</p>
+          <p>Aap ka 6-digit Security Verification Code yeh hai:</p>
+          <div style="background-color: #1E293B; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0;">
+            <span style="font-size: 28px; font-weight: bold; letter-spacing: 6px; color: #60A5FA;">${resetCode}</span>
+          </div>
+          <p style="color: #94A3B8; font-size: 12px;">Agar aap ne yeh request nahi ki, toh is email ko ignore karein.</p>
+        </div>
+      `
+    };
+
+    // Actual Email Send Operation
+    await transporter.sendMail(mailOptions);
+
+    return res.status(200).json({
+      success: true,
+      message: `Password reset code sent to ${cleanEmail}`
+    });
+
+  } catch (error) {
+    console.error("Forgot Password Error:", error);
+    return res.status(500).json({ success: false, message: 'Failed to send email. Please check server email credentials.' });
+  }
+});
+
 // Verification API Endpoint
 app.get('/api/verify/:batch', async (req, res) => {
   try {
@@ -143,7 +209,6 @@ app.get('/api/verify/:batch', async (req, res) => {
 
     let targetBatch = rawInput;
 
-    // GS1 Extractor for complex QR codes
     if (rawInput.includes('10')) {
       const gs1Match = rawInput.match(/10([A-Za-z0-9\-]{3,12}?)(11|17|21|240|[A-Za-z\s\/]|$)/);
       if (gs1Match && gs1Match[1]) {
@@ -154,7 +219,6 @@ app.get('/api/verify/:batch', async (req, res) => {
     const rawInputLower = targetBatch.toLowerCase();
     const cleanInput = targetBatch.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
 
-    // Query MongoDB Database
     const allMedicines = await Medicine.find({});
     const found = allMedicines.find(med => {
       const dbBatchRaw = (med.batch_number || '').trim().toLowerCase();
@@ -181,7 +245,6 @@ app.get('/api/verify/:batch', async (req, res) => {
       });
     }
 
-    // Check Database Status string
     const dbStatus = String(found.status || '').toLowerCase();
     if (dbStatus.includes('fake') || dbStatus.includes('invalid') || dbStatus.includes('counterfeit')) {
       return res.json({
@@ -199,7 +262,6 @@ app.get('/api/verify/:batch', async (req, res) => {
       });
     }
 
-    // Expiry Check Logic (Using current date 2026)
     const today = new Date().toISOString().split('T')[0];
     const isExpired = found.expiry_date && found.expiry_date < today;
 
@@ -262,5 +324,4 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
 
-// Export app for Vercel Serverless environment
 module.exports = app;
