@@ -46,10 +46,82 @@ const reportSchema = new mongoose.Schema({
 
 const Report = mongoose.models.Report || mongoose.model('Report', reportSchema);
 
+// 3. User Schema (New Addition)
+const userSchema = new mongoose.Schema({
+  name: { type: String, default: '' },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  created_at: { type: Date, default: Date.now }
+});
+
+const User = mongoose.models.User || mongoose.model('User', userSchema);
+
 // --- ROUTES ---
 
 app.get('/', (req, res) => {
   res.status(200).send('✅ MedVerify AI Backend API is Running Successfully!');
+});
+
+// --- AUTHENTICATION ROUTES (New Addition) ---
+
+// Register Endpoint
+app.post('/api/register', async (req, res) => {
+  try {
+    await connectToDatabase();
+    const { name, email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: 'Email and password are required.' });
+    }
+
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: 'User already exists with this email.' });
+    }
+
+    const newUser = new User({
+      name: name ? name.trim() : '',
+      email: email.toLowerCase().trim(),
+      password: password.trim()
+    });
+
+    await newUser.save();
+
+    return res.status(201).json({
+      success: true,
+      message: 'User registered successfully!',
+      token: newUser._id.toString()
+    });
+  } catch (error) {
+    console.error("Register Error:", error);
+    return res.status(500).json({ success: false, message: 'Server error during registration.' });
+  }
+});
+
+// Login Endpoint
+app.post('/api/login', async (req, res) => {
+  try {
+    await connectToDatabase();
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: 'Please enter both email and password.' });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!user || user.password !== password.trim()) {
+      return res.status(400).json({ success: false, message: 'Invalid email or password.' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Login successful!',
+      token: user._id.toString()
+    });
+  } catch (error) {
+    console.error("Login Error:", error);
+    return res.status(500).json({ success: false, message: 'Server error during login.' });
+  }
 });
 
 // Verification API Endpoint
@@ -184,6 +256,7 @@ app.post('/api/report', async (req, res) => {
     });
   }
 });
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
