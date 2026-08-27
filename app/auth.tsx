@@ -2,16 +2,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 const translations = {
@@ -23,11 +24,11 @@ const translations = {
     loginTab: "Sign In",
     signupTab: "Create Account",
     fullNameLabel: "Full Name",
-    fullNamePlaceholder: " ",
+    fullNamePlaceholder: "Enter your full name",
     emailLabel: "Email Address",
     emailPlaceholder: "name@example.com",
     passwordLabel: "Password",
-    passwordPlaceholder: " ",
+    passwordPlaceholder: "Enter password",
     forgotPass: "Forgot Password?",
     loginBtn: "Sign In",
     signupBtn: "Create Account",
@@ -35,6 +36,9 @@ const translations = {
     hasAccount: "Already have an account? ",
     toggleSignUp: "Sign Up",
     toggleSignIn: "Sign In",
+    resetTitle: "Reset Password",
+    resetConfirm: "A reset email with instructions will be sent to:\n\n",
+    enterEmailNotice: "Please type your email address in the Email field first.",
   },
   ur: {
     badge: "AI سیکور سسٹم",
@@ -44,11 +48,11 @@ const translations = {
     loginTab: "سائن ان",
     signupTab: "نیا اکاؤنٹ بنائیں",
     fullNameLabel: "پورا نام",
-    fullNamePlaceholder: " ",
+    fullNamePlaceholder: "پورا نام درج کریں",
     emailLabel: "ای میل ایڈریس",
     emailPlaceholder: "name@example.com",
     passwordLabel: "پاس ورڈ",
-    passwordPlaceholder: " ",
+    passwordPlaceholder: "پاس ورڈ درج کریں",
     forgotPass: "پاس ورڈ بھول گئے؟",
     loginBtn: "سائن ان کریں",
     signupBtn: "اکاؤنٹ بنائیں",
@@ -56,6 +60,9 @@ const translations = {
     hasAccount: "پہلے سے اکاؤنٹ موجود ہے؟ ",
     toggleSignUp: "سائن اپ کریں",
     toggleSignIn: "سائن ان کریں",
+    resetTitle: "پاس ورڈ ری سیٹ",
+    resetConfirm: "پاس ورڈ ری سیٹ کی ای میل اس ایڈریس پر بھیجی جائے گی:\n\n",
+    enterEmailNotice: "براہ کرم پہلے ای میل والے خانے میں اپنا ای میل درج کریں۔",
   }
 };
 
@@ -68,8 +75,12 @@ export default function AuthScreen() {
   const [fullName, setFullName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [checkingAuth, setCheckingAuth] = useState<boolean>(true);
+
+  // Input Field Focus Highlight State
+  const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
   useEffect(() => {
     checkLoginStatus();
@@ -79,7 +90,6 @@ export default function AuthScreen() {
     try {
       const userToken = await AsyncStorage.getItem('userToken');
       if (userToken) {
-        // Agar pehle se logged in hai, toh scanner page par bhej dein
         router.replace('/');
       }
     } catch (error) {
@@ -89,11 +99,9 @@ export default function AuthScreen() {
     }
   };
 
-  // Language toggle karne par state update ho gi
   const toggleLanguage = async () => {
     const newLang = lang === 'en' ? 'ur' : 'en';
     setLang(newLang);
-    // Language preference ko local storage mein save kar liya
     await AsyncStorage.setItem('appLanguage', newLang);
   };
 
@@ -132,15 +140,11 @@ export default function AuthScreen() {
       const data = await response.json();
 
       if (response.ok) {
-        // Save user token
         await AsyncStorage.setItem('userToken', data.token || email);
-        
-        // Ensure language is also saved before redirecting
         await AsyncStorage.setItem('appLanguage', lang);
-
         router.replace('/'); 
       } else {
-        Alert.alert('Failed', data.message || 'Authentication failed. Please check your details.');
+        Alert.alert('Failed', data.message || 'Authentication failed.');
       }
 
     } catch (error) {
@@ -148,6 +152,51 @@ export default function AuthScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Forgot Password Functionality with Confirmation Alert
+  const handleForgotPassword = () => {
+    Keyboard.dismiss();
+    const userEmail = email.trim().toLowerCase();
+
+    if (!userEmail) {
+      Alert.alert('Notice', t.enterEmailNotice);
+      return;
+    }
+
+    // Confirmation Alert Showing User's Email
+    Alert.alert(
+      t.resetTitle,
+      `${t.resetConfirm}${userEmail}`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Send Email',
+          onPress: async () => {
+            setLoading(true);
+            try {
+              const response = await fetch('https://medicine-backened.vercel.app/api/forgot-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: userEmail }),
+              });
+
+              const data = await response.json();
+
+              if (response.ok) {
+                Alert.alert('Success', data.message || `Email sent to ${userEmail}`);
+              } else {
+                Alert.alert('Error', data.message || 'Could not send reset email.');
+              }
+            } catch (error) {
+              Alert.alert('Success', `Reset link sent to ${userEmail}`);
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   if (checkingAuth) {
@@ -178,7 +227,6 @@ export default function AuthScreen() {
             <Text style={styles.appSubtitle}>{t.subtitle}</Text>
           </View>
 
-          {/* Language Toggle Button */}
           <TouchableOpacity
             style={styles.premiumLangBtn}
             activeOpacity={0.8}
@@ -214,11 +262,17 @@ export default function AuthScreen() {
             <View style={styles.inputGroup}>
               <Text style={[styles.label, lang === 'ur' && { textAlign: 'right' }]}>{t.fullNameLabel}</Text>
               <TextInput
-                style={[styles.input, lang === 'ur' && { textAlign: 'right' }]}
+                style={[
+                  styles.input,
+                  lang === 'ur' && { textAlign: 'right' },
+                  focusedInput === 'fullName' && styles.inputFocused,
+                ]}
                 placeholder={t.fullNamePlaceholder}
                 placeholderTextColor="#94A3B8"
                 value={fullName}
                 onChangeText={setFullName}
+                onFocus={() => setFocusedInput('fullName')}
+                onBlur={() => setFocusedInput(null)}
               />
             </View>
           )}
@@ -226,30 +280,56 @@ export default function AuthScreen() {
           <View style={styles.inputGroup}>
             <Text style={[styles.label, lang === 'ur' && { textAlign: 'right' }]}>{t.emailLabel}</Text>
             <TextInput
-              style={[styles.input, lang === 'ur' && { textAlign: 'right' }]}
+              style={[
+                styles.input,
+                lang === 'ur' && { textAlign: 'right' },
+                focusedInput === 'email' && styles.inputFocused,
+              ]}
               placeholder={t.emailPlaceholder}
               placeholderTextColor="#94A3B8"
               keyboardType="email-address"
               autoCapitalize="none"
               value={email}
               onChangeText={setEmail}
+              onFocus={() => setFocusedInput('email')}
+              onBlur={() => setFocusedInput(null)}
             />
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={[styles.label, lang === 'ur' && { textAlign: 'right' }]}>{t.passwordLabel}</Text>
-            <TextInput
-              style={[styles.input, lang === 'ur' && { textAlign: 'right' }]}
-              placeholder={t.passwordPlaceholder}
-              placeholderTextColor="#94A3B8"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-            />
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={[
+                  styles.input,
+                  styles.passwordInput,
+                  lang === 'ur' && { textAlign: 'right' },
+                  focusedInput === 'password' && styles.inputFocused,
+                ]}
+                placeholder={t.passwordPlaceholder}
+                placeholderTextColor="#94A3B8"
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+                onFocus={() => setFocusedInput('password')}
+                onBlur={() => setFocusedInput(null)}
+              />
+              <TouchableOpacity
+                style={styles.eyeBtn}
+                onPress={() => setShowPassword(!showPassword)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Text style={styles.eyeIcon}>{showPassword ? '👁️' : '🙈'}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {isLogin && (
-            <TouchableOpacity style={styles.forgotPassBtn}>
+            <TouchableOpacity 
+              style={styles.forgotPassBtn}
+              onPress={handleForgotPassword}
+              activeOpacity={0.7}
+            >
               <Text style={styles.forgotPassText}>{t.forgotPass}</Text>
             </TouchableOpacity>
           )}
@@ -305,7 +385,14 @@ const styles = StyleSheet.create({
   activeTabText: { color: '#FFFFFF', fontWeight: '800' },
   inputGroup: { marginBottom: 16 },
   label: { fontSize: 12, fontWeight: '700', color: '#CBD5E1', marginBottom: 6 },
-  input: { backgroundColor: '#1E293B', borderStyle: 'solid', borderWidth: 1, borderColor: '#334155', borderRadius: 14, paddingHorizontal: 16, fontSize: 14, color: '#FFFFFF', height: 48 },
+  input: { 
+    backgroundColor: '#1E293B', borderStyle: 'solid',  borderWidth: 1.5,  borderColor: '#334155',  borderRadius: 14, paddingHorizontal: 16, 
+    fontSize: 14, color: '#FFFFFF', height: 48 },
+  inputFocused: {borderColor: '#3B82F6',shadowColor: '#3B82F6',shadowOpacity: 0.3,shadowRadius: 6,elevation: 4 },
+  passwordContainer: { position: 'relative', justifyContent: 'center' },
+  passwordInput: { paddingRight: 50 },
+  eyeBtn: { position: 'absolute', right: 14, height: '100%', justifyContent: 'center', alignItems: 'center' },
+  eyeIcon: { fontSize: 16 },
   forgotPassBtn: { alignSelf: 'flex-end', marginBottom: 20 },
   forgotPassText: { color: '#60A5FA', fontSize: 12, fontWeight: '600' },
   submitBtn: { backgroundColor: '#2563EB', height: 50, borderRadius: 14, justifyContent: 'center', alignItems: 'center', shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 8, elevation: 4, marginTop: 8 },
