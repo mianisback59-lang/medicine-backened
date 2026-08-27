@@ -1,4 +1,6 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BarcodeScanningResult, CameraView, useCameraPermissions } from 'expo-camera';
+import { useRouter } from 'expo-router';
 import * as Speech from 'expo-speech';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -59,6 +61,9 @@ const translations = {
     cancel: "Cancel",
     reportSuccess: "Report Submitted!",
     done: "Done",
+    logoutBtn: "🚪 Logout",
+    logoutConfirmTitle: "Logout",
+    logoutConfirmMsg: "Are you sure you want to log out?",
   },
   ur: {
     appTitle: "میڈ ویریفائی اے آئی",
@@ -82,12 +87,74 @@ const translations = {
     cancel: "منسوخ کریں",
     reportSuccess: "رپورٹ جمع ہو گئی!",
     done: "مکمل",
+    logoutBtn: "🚪 لاگ آؤٹ",
+    logoutConfirmTitle: "لاگ آؤٹ",
+    logoutConfirmMsg: "کیا آپ واقعی لاگ آؤٹ کرنا چاہتے ہیں؟",
   }
 };
 
 export default function Index() {
+  const router = useRouter();
   const [lang, setLang] = useState<'en' | 'ur'>('en');
   const t = translations[lang];
+
+  // 1. Auth Guard & Saved Language Loader
+  useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        // Check Auth Token
+        const token = await AsyncStorage.getItem('userToken');
+        if (!token) {
+          router.replace('/auth');
+          return;
+        }
+
+        // Load Saved Language
+        const savedLang = await AsyncStorage.getItem('appLanguage');
+        if (savedLang === 'ur' || savedLang === 'en') {
+          setLang(savedLang);
+        }
+      } catch (error) {
+        console.log('Error loading app state:', error);
+      }
+    };
+
+    initializeApp();
+  }, []);
+
+  // Language toggle handler with Persistence
+  const toggleLanguage = async () => {
+    const newLang = lang === 'en' ? 'ur' : 'en';
+    setLang(newLang);
+    try {
+      await AsyncStorage.setItem('appLanguage', newLang);
+    } catch (error) {
+      console.log('Error saving language state:', error);
+    }
+  };
+
+  // Logout Handler
+  const handleLogout = async () => {
+    Alert.alert(
+      t.logoutConfirmTitle,
+      t.logoutConfirmMsg,
+      [
+        { text: t.cancel, style: 'cancel' },
+        {
+          text: t.logoutBtn,
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await AsyncStorage.removeItem('userToken');
+              router.replace('/auth');
+            } catch (error) {
+              console.log('Logout error:', error);
+            }
+          },
+        },
+      ]
+    );
+  };
 
   // 1. ScrollView ko reference dene ke liye Ref create kiya hai
   const scrollViewRef = useRef<ScrollView>(null);
@@ -338,14 +405,24 @@ export default function Index() {
             <Text style={styles.appSubtitle}>{t.appSubtitle}</Text>
           </View>
 
-          <TouchableOpacity 
-            style={styles.premiumLangBtn} 
-            activeOpacity={0.8}
-            onPress={() => setLang(lang === 'en' ? 'ur' : 'en')}
-          >
-            <Text style={styles.langIcon}>🌐</Text>
-            <Text style={styles.langBtnText}>{t.langToggle}</Text>
-          </TouchableOpacity>
+          <View style={styles.headerRightActions}>
+            <TouchableOpacity 
+              style={styles.premiumLangBtn} 
+              activeOpacity={0.8}
+              onPress={toggleLanguage}
+            >
+              <Text style={styles.langIcon}>🌐</Text>
+              <Text style={styles.langBtnText}>{t.langToggle}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.logoutBtn} 
+              activeOpacity={0.8}
+              onPress={handleLogout}
+            >
+              <Text style={styles.logoutBtnText}>{t.logoutBtn}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Camera Card */}
@@ -533,23 +610,38 @@ const styles = StyleSheet.create({
   appTitle: { fontSize: 26, fontWeight: '900', color: '#FFFFFF', letterSpacing: 0.5 },
   appSubtitle: { fontSize: 12, color: '#94A3B8', marginTop: 2 },
   
+  headerRightActions: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   premiumLangBtn: { 
     flexDirection: 'row', 
     alignItems: 'center', 
     backgroundColor: 'rgba(30, 41, 59, 0.8)', 
     borderWidth: 1, 
     borderColor: 'rgba(59, 130, 246, 0.4)', 
-    paddingVertical: 8, 
-    paddingHorizontal: 14, 
-    borderRadius: 22, 
+    paddingVertical: 7, 
+    paddingHorizontal: 10, 
+    borderRadius: 20, 
     shadowColor: '#3B82F6', 
     shadowOpacity: 0.2, 
     shadowRadius: 8, 
     elevation: 4,
-    gap: 6
+    gap: 4
   },
-  langIcon: { fontSize: 14 },
-  langBtnText: { color: '#60A5FA', fontWeight: '800', fontSize: 12 },
+  langIcon: { fontSize: 13 },
+  langBtnText: { color: '#60A5FA', fontWeight: '800', fontSize: 11 },
+  
+  logoutBtn: {
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.4)',
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+    borderRadius: 20,
+  },
+  logoutBtnText: {
+    color: '#EF4444',
+    fontSize: 11,
+    fontWeight: '800',
+  },
 
   cameraWrapper: { 
     borderRadius: 24, 
