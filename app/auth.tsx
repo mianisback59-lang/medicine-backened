@@ -510,11 +510,12 @@ export default function AuthScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0A0F1D' },
   scrollContent: { 
+    flexGrow: 1,
+    justifyContent: 'center',
     paddingHorizontal: 20, 
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 20 : 20, 
-    paddingBottom: 40 
+    paddingVertical: 20,
   },
-  headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30 },
+  headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
   titleArea: { flex: 1 },
   badgeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 6 },
   aiDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#3B82F6' },

@@ -584,14 +584,15 @@ const styles = StyleSheet.create({
   safeContainer: { flex: 1, backgroundColor: '#0A0F1D' },
   container: { flex: 1 },
   scrollContent: { 
+    flexGrow: 1,
     paddingHorizontal: 20, 
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 20 : 20, 
+    paddingTop: 16, 
     paddingBottom: 40 
   },
   containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#0A0F1D' },
   permissionText: { fontSize: 16, textAlign: 'center', color: '#94A3B8', marginBottom: 20 },
   
-  headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
   titleArea: { flex: 1 },
   badgeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 6 },
   aiDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#3B82F6' },
