@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -355,228 +356,236 @@ export default function Index() {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={{ flex: 1, backgroundColor: '#0A0F1D' }} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-    >
-      <ScrollView 
-        ref={scrollViewRef}
-        style={styles.container} 
-        contentContainerStyle={{ paddingBottom: 40, paddingTop: 40 }}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+    <SafeAreaView style={styles.safeContainer}>
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        
-        {/* Header */}
-        <View style={styles.headerContainer}>
-          <View style={styles.titleArea}>
-            <View style={styles.badgeRow}>
-              <View style={styles.aiDot} />
-              <Text style={styles.aiBadgeText}>AI SECURE SYSTEM</Text>
-            </View>
-            <Text style={styles.appTitle}>{t.appTitle}</Text>
-            <Text style={styles.appSubtitle}>{t.appSubtitle}</Text>
-          </View>
-
-          <View style={styles.actionBtnsRow}>
-            <TouchableOpacity 
-              style={styles.premiumLangBtn} 
-              activeOpacity={0.8}
-              onPress={async () => {
-                const newLang = lang === 'en' ? 'ur' : 'en';
-                setLang(newLang);
-                await AsyncStorage.setItem('appLanguage', newLang);
-              }}
-            >
-              <Text style={styles.langIcon}>🌐</Text>
-              <Text style={styles.langBtnText}>{t.langToggle}</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={styles.logoutHeaderBtn} 
-              activeOpacity={0.8}
-              onPress={handleLogout}
-            >
-              <Text style={styles.logoutHeaderIcon}>🚪</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Camera Card */}
-        <View style={styles.cameraWrapper}>
-          <View style={styles.cameraCard}>
-            <CameraView
-              style={StyleSheet.absoluteFillObject}
-              facing="back"
-              enableTorch={torch}
-              onBarcodeScanned={isProcessing || result ? undefined : handleBarcodeScanned}
-              barcodeScannerSettings={{
-                barcodeTypes: ['qr', 'code128', 'ean13', 'ean8', 'datamatrix', 'pdf417'],
-              }}
-            />
-            <View style={styles.overlayFrame}>
-              <View style={[styles.corner, styles.topLeft]} />
-              <View style={[styles.corner, styles.topRight]} />
-              <View style={[styles.corner, styles.bottomLeft]} />
-              <View style={[styles.corner, styles.bottomRight]} />
-            </View>
-
-            <TouchableOpacity style={styles.torchBtn} onPress={() => setTorch(!torch)}>
-              <Text style={styles.torchBtnText}>{torch ? t.flashOff : t.flashOn}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Search Bar */}
-        <View style={styles.manualSearchBox}>
-          <TextInput
-            style={[styles.input, lang === 'ur' && { textAlign: 'right' }]}
-            placeholder={t.placeholder}
-            placeholderTextColor="#94A3B8"
-            value={manualCode}
-            onChangeText={setManualCode}
-          />
-          <TouchableOpacity
-            style={styles.verifyBtn}
-            onPress={() => {
-              if (manualCode.trim().length > 0) {
-                verifyCode(manualCode);
-              } else {
-                Alert.alert('Notice', 'Please enter a batch number first.');
-              }
-            }}
-          >
-            <Text style={styles.verifyBtnText}>{t.verifyBtn}</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Verification Result Card */}
-        {result ? (
-          <View style={[styles.resultCard, { borderColor: result.color }]}>
-            <View style={[styles.badge, { backgroundColor: result.color }]}>
-              <Text style={styles.badgeText}>{result.status}</Text>
-            </View>
-            <Text style={[styles.resultTitle, { color: result.color }]}>{result.title}</Text>
-            <Text style={styles.resultMsg}>{result.msg}</Text>
-
-            {result.data && (result.status === 'AUTHENTIC' || result.status === 'EXPIRED') && (
-              <View style={styles.detailsContainer}>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>{lang === 'ur' ? 'دوائی کا نام' : 'Medicine Name'}</Text>
-                  <Text style={styles.detailValue}>{result.data.medicine_name || 'N/A'}</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>{lang === 'ur' ? 'کمپنی / برانڈ' : 'Brand / Manufacturer'}</Text>
-                  <Text style={styles.detailValue}>{result.data.brand_name || 'N/A'}</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>{lang === 'ur' ? 'بیچ کوڈ' : 'Batch Code'}</Text>
-                  <Text style={styles.detailValue}>{result.data.batch_number || activeBatch}</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>{lang === 'ur' ? 'تیاری کی تاریخ' : 'Manufacturing Date'}</Text>
-                  <Text style={styles.detailValue}>{result.data.manufacturing_date || 'N/A'}</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>{lang === 'ur' ? 'تاریخِ میعاد' : 'Expiry Date'}</Text>
-                  <Text style={styles.detailValue}>{result.data.expiry_date || 'N/A'}</Text>
-                </View>
+        <ScrollView 
+          ref={scrollViewRef}
+          style={styles.container} 
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          
+          {/* Header */}
+          <View style={styles.headerContainer}>
+            <View style={styles.titleArea}>
+              <View style={styles.badgeRow}>
+                <View style={styles.aiDot} />
+                <Text style={styles.aiBadgeText}>AI SECURE SYSTEM</Text>
               </View>
-            )}
+              <Text style={styles.appTitle}>{t.appTitle}</Text>
+              <Text style={styles.appSubtitle}>{t.appSubtitle}</Text>
+            </View>
 
-            {(result.status === 'FAKE' || result.status === 'SUSPICIOUS') && (
-              <TouchableOpacity style={styles.reportBtn} onPress={() => setIsReportModalVisible(true)}>
-                <Text style={styles.reportBtnText}>{t.reportMedicine}</Text>
+            <View style={styles.actionBtnsRow}>
+              <TouchableOpacity 
+                style={styles.premiumLangBtn} 
+                activeOpacity={0.8}
+                onPress={async () => {
+                  const newLang = lang === 'en' ? 'ur' : 'en';
+                  setLang(newLang);
+                  await AsyncStorage.setItem('appLanguage', newLang);
+                }}
+              >
+                <Text style={styles.langIcon}>🌐</Text>
+                <Text style={styles.langBtnText}>{t.langToggle}</Text>
               </TouchableOpacity>
-            )}
 
+              <TouchableOpacity 
+                style={styles.logoutHeaderBtn} 
+                activeOpacity={0.8}
+                onPress={handleLogout}
+              >
+                <Text style={styles.logoutHeaderIcon}>🚪</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Camera Card */}
+          <View style={styles.cameraWrapper}>
+            <View style={styles.cameraCard}>
+              <CameraView
+                style={StyleSheet.absoluteFillObject}
+                facing="back"
+                enableTorch={torch}
+                onBarcodeScanned={isProcessing || result ? undefined : handleBarcodeScanned}
+                barcodeScannerSettings={{
+                  barcodeTypes: ['qr', 'code128', 'ean13', 'ean8', 'datamatrix', 'pdf417'],
+                }}
+              />
+              <View style={styles.overlayFrame}>
+                <View style={[styles.corner, styles.topLeft]} />
+                <View style={[styles.corner, styles.topRight]} />
+                <View style={[styles.corner, styles.bottomLeft]} />
+                <View style={[styles.corner, styles.bottomRight]} />
+              </View>
+
+              <TouchableOpacity style={styles.torchBtn} onPress={() => setTorch(!torch)}>
+                <Text style={styles.torchBtnText}>{torch ? t.flashOff : t.flashOn}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Search Bar */}
+          <View style={styles.manualSearchBox}>
+            <TextInput
+              style={[styles.input, lang === 'ur' && { textAlign: 'right' }]}
+              placeholder={t.placeholder}
+              placeholderTextColor="#94A3B8"
+              value={manualCode}
+              onChangeText={setManualCode}
+            />
             <TouchableOpacity
-              style={styles.resetBtn}
+              style={styles.verifyBtn}
               onPress={() => {
-                setIsProcessing(false);
-                setResult(null);
-                setManualCode('');
+                if (manualCode.trim().length > 0) {
+                  verifyCode(manualCode);
+                } else {
+                  Alert.alert('Notice', 'Please enter a batch number first.');
+                }
               }}
             >
-              <Text style={styles.resetBtnText}>{t.scanAnother}</Text>
+              <Text style={styles.verifyBtnText}>{t.verifyBtn}</Text>
             </TouchableOpacity>
           </View>
-        ) : (
-          <View style={styles.placeholderBox}>
-            <Text style={styles.scannerIconPlaceholder}>📷</Text>
-            <Text style={styles.placeholderText}>{t.scanPrompt}</Text>
-          </View>
-        )}
 
-      </ScrollView>
-
-      {/* REPORT MODAL */}
-      <Modal visible={isReportModalVisible} animationType="slide" transparent={true}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            {!isSubmitted ? (
-              <>
-                <Text style={styles.modalTitle}>{t.modalTitle}</Text>
-                <Text style={styles.modalSub}>
-                  {t.reportingBatch} <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text>
-                </Text>
-
-                <Text style={styles.inputLabel}>{t.reasonLabel}</Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder={t.reasonPlaceholder}
-                  placeholderTextColor="#94A3B8"
-                  value={reportReason}
-                  onChangeText={setReportReason}
-                />
-
-                <Text style={styles.inputLabel}>{t.storeLabel}</Text>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder={t.storePlaceholder}
-                  placeholderTextColor="#94A3B8"
-                  value={storeInfo}
-                  onChangeText={setStoreInfo}
-                />
-
-                <TouchableOpacity
-                  style={[styles.submitReportBtn, isSubmittingReport && { backgroundColor: '#94A3B8' }]}
-                  onPress={handleReportSubmit}
-                  disabled={isSubmittingReport}
-                >
-                  <Text style={styles.submitReportText}>
-                    {isSubmittingReport ? t.submitting : t.submitReport}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.cancelBtn} onPress={closeReportModal}>
-                  <Text style={styles.cancelText}>{t.cancel}</Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              <View style={{ alignItems: 'center', paddingVertical: 10 }}>
-                <Text style={{ fontSize: 40, marginBottom: 10 }}>✅</Text>
-                <Text style={styles.modalTitle}>{t.reportSuccess}</Text>
-                <Text style={[styles.modalSub, { textAlign: 'center', marginTop: 8 }]}>
-                  Batch <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text> has been flagged and sent to Drug Regulatory Authority.
-                </Text>
-                <Text style={styles.refCode}>Ref ID: DRAP-2026-{Math.floor(1000 + Math.random() * 9000)}</Text>
-
-                <TouchableOpacity style={[styles.submitReportBtn, { width: '100%', marginTop: 20 }]} onPress={closeReportModal}>
-                  <Text style={styles.submitReportText}>{t.done}</Text>
-                </TouchableOpacity>
+          {/* Verification Result Card */}
+          {result ? (
+            <View style={[styles.resultCard, { borderColor: result.color }]}>
+              <View style={[styles.badge, { backgroundColor: result.color }]}>
+                <Text style={styles.badgeText}>{result.status}</Text>
               </View>
-            )}
+              <Text style={[styles.resultTitle, { color: result.color }]}>{result.title}</Text>
+              <Text style={styles.resultMsg}>{result.msg}</Text>
+
+              {result.data && (result.status === 'AUTHENTIC' || result.status === 'EXPIRED') && (
+                <View style={styles.detailsContainer}>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>{lang === 'ur' ? 'دوائی کا نام' : 'Medicine Name'}</Text>
+                    <Text style={styles.detailValue}>{result.data.medicine_name || 'N/A'}</Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>{lang === 'ur' ? 'کمپنی / برانڈ' : 'Brand / Manufacturer'}</Text>
+                    <Text style={styles.detailValue}>{result.data.brand_name || 'N/A'}</Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>{lang === 'ur' ? 'بیچ کوڈ' : 'Batch Code'}</Text>
+                    <Text style={styles.detailValue}>{result.data.batch_number || activeBatch}</Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>{lang === 'ur' ? 'تیاری کی تاریخ' : 'Manufacturing Date'}</Text>
+                    <Text style={styles.detailValue}>{result.data.manufacturing_date || 'N/A'}</Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>{lang === 'ur' ? 'تاریخِ میعاد' : 'Expiry Date'}</Text>
+                    <Text style={styles.detailValue}>{result.data.expiry_date || 'N/A'}</Text>
+                  </View>
+                </View>
+              )}
+
+              {(result.status === 'FAKE' || result.status === 'SUSPICIOUS') && (
+                <TouchableOpacity style={styles.reportBtn} onPress={() => setIsReportModalVisible(true)}>
+                  <Text style={styles.reportBtnText}>{t.reportMedicine}</Text>
+                </TouchableOpacity>
+              )}
+
+              <TouchableOpacity
+                style={styles.resetBtn}
+                onPress={() => {
+                  setIsProcessing(false);
+                  setResult(null);
+                  setManualCode('');
+                }}
+              >
+                <Text style={styles.resetBtnText}>{t.scanAnother}</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.placeholderBox}>
+              <Text style={styles.scannerIconPlaceholder}>📷</Text>
+              <Text style={styles.placeholderText}>{t.scanPrompt}</Text>
+            </View>
+          )}
+
+        </ScrollView>
+
+        {/* REPORT MODAL */}
+        <Modal visible={isReportModalVisible} animationType="slide" transparent={true}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              {!isSubmitted ? (
+                <>
+                  <Text style={styles.modalTitle}>{t.modalTitle}</Text>
+                  <Text style={styles.modalSub}>
+                    {t.reportingBatch} <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text>
+                  </Text>
+
+                  <Text style={styles.inputLabel}>{t.reasonLabel}</Text>
+                  <TextInput
+                    style={styles.modalInput}
+                    placeholder={t.reasonPlaceholder}
+                    placeholderTextColor="#94A3B8"
+                    value={reportReason}
+                    onChangeText={setReportReason}
+                  />
+
+                  <Text style={styles.inputLabel}>{t.storeLabel}</Text>
+                  <TextInput
+                    style={styles.modalInput}
+                    placeholder={t.storePlaceholder}
+                    placeholderTextColor="#94A3B8"
+                    value={storeInfo}
+                    onChangeText={setStoreInfo}
+                  />
+
+                  <TouchableOpacity
+                    style={[styles.submitReportBtn, isSubmittingReport && { backgroundColor: '#94A3B8' }]}
+                    onPress={handleReportSubmit}
+                    disabled={isSubmittingReport}
+                  >
+                    <Text style={styles.submitReportText}>
+                      {isSubmittingReport ? t.submitting : t.submitReport}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity style={styles.cancelBtn} onPress={closeReportModal}>
+                    <Text style={styles.cancelText}>{t.cancel}</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <View style={{ alignItems: 'center', paddingVertical: 10 }}>
+                  <Text style={{ fontSize: 40, marginBottom: 10 }}>✅</Text>
+                  <Text style={styles.modalTitle}>{t.reportSuccess}</Text>
+                  <Text style={[styles.modalSub, { textAlign: 'center', marginTop: 8 }]}>
+                    Batch <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text> has been flagged and sent to Drug Regulatory Authority.
+                  </Text>
+                  <Text style={styles.refCode}>Ref ID: DRAP-2026-{Math.floor(1000 + Math.random() * 9000)}</Text>
+
+                  <TouchableOpacity style={[styles.submitReportBtn, { width: '100%', marginTop: 20 }]} onPress={closeReportModal}>
+                    <Text style={styles.submitReportText}>{t.done}</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
           </View>
-        </View>
-      </Modal>
-    </KeyboardAvoidingView>
+        </Modal>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 20 },
+  safeContainer: { flex: 1, backgroundColor: '#0A0F1D' },
+  container: { flex: 1 },
+  scrollContent: { 
+    paddingHorizontal: 20, 
+    paddingTop: Platform.OS === 'android' ? 35 : 15, 
+    paddingBottom: 40 
+  },
   containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#0A0F1D' },
   permissionText: { fontSize: 16, textAlign: 'center', color: '#94A3B8', marginBottom: 20 },
   
@@ -604,14 +613,14 @@ const styles = StyleSheet.create({
   langIcon: { fontSize: 13 },
   langBtnText: { color: '#60A5FA', fontWeight: '800', fontSize: 11 },
   logoutHeaderBtn: {
-  backgroundColor: 'rgba(239, 68, 68, 0.15)',
-  borderWidth: 1,
-  borderColor: 'rgba(239, 68, 68, 0.4)',
-  padding: 8,
-  borderRadius: 22,
-  justifyContent: 'center', // <-- Yahan justifyContent kar dein
-  alignItems: 'center',
-},
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.4)',
+    padding: 8,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   logoutHeaderIcon: { fontSize: 13 },
 
   cameraWrapper: { 

@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -280,231 +281,237 @@ export default function AuthScreen() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={styles.headerContainer}>
-          <View style={styles.titleArea}>
-            <View style={styles.badgeRow}>
-              <View style={styles.aiDot} />
-              <Text style={styles.aiBadgeText}>{t.badge}</Text>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.headerContainer}>
+            <View style={styles.titleArea}>
+              <View style={styles.badgeRow}>
+                <View style={styles.aiDot} />
+                <Text style={styles.aiBadgeText}>{t.badge}</Text>
+              </View>
+              <Text style={styles.appTitle}>{t.title}</Text>
+              <Text style={styles.appSubtitle}>{t.subtitle}</Text>
             </View>
-            <Text style={styles.appTitle}>{t.title}</Text>
-            <Text style={styles.appSubtitle}>{t.subtitle}</Text>
-          </View>
-
-          <TouchableOpacity
-            style={styles.premiumLangBtn}
-            activeOpacity={0.8}
-            onPress={toggleLanguage}
-          >
-            <Text style={styles.langIcon}>🌐</Text>
-            <Text style={styles.langBtnText}>{t.langToggle}</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.card}>
-          <View style={styles.tabContainer}>
-            <TouchableOpacity
-              style={[styles.tabBtn, isLogin && styles.activeTabBtn]}
-              onPress={() => setIsLogin(true)}
-            >
-              <Text style={[styles.tabText, isLogin && styles.activeTabText]}>
-                {t.loginTab}
-              </Text>
-            </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.tabBtn, !isLogin && styles.activeTabBtn]}
-              onPress={() => setIsLogin(false)}
+              style={styles.premiumLangBtn}
+              activeOpacity={0.8}
+              onPress={toggleLanguage}
             >
-              <Text style={[styles.tabText, !isLogin && styles.activeTabText]}>
-                {t.signupTab}
-              </Text>
+              <Text style={styles.langIcon}>🌐</Text>
+              <Text style={styles.langBtnText}>{t.langToggle}</Text>
             </TouchableOpacity>
           </View>
 
-          {!isLogin && (
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, lang === 'ur' && { textAlign: 'right' }]}>{t.fullNameLabel}</Text>
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  style={[
-                    styles.input,
-                    lang === 'ur' && { textAlign: 'right' },
-                    focusedInput === 'fullName' && styles.inputFocused,
-                  ]}
-                  placeholder={t.fullNamePlaceholder}
-                  placeholderTextColor="#94A3B8"
-                  value={fullName}
-                  onChangeText={setFullName}
-                  onFocus={() => setFocusedInput('fullName')}
-                  onBlur={() => setFocusedInput(null)}
-                  autoComplete="off"
-                  textContentType="none"
-                />
-              </View>
-            </View>
-          )}
-
-          <View style={styles.inputGroup}>
-            <Text style={[styles.label, lang === 'ur' && { textAlign: 'right' }]}>{t.emailLabel}</Text>
-            <View style={styles.inputWrapper}>
-              <TextInput
-                style={[
-                  styles.input,
-                  lang === 'ur' && { textAlign: 'right' },
-                  focusedInput === 'email' && styles.inputFocused,
-                ]}
-                placeholder={t.emailPlaceholder}
-                placeholderTextColor="#94A3B8"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                value={email}
-                onChangeText={setEmail}
-                onFocus={() => setFocusedInput('email')}
-                onBlur={() => setFocusedInput(null)}
-                autoComplete="off"
-                textContentType="none"
-              />
-            </View>
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={[styles.label, lang === 'ur' && { textAlign: 'right' }]}>{t.passwordLabel}</Text>
-            <View style={styles.passwordContainer}>
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  style={[
-                    styles.input,
-                    styles.passwordInput,
-                    lang === 'ur' && { textAlign: 'right' },
-                    focusedInput === 'password' && styles.inputFocused,
-                  ]}
-                  placeholder={t.passwordPlaceholder}
-                  placeholderTextColor="#94A3B8"
-                  secureTextEntry={!showPassword}
-                  value={password}
-                  onChangeText={setPassword}
-                  onFocus={() => setFocusedInput('password')}
-                  onBlur={() => setFocusedInput(null)}
-                  autoComplete="off"
-                  textContentType="none"
-                />
-              </View>
+          <View style={styles.card}>
+            <View style={styles.tabContainer}>
               <TouchableOpacity
-                style={styles.eyeBtn}
-                onPress={() => setShowPassword(!showPassword)}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                style={[styles.tabBtn, isLogin && styles.activeTabBtn]}
+                onPress={() => setIsLogin(true)}
               >
-                <Text style={styles.eyeIcon}>{showPassword ? '👁️' : '🙈'}</Text>
+                <Text style={[styles.tabText, isLogin && styles.activeTabText]}>
+                  {t.loginTab}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.tabBtn, !isLogin && styles.activeTabBtn]}
+                onPress={() => setIsLogin(false)}
+              >
+                <Text style={[styles.tabText, !isLogin && styles.activeTabText]}>
+                  {t.signupTab}
+                </Text>
               </TouchableOpacity>
             </View>
-          </View>
 
-          {isLogin && (
-            <TouchableOpacity 
-              style={styles.forgotPassBtn}
-              onPress={handleForgotPassword}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.forgotPassText}>{t.forgotPass}</Text>
-            </TouchableOpacity>
-          )}
-
-          <TouchableOpacity
-            style={[styles.submitBtn, loading && { opacity: 0.7 }]}
-            onPress={handleAuth}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.submitBtnText}>
-                {isLogin ? t.loginBtn : t.signupBtn}
-              </Text>
+            {!isLogin && (
+              <View style={styles.inputGroup}>
+                <Text style={[styles.label, lang === 'ur' && { textAlign: 'right' }]}>{t.fullNameLabel}</Text>
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      lang === 'ur' && { textAlign: 'right' },
+                      focusedInput === 'fullName' && styles.inputFocused,
+                    ]}
+                    placeholder={t.fullNamePlaceholder}
+                    placeholderTextColor="#94A3B8"
+                    value={fullName}
+                    onChangeText={setFullName}
+                    onFocus={() => setFocusedInput('fullName')}
+                    onBlur={() => setFocusedInput(null)}
+                    autoComplete="off"
+                    textContentType="none"
+                  />
+                </View>
+              </View>
             )}
-          </TouchableOpacity>
 
-          <View style={styles.switchRow}>
-            <Text style={styles.switchText}>
-              {isLogin ? t.noAccount : t.hasAccount}
-            </Text>
-            <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
-              <Text style={styles.switchLink}>
-                {isLogin ? t.toggleSignUp : t.toggleSignIn}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </ScrollView>
+            <View style={styles.inputGroup}>
+              <Text style={[styles.label, lang === 'ur' && { textAlign: 'right' }]}>{t.emailLabel}</Text>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={[
+                    styles.input,
+                    lang === 'ur' && { textAlign: 'right' },
+                    focusedInput === 'email' && styles.inputFocused,
+                  ]}
+                  placeholder={t.emailPlaceholder}
+                  placeholderTextColor="#94A3B8"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  value={email}
+                  onChangeText={setEmail}
+                  onFocus={() => setFocusedInput('email')}
+                  onBlur={() => setFocusedInput(null)}
+                  autoComplete="off"
+                  textContentType="none"
+                />
+              </View>
+            </View>
 
-      {/* Reset Password Code Verification Modal */}
-      <Modal
-        visible={resetModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setResetModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>{t.resetModalTitle}</Text>
-            <Text style={styles.modalSub}>{t.resetModalSub}</Text>
+            <View style={styles.inputGroup}>
+              <Text style={[styles.label, lang === 'ur' && { textAlign: 'right' }]}>{t.passwordLabel}</Text>
+              <View style={styles.passwordContainer}>
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      styles.passwordInput,
+                      lang === 'ur' && { textAlign: 'right' },
+                      focusedInput === 'password' && styles.inputFocused,
+                    ]}
+                    placeholder={t.passwordPlaceholder}
+                    placeholderTextColor="#94A3B8"
+                    secureTextEntry={!showPassword}
+                    value={password}
+                    onChangeText={setPassword}
+                    onFocus={() => setFocusedInput('password')}
+                    onBlur={() => setFocusedInput(null)}
+                    autoComplete="off"
+                    textContentType="none"
+                  />
+                </View>
+                <TouchableOpacity
+                  style={styles.eyeBtn}
+                  onPress={() => setShowPassword(!showPassword)}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Text style={styles.eyeIcon}>{showPassword ? '👁️' : '🙈'}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
 
-            <TextInput
-              style={styles.modalInput}
-              placeholder={t.otpPlaceholder}
-              placeholderTextColor="#94A3B8"
-              keyboardType="number-pad"
-              maxLength={6}
-              value={resetCode}
-              onChangeText={setResetCode}
-            />
-
-            <TextInput
-              style={styles.modalInput}
-              placeholder={t.newPassPlaceholder}
-              placeholderTextColor="#94A3B8"
-              secureTextEntry={true}
-              value={newPassword}
-              onChangeText={setNewPassword}
-            />
+            {isLogin && (
+              <TouchableOpacity 
+                style={styles.forgotPassBtn}
+                onPress={handleForgotPassword}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.forgotPassText}>{t.forgotPass}</Text>
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity
-              style={styles.modalBtn}
-              onPress={handleConfirmReset}
-              disabled={resetLoading}
+              style={[styles.submitBtn, loading && { opacity: 0.7 }]}
+              onPress={handleAuth}
+              disabled={loading}
             >
-              {resetLoading ? (
+              {loading ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text style={styles.modalBtnText}>{t.updatePassBtn}</Text>
+                <Text style={styles.submitBtnText}>
+                  {isLogin ? t.loginBtn : t.signupBtn}
+                </Text>
               )}
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.modalCancelBtn}
-              onPress={() => setResetModalVisible(false)}
-            >
-              <Text style={styles.modalCancelText}>{t.cancelBtn}</Text>
-            </TouchableOpacity>
+            <View style={styles.switchRow}>
+              <Text style={styles.switchText}>
+                {isLogin ? t.noAccount : t.hasAccount}
+              </Text>
+              <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
+                <Text style={styles.switchLink}>
+                  {isLogin ? t.toggleSignUp : t.toggleSignIn}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Modal>
+        </ScrollView>
 
-    </KeyboardAvoidingView>
+        {/* Reset Password Code Verification Modal */}
+        <Modal
+          visible={resetModalVisible}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setResetModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalCard}>
+              <Text style={styles.modalTitle}>{t.resetModalTitle}</Text>
+              <Text style={styles.modalSub}>{t.resetModalSub}</Text>
+
+              <TextInput
+                style={styles.modalInput}
+                placeholder={t.otpPlaceholder}
+                placeholderTextColor="#94A3B8"
+                keyboardType="number-pad"
+                maxLength={6}
+                value={resetCode}
+                onChangeText={setResetCode}
+              />
+
+              <TextInput
+                style={styles.modalInput}
+                placeholder={t.newPassPlaceholder}
+                placeholderTextColor="#94A3B8"
+                secureTextEntry={true}
+                value={newPassword}
+                onChangeText={setNewPassword}
+              />
+
+              <TouchableOpacity
+                style={styles.modalBtn}
+                onPress={handleConfirmReset}
+                disabled={resetLoading}
+              >
+                {resetLoading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.modalBtnText}>{t.updatePassBtn}</Text>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.modalCancelBtn}
+                onPress={() => setResetModalVisible(false)}
+              >
+                <Text style={styles.modalCancelText}>{t.cancelBtn}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0A0F1D' },
-  scrollContent: { paddingHorizontal: 20, paddingTop: 60, paddingBottom: 40 },
+  scrollContent: { 
+    paddingHorizontal: 20, 
+    paddingTop: Platform.OS === 'android' ? 35 : 20, // Clean safe top gap
+    paddingBottom: 40 
+  },
   headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30 },
   titleArea: { flex: 1 },
   badgeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 6 },
