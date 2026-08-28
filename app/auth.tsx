@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -317,7 +318,7 @@ export default function AuthScreen() {
               activeOpacity={0.8}
               onPress={toggleLanguage}
             >
-              <Text style={styles.langIcon}>🌐</Text>
+              <Ionicons name="globe-outline" size={16} color="#60A5FA" />
               <Text style={styles.langBtnText}>{t.langToggle}</Text>
             </TouchableOpacity>
           </View>
@@ -325,17 +326,17 @@ export default function AuthScreen() {
           {/* Clean Professional Trust Bar */}
           <View style={styles.trustBanner}>
             <View style={styles.trustItem}>
-              <Text style={styles.trustIcon}>🛡️</Text>
+              <Ionicons name="shield-checkmark" size={13} color="#3B82F6" />
               <Text style={styles.trustText}>DRAP Registered</Text>
             </View>
             <View style={styles.trustDivider} />
             <View style={styles.trustItem}>
-              <Text style={styles.trustIcon}>⚡</Text>
+              <Ionicons name="flash" size={13} color="#F59E0B" />
               <Text style={styles.trustText}>Instant AI Scan</Text>
             </View>
             <View style={styles.trustDivider} />
             <View style={styles.trustItem}>
-              <Text style={styles.trustIcon}>🔒</Text>
+              <Ionicons name="lock-closed" size={13} color="#10B981" />
               <Text style={styles.trustText}>256-bit Secure</Text>
             </View>
           </View>
@@ -429,7 +430,11 @@ export default function AuthScreen() {
                   onPress={() => setShowPassword(!showPassword)}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
-                  <Text style={styles.eyeIcon}>{showPassword ? '👁️' : '🙈'}</Text>
+                  <Ionicons
+                    name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                    size={20}
+                    color="#94A3B8"
+                  />
                 </TouchableOpacity>
               </View>
             </View>
@@ -581,24 +586,24 @@ const styles = StyleSheet.create({
     borderRadius: 22, 
     gap: 6 
   },
-  langIcon: { fontSize: 14 },
   langBtnText: { color: '#60A5FA', fontWeight: '800', fontSize: 12 },
 
   // Trust Banner
   trustBanner: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     backgroundColor: 'rgba(17, 24, 39, 0.7)',
     borderWidth: 1,
     borderColor: 'rgba(51, 65, 85, 0.6)',
     borderRadius: 16,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    justifyContent: 'space-around',
+    justifyContent: 'space-evenly',
     alignItems: 'center',
-    marginBottom: 20, // Increased spacing for cleaner UI
+    marginBottom: 20,
+    gap: 6,
   },
   trustItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  trustIcon: { fontSize: 12 },
   trustText: { color: '#94A3B8', fontSize: 11, fontWeight: '700' },
   trustDivider: { width: 1, height: 14, backgroundColor: 'rgba(51, 65, 85, 0.8)' },
 
@@ -632,7 +637,6 @@ const styles = StyleSheet.create({
   passwordContainer: { position: 'relative', justifyContent: 'center' },
   passwordInput: { paddingRight: 50 },
   eyeBtn: { position: 'absolute', right: 14, height: '100%', justifyContent: 'center', alignItems: 'center', zIndex: 10 },
-  eyeIcon: { fontSize: 16 },
   forgotPassBtn: { alignSelf: 'flex-end', marginBottom: 16 },
   forgotPassText: { color: '#60A5FA', fontSize: 12, fontWeight: '600' },
   submitBtn: { backgroundColor: '#2563EB', height: 48, borderRadius: 14, justifyContent: 'center', alignItems: 'center', shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
