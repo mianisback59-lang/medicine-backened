@@ -20,7 +20,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const translations = {
   en: {
-    badge: "AI SECURE SYSTEM",
     title: "MedVerify AI",
     subtitle: "Instant Authenticity & Safety Scanner",
     langToggle: "اردو",
@@ -41,7 +40,7 @@ const translations = {
     toggleSignIn: "Sign In",
     orContinue: "OR CONTINUE WITH",
     googleLogin: "Continue with Google",
-    guestLogin: "Quick Verification as Guest",
+    guestLogin: "Explore Without Account",
     footerText: "Official Drug Verification System",
     serverStatus: "AI Engine Active",
     resetTitle: "Reset Password",
@@ -55,7 +54,6 @@ const translations = {
     cancelBtn: "Cancel",
   },
   ur: {
-    badge: "AI سیکور سسٹم",
     title: "میڈ ویریفائی اے آئی",
     subtitle: "فوری اصلیت اور حفاظت کا سکینر",
     langToggle: "English",
@@ -76,7 +74,7 @@ const translations = {
     toggleSignIn: "سائن ان کریں",
     orContinue: "یا ان کے ساتھ آگے بڑھیں",
     googleLogin: "گوگل سے سائن ان کریں",
-    guestLogin: "بطور مہمان سکین کریں",
+    guestLogin: "اکاؤنٹ کے بغیر آگے بڑھیں",
     footerText: "سرکاری دواؤں کی تصدیق کا نظام",
     serverStatus: "اے آئی انجن فعال ہے",
     resetTitle: "پاس ورڈ ری سیٹ",
@@ -310,10 +308,6 @@ export default function AuthScreen() {
           {/* Header */}
           <View style={styles.headerContainer}>
             <View style={styles.titleArea}>
-              <View style={styles.badgeRow}>
-                <View style={styles.aiDot} />
-                <Text style={styles.aiBadgeText}>{t.badge}</Text>
-              </View>
               <Text style={styles.appTitle}>{t.title}</Text>
               <Text style={styles.appSubtitle}>{t.subtitle}</Text>
             </View>
@@ -328,7 +322,7 @@ export default function AuthScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Professional App Trust Bar */}
+          {/* Clean Professional Trust Bar */}
           <View style={styles.trustBanner}>
             <View style={styles.trustItem}>
               <Text style={styles.trustIcon}>🛡️</Text>
@@ -482,18 +476,17 @@ export default function AuthScreen() {
               <View style={styles.dividerLine} />
             </View>
 
-            {/* Quick Guest Access Button */}
+            {/* Clean Guest Access Action */}
             <TouchableOpacity 
               style={styles.secondaryActionBtn} 
               onPress={handleGuestLogin}
               activeOpacity={0.8}
             >
-              <Text style={styles.secondaryActionIcon}>🚀</Text>
               <Text style={styles.secondaryActionText}>{t.guestLogin}</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Modern Footer Section */}
+          {/* Footer Section */}
           <View style={styles.footerSection}>
             <View style={styles.statusBadge}>
               <View style={styles.pulseDot} />
@@ -567,14 +560,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, 
     paddingBottom: 20,
   },
-  headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
+  headerContainer: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: 16,
+    marginTop: 4 
+  },
   titleArea: { flex: 1 },
-  badgeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 6 },
-  aiDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#3B82F6' },
-  aiBadgeText: { fontSize: 10, fontWeight: '800', color: '#3B82F6', letterSpacing: 1 },
-  appTitle: { fontSize: 26, fontWeight: '900', color: '#FFFFFF', letterSpacing: 0.5 },
+  appTitle: { fontSize: 28, fontWeight: '900', color: '#FFFFFF', letterSpacing: 0.5 },
   appSubtitle: { fontSize: 12, color: '#94A3B8', marginTop: 2 },
-  premiumLangBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(30, 41, 59, 0.8)', borderWidth: 1, borderColor: 'rgba(59, 130, 246, 0.4)', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 22, gap: 6 },
+  premiumLangBtn: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: 'rgba(30, 41, 59, 0.8)', 
+    borderWidth: 1, 
+    borderColor: 'rgba(59, 130, 246, 0.4)', 
+    paddingVertical: 8, 
+    paddingHorizontal: 14, 
+    borderRadius: 22, 
+    gap: 6 
+  },
   langIcon: { fontSize: 14 },
   langBtnText: { color: '#60A5FA', fontWeight: '800', fontSize: 12 },
 
@@ -643,15 +649,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row', 
     alignItems: 'center', 
     justifyContent: 'center', 
-    backgroundColor: '#1E293B', 
+    backgroundColor: 'rgba(30, 41, 59, 0.6)', 
     borderWidth: 1, 
     borderColor: '#334155', 
     height: 46, 
     borderRadius: 14, 
-    gap: 8 
   },
-  secondaryActionIcon: { fontSize: 14 },
-  secondaryActionText: { color: '#E2E8F0', fontWeight: '700', fontSize: 13 },
+  secondaryActionText: { color: '#94A3B8', fontWeight: '700', fontSize: 13 },
 
   // Footer Section
   footerSection: { marginTop: 20, alignItems: 'center', gap: 6 },
