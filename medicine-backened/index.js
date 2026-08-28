@@ -5,11 +5,14 @@ dns.setServers(['8.8.8.8', '8.8.4.4']);
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const nodemailer = require('nodemailer'); // Nodemailer Added
+const { Resend } = require('resend'); // Resend Added
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Initialize Resend with API Key from .env
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // MongoDB Connection String
 const MONGO_URI = process.env.MONGO_URI;
@@ -23,15 +26,6 @@ async function connectToDatabase() {
   cachedDb = await mongoose.connect(MONGO_URI, { bufferCommands: false });
   return cachedDb;
 }
-
-// Nodemailer Transporter Configuration
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
 
 // 1. Medicine Schema
 const medicineSchema = new mongoose.Schema({
@@ -57,11 +51,12 @@ const reportSchema = new mongoose.Schema({
 
 const Report = mongoose.models.Report || mongoose.model('Report', reportSchema);
 
-// 3. User Schema
+// 3. User Schema (added resetCode field)
 const userSchema = new mongoose.Schema({
   name: { type: String, default: '' },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  resetCode: { type: String }, // OTP store karne ke liye
   created_at: { type: Date, default: Date.now }
 });
 
@@ -135,7 +130,7 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Forgot Password Endpoint (REAL EMAIL SENDING ADDED)
+// Forgot Password Endpoint (Updated to use Resend API)
 app.post('/api/forgot-password', async (req, res) => {
   try {
     await connectToDatabase();
@@ -155,11 +150,16 @@ app.post('/api/forgot-password', async (req, res) => {
       });
     }
 
-    // 6-Digit Verification/Reset OTP Code
-    const resetCode = Math.floor(100000 + Math.random() * 900000);
+    // 6-Digit Security OTP Code Generate
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    const mailOptions = {
-      from: `"MedVerify AI" <${process.env.EMAIL_USER}>`,
+    // Database mein code store karna
+    user.resetCode = resetCode;
+    await user.save();
+
+    // Resend Email Operation
+    await resend.emails.send({
+      from: 'MedVerify AI <onboarding@resend.dev>',
       to: cleanEmail,
       subject: 'Password Reset Request - MedVerify AI',
       html: `
@@ -174,10 +174,7 @@ app.post('/api/forgot-password', async (req, res) => {
           <p style="color: #94A3B8; font-size: 12px;">Agar aap ne yeh request nahi ki, toh is email ko ignore karein.</p>
         </div>
       `
-    };
-
-    // Actual Email Send Operation
-    await transporter.sendMail(mailOptions);
+    });
 
     return res.status(200).json({
       success: true,
@@ -186,7 +183,40 @@ app.post('/api/forgot-password', async (req, res) => {
 
   } catch (error) {
     console.error("Forgot Password Error:", error);
-    return res.status(500).json({ success: false, message: 'Failed to send email. Please check server email credentials.' });
+    return res.status(500).json({ success: false, message: 'Failed to send email. Please check Resend API key.' });
+  }
+});
+
+// Confirm Reset OTP & Update New Password Endpoint
+app.post('/api/reset-password-confirm', async (req, res) => {
+  try {
+    await connectToDatabase();
+    const { email, code, newPassword } = req.body;
+
+    if (!email || !code || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Email, code, and new password are required.' });
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: cleanEmail });
+
+    if (!user || !user.resetCode || user.resetCode !== code.trim()) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired verification code.' });
+    }
+
+    // Password Update & Clear OTP Code
+    user.password = newPassword.trim();
+    user.resetCode = undefined;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Password updated successfully! You can now log in.'
+    });
+
+  } catch (error) {
+    console.error("Reset Confirm Error:", error);
+    return res.status(500).json({ success: false, message: 'Server error while resetting password.' });
   }
 });
 
