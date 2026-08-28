@@ -84,7 +84,8 @@ export default function AuthScreen() {
   const [lang, setLang] = useState<'en' | 'ur'>('en');
   const t = translations[lang];
 
-  const [isLogin, setIsLogin] = useState<boolean>(true);
+  // Default value false rakhi hai taakay check hone tak blank na lagay
+  const [isLogin, setIsLogin] = useState<boolean>(false);
   const [fullName, setFullName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -110,9 +111,20 @@ export default function AuthScreen() {
       const userToken = await AsyncStorage.getItem('userToken');
       if (userToken) {
         router.replace('/');
+        return;
       }
+
+      // Check karein ke user pehle account bana chuka hai ya nahi
+      const hasAccount = await AsyncStorage.getItem('hasAccount');
+      if (hasAccount === 'true') {
+        setIsLogin(true); // Purane user ke liye -> Sign In Tab
+      } else {
+        setIsLogin(false); // Naye user ke liye -> Create Account Tab
+      }
+
     } catch (error) {
       console.log('Error checking auth status:', error);
+      setIsLogin(false);
     } finally {
       setCheckingAuth(false);
     }
@@ -161,6 +173,8 @@ export default function AuthScreen() {
       if (response.ok) {
         await AsyncStorage.setItem('userToken', data.token || email);
         await AsyncStorage.setItem('appLanguage', lang);
+        // User status update karein taakay agli baar Sign In khule
+        await AsyncStorage.setItem('hasAccount', 'true');
         router.replace('/'); 
       } else {
         Alert.alert('Failed', data.message || 'Authentication failed.');
