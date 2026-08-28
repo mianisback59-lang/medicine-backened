@@ -323,24 +323,6 @@ export default function AuthScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Clean Professional Trust Bar */}
-          <View style={styles.trustBanner}>
-            <View style={styles.trustItem}>
-              <Ionicons name="shield-checkmark" size={13} color="#3B82F6" />
-              <Text style={styles.trustText}>DRAP Registered</Text>
-            </View>
-            <View style={styles.trustDivider} />
-            <View style={styles.trustItem}>
-              <Ionicons name="flash" size={13} color="#F59E0B" />
-              <Text style={styles.trustText}>Instant AI Scan</Text>
-            </View>
-            <View style={styles.trustDivider} />
-            <View style={styles.trustItem}>
-              <Ionicons name="lock-closed" size={13} color="#10B981" />
-              <Text style={styles.trustText}>256-bit Secure</Text>
-            </View>
-          </View>
-
           {/* Form Card */}
           <View style={styles.card}>
             <View style={styles.tabContainer}>
@@ -569,7 +551,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', 
     justifyContent: 'space-between', 
     alignItems: 'center', 
-    marginBottom: 16,
+    marginBottom: 24, // Margin increase kiya gaya hai card aur header ke beech balanced gap ke liye
     marginTop: 4 
   },
   titleArea: { flex: 1 },
@@ -587,25 +569,6 @@ const styles = StyleSheet.create({
     gap: 6 
   },
   langBtnText: { color: '#60A5FA', fontWeight: '800', fontSize: 12 },
-
-  // Trust Banner
-  trustBanner: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    backgroundColor: 'rgba(17, 24, 39, 0.7)',
-    borderWidth: 1,
-    borderColor: 'rgba(51, 65, 85, 0.6)',
-    borderRadius: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    justifyContent: 'space-evenly',
-    alignItems: 'center',
-    marginBottom: 20,
-    gap: 6,
-  },
-  trustItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  trustText: { color: '#94A3B8', fontSize: 11, fontWeight: '700' },
-  trustDivider: { width: 1, height: 14, backgroundColor: 'rgba(51, 65, 85, 0.8)' },
 
   // Card & Inputs
   card: { backgroundColor: '#111827', borderRadius: 24, borderWidth: 1.5, borderColor: 'rgba(59, 130, 246, 0.25)', padding: 20, shadowColor: '#3B82F6', shadowOpacity: 0.15, shadowRadius: 10, elevation: 6 },
@@ -662,7 +625,7 @@ const styles = StyleSheet.create({
   secondaryActionText: { color: '#94A3B8', fontWeight: '700', fontSize: 13 },
 
   // Footer Section
-  footerSection: { marginTop: 20, alignItems: 'center', gap: 6 },
+  footerSection: { marginTop: 24, alignItems: 'center', gap: 6 },
   statusBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(16, 185, 129, 0.1)', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(16, 185, 129, 0.3)', gap: 6 },
   pulseDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#10B981' },
   statusText: { color: '#34D399', fontSize: 11, fontWeight: '700' },
