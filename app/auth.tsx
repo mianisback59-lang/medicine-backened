@@ -479,7 +479,9 @@ export default function AuthScreen() {
               <View style={styles.pulseDot} />
               <Text style={styles.statusText}>{t.serverStatus}</Text>
             </View>
-            <Text style={styles.footerBrandText}>{t.footerText}</Text>
+            <Text style={[styles.footerBrandText, lang === 'ur' && { writingDirection: 'rtl' }]}>
+              {t.footerText}
+            </Text>
           </View>
         </ScrollView>
 
@@ -629,7 +631,7 @@ const styles = StyleSheet.create({
   statusBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(16, 185, 129, 0.1)', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(16, 185, 129, 0.3)', gap: 6 },
   pulseDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#10B981' },
   statusText: { color: '#34D399', fontSize: 11, fontWeight: '700' },
-  footerBrandText: { color: '#64748B', fontSize: 11, fontWeight: '600' },
+  footerBrandText: { color: '#64748B', fontSize: 11, fontWeight: '600', textAlign: 'center' },
 
   // Modal
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.75)', justifyContent: 'center', alignItems: 'center', padding: 20 },
