@@ -6,6 +6,7 @@ import {
   Alert,
   Keyboard,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -39,6 +40,12 @@ const translations = {
     resetTitle: "Reset Password",
     resetConfirm: "A reset email with instructions will be sent to:\n\n",
     enterEmailNotice: "Please type your email address in the Email field first.",
+    resetModalTitle: "Reset Password",
+    resetModalSub: "Enter the 6-digit code sent to your email and your new password.",
+    otpPlaceholder: "6-Digit Code",
+    newPassPlaceholder: "New Password",
+    updatePassBtn: "Reset & Update Password",
+    cancelBtn: "Cancel",
   },
   ur: {
     badge: "AI سیکور سسٹم",
@@ -63,6 +70,12 @@ const translations = {
     resetTitle: "پاس ورڈ ری سیٹ",
     resetConfirm: "پاس ورڈ ری سیٹ کی ای میل اس ایڈریس پر بھیجی جائے گی:\n\n",
     enterEmailNotice: "براہ کرم پہلے ای میل والے خانے میں اپنا ای میل درج کریں۔",
+    resetModalTitle: "پاس ورڈ ری سیٹ کریں",
+    resetModalSub: "ای میل پر بھیجا گیا 6 ہندسوں کا کوڈ اور نیا پاس ورڈ درج کریں۔",
+    otpPlaceholder: "6 ہندسوں کا کوڈ",
+    newPassPlaceholder: "نیا پاس ورڈ",
+    updatePassBtn: "پاس ورڈ ری سیٹ کریں",
+    cancelBtn: "منسوخ کریں",
   }
 };
 
@@ -81,6 +94,12 @@ export default function AuthScreen() {
 
   // Input Field Focus Highlight State
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
+
+  // Reset Password Modal States
+  const [resetModalVisible, setResetModalVisible] = useState<boolean>(false);
+  const [resetCode, setResetCode] = useState<string>('');
+  const [newPassword, setNewPassword] = useState<string>('');
+  const [resetLoading, setResetLoading] = useState<boolean>(false);
 
   useEffect(() => {
     checkLoginStatus();
@@ -154,7 +173,7 @@ export default function AuthScreen() {
     }
   };
 
-  // Forgot Password Functionality with Confirmation Alert
+  // Forgot Password Functionality with Confirmation Alert & Code Sending
   const handleForgotPassword = () => {
     Keyboard.dismiss();
     const userEmail = email.trim().toLowerCase();
@@ -164,7 +183,6 @@ export default function AuthScreen() {
       return;
     }
 
-    // Confirmation Alert Showing User's Email
     Alert.alert(
       t.resetTitle,
       `${t.resetConfirm}${userEmail}`,
@@ -184,12 +202,14 @@ export default function AuthScreen() {
               const data = await response.json();
 
               if (response.ok) {
-                Alert.alert('Success', data.message || `Email sent to ${userEmail}`);
+                Alert.alert('Success', data.message || `Reset code sent to ${userEmail}`);
+                setResetModalVisible(true);
               } else {
                 Alert.alert('Error', data.message || 'Could not send reset email.');
               }
             } catch (error) {
-              Alert.alert('Success', `Reset link sent to ${userEmail}`);
+              Alert.alert('Success', `Reset code processed for ${userEmail}`);
+              setResetModalVisible(true);
             } finally {
               setLoading(false);
             }
@@ -197,6 +217,44 @@ export default function AuthScreen() {
         },
       ]
     );
+  };
+
+  // Confirm OTP & Update Password Endpoint Trigger
+  const handleConfirmReset = async () => {
+    if (!resetCode.trim() || !newPassword.trim()) {
+      Alert.alert('Error', 'Please enter both the reset code and your new password.');
+      return;
+    }
+
+    setResetLoading(true);
+
+    try {
+      const response = await fetch('https://medicine-backened.vercel.app/api/reset-password-confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          code: resetCode.trim(),
+          newPassword: newPassword.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        Alert.alert('Success', 'Password updated successfully! You can now sign in.');
+        setPassword(newPassword);
+        setResetModalVisible(false);
+        setResetCode('');
+        setNewPassword('');
+      } else {
+        Alert.alert('Error', data.message || 'Invalid code or failed to reset password.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Network error. Could not reset password.');
+    } finally {
+      setResetLoading(false);
+    }
   };
 
   if (checkingAuth) {
@@ -261,59 +319,71 @@ export default function AuthScreen() {
           {!isLogin && (
             <View style={styles.inputGroup}>
               <Text style={[styles.label, lang === 'ur' && { textAlign: 'right' }]}>{t.fullNameLabel}</Text>
-              <TextInput
-                style={[
-                  styles.input,
-                  lang === 'ur' && { textAlign: 'right' },
-                  focusedInput === 'fullName' && styles.inputFocused,
-                ]}
-                placeholder={t.fullNamePlaceholder}
-                placeholderTextColor="#94A3B8"
-                value={fullName}
-                onChangeText={setFullName}
-                onFocus={() => setFocusedInput('fullName')}
-                onBlur={() => setFocusedInput(null)}
-              />
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={[
+                    styles.input,
+                    lang === 'ur' && { textAlign: 'right' },
+                    focusedInput === 'fullName' && styles.inputFocused,
+                  ]}
+                  placeholder={t.fullNamePlaceholder}
+                  placeholderTextColor="#94A3B8"
+                  value={fullName}
+                  onChangeText={setFullName}
+                  onFocus={() => setFocusedInput('fullName')}
+                  onBlur={() => setFocusedInput(null)}
+                  autoComplete="off"
+                  textContentType="none"
+                />
+              </View>
             </View>
           )}
 
           <View style={styles.inputGroup}>
             <Text style={[styles.label, lang === 'ur' && { textAlign: 'right' }]}>{t.emailLabel}</Text>
-            <TextInput
-              style={[
-                styles.input,
-                lang === 'ur' && { textAlign: 'right' },
-                focusedInput === 'email' && styles.inputFocused,
-              ]}
-              placeholder={t.emailPlaceholder}
-              placeholderTextColor="#94A3B8"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
-              onFocus={() => setFocusedInput('email')}
-              onBlur={() => setFocusedInput(null)}
-            />
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={[
+                  styles.input,
+                  lang === 'ur' && { textAlign: 'right' },
+                  focusedInput === 'email' && styles.inputFocused,
+                ]}
+                placeholder={t.emailPlaceholder}
+                placeholderTextColor="#94A3B8"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={email}
+                onChangeText={setEmail}
+                onFocus={() => setFocusedInput('email')}
+                onBlur={() => setFocusedInput(null)}
+                autoComplete="off"
+                textContentType="none"
+              />
+            </View>
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={[styles.label, lang === 'ur' && { textAlign: 'right' }]}>{t.passwordLabel}</Text>
             <View style={styles.passwordContainer}>
-              <TextInput
-                style={[
-                  styles.input,
-                  styles.passwordInput,
-                  lang === 'ur' && { textAlign: 'right' },
-                  focusedInput === 'password' && styles.inputFocused,
-                ]}
-                placeholder={t.passwordPlaceholder}
-                placeholderTextColor="#94A3B8"
-                secureTextEntry={!showPassword}
-                value={password}
-                onChangeText={setPassword}
-                onFocus={() => setFocusedInput('password')}
-                onBlur={() => setFocusedInput(null)}
-              />
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={[
+                    styles.input,
+                    styles.passwordInput,
+                    lang === 'ur' && { textAlign: 'right' },
+                    focusedInput === 'password' && styles.inputFocused,
+                  ]}
+                  placeholder={t.passwordPlaceholder}
+                  placeholderTextColor="#94A3B8"
+                  secureTextEntry={!showPassword}
+                  value={password}
+                  onChangeText={setPassword}
+                  onFocus={() => setFocusedInput('password')}
+                  onBlur={() => setFocusedInput(null)}
+                  autoComplete="off"
+                  textContentType="none"
+                />
+              </View>
               <TouchableOpacity
                 style={styles.eyeBtn}
                 onPress={() => setShowPassword(!showPassword)}
@@ -360,6 +430,60 @@ export default function AuthScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Reset Password Code Verification Modal */}
+      <Modal
+        visible={resetModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setResetModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>{t.resetModalTitle}</Text>
+            <Text style={styles.modalSub}>{t.resetModalSub}</Text>
+
+            <TextInput
+              style={styles.modalInput}
+              placeholder={t.otpPlaceholder}
+              placeholderTextColor="#94A3B8"
+              keyboardType="number-pad"
+              maxLength={6}
+              value={resetCode}
+              onChangeText={setResetCode}
+            />
+
+            <TextInput
+              style={styles.modalInput}
+              placeholder={t.newPassPlaceholder}
+              placeholderTextColor="#94A3B8"
+              secureTextEntry={true}
+              value={newPassword}
+              onChangeText={setNewPassword}
+            />
+
+            <TouchableOpacity
+              style={styles.modalBtn}
+              onPress={handleConfirmReset}
+              disabled={resetLoading}
+            >
+              {resetLoading ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.modalBtnText}>{t.updatePassBtn}</Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.modalCancelBtn}
+              onPress={() => setResetModalVisible(false)}
+            >
+              <Text style={styles.modalCancelText}>{t.cancelBtn}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </KeyboardAvoidingView>
   );
 }
@@ -385,13 +509,31 @@ const styles = StyleSheet.create({
   activeTabText: { color: '#FFFFFF', fontWeight: '800' },
   inputGroup: { marginBottom: 16 },
   label: { fontSize: 12, fontWeight: '700', color: '#CBD5E1', marginBottom: 6 },
+  inputWrapper: {
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
   input: { 
-    backgroundColor: '#1E293B', borderStyle: 'solid',  borderWidth: 1.5,  borderColor: '#334155',  borderRadius: 14, paddingHorizontal: 16, 
-    fontSize: 14, color: '#FFFFFF', height: 48 },
-  inputFocused: {borderColor: '#3B82F6',shadowColor: '#3B82F6',shadowOpacity: 0.3,shadowRadius: 6,elevation: 4 },
+    backgroundColor: '#1E293B', 
+    borderStyle: 'solid',  
+    borderWidth: 1.5,  
+    borderColor: '#334155',  
+    borderRadius: 14, 
+    paddingHorizontal: 16, 
+    fontSize: 14, 
+    color: '#FFFFFF', 
+    height: 48 
+  },
+  inputFocused: {
+    borderColor: '#3B82F6',
+    shadowColor: '#3B82F6',
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4 
+  },
   passwordContainer: { position: 'relative', justifyContent: 'center' },
   passwordInput: { paddingRight: 50 },
-  eyeBtn: { position: 'absolute', right: 14, height: '100%', justifyContent: 'center', alignItems: 'center' },
+  eyeBtn: { position: 'absolute', right: 14, height: '100%', justifyContent: 'center', alignItems: 'center', zIndex: 10 },
   eyeIcon: { fontSize: 16 },
   forgotPassBtn: { alignSelf: 'flex-end', marginBottom: 20 },
   forgotPassText: { color: '#60A5FA', fontSize: 12, fontWeight: '600' },
@@ -400,4 +542,15 @@ const styles = StyleSheet.create({
   switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 20 },
   switchText: { color: '#94A3B8', fontSize: 13 },
   switchLink: { color: '#60A5FA', fontSize: 13, fontWeight: '800' },
+
+  // Modal Overlay Styles
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.75)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  modalCard: { backgroundColor: '#111827', width: '100%', borderRadius: 20, padding: 22, borderWidth: 1, borderColor: '#3B82F6' },
+  modalTitle: { fontSize: 18, fontWeight: '800', color: '#FFFFFF', marginBottom: 6 },
+  modalSub: { fontSize: 12, color: '#94A3B8', marginBottom: 16 },
+  modalInput: { backgroundColor: '#1E293B', borderWidth: 1, borderColor: '#334155', borderRadius: 12, paddingHorizontal: 14, height: 46, color: '#FFFFFF', marginBottom: 12 },
+  modalBtn: { backgroundColor: '#2563EB', height: 46, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginTop: 6 },
+  modalBtnText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
+  modalCancelBtn: { marginTop: 12, alignItems: 'center' },
+  modalCancelText: { color: '#94A3B8', fontSize: 13, fontWeight: '600' },
 });
