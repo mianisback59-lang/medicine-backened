@@ -595,7 +595,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     justifyContent: 'space-around',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20, // Increased spacing for cleaner UI
   },
   trustItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   trustIcon: { fontSize: 12 },
