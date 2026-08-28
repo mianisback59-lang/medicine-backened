@@ -35,10 +35,10 @@ const translations = {
     forgotPass: "Forgot Password?",
     loginBtn: "Sign In",
     signupBtn: "Create Account",
-    noAccount: "Don't have an account? ",
-    hasAccount: "Already have an account? ",
-    toggleSignUp: "Sign Up",
-    toggleSignIn: "Sign In",
+    noAccountText: "Don't have an account?",
+    noAccountAction: "Sign Up",
+    hasAccountText: "Already have an account?",
+    hasAccountAction: "Sign In",
     orContinue: "OR CONTINUE WITH",
     googleLogin: "Continue with Google",
     guestLogin: "Explore Without Account",
@@ -69,10 +69,10 @@ const translations = {
     forgotPass: "پاس ورڈ بھول گئے؟",
     loginBtn: "سائن ان کریں",
     signupBtn: "اکاؤنٹ بنائیں",
-    noAccount: "کیا اکاؤنٹ نہیں ہے؟ ",
-    hasAccount: "پہلے سے اکاؤنٹ موجود ہے؟ ",
-    toggleSignUp: "سائن اپ کریں",
-    toggleSignIn: "سائن ان کریں",
+    noAccountText: "کیا اکاؤنٹ نہیں ہے؟",
+    noAccountAction: "سائن اپ کریں",
+    hasAccountText: "پہلے سے اکاؤنٹ موجود ہے؟",
+    hasAccountAction: "سائن ان کریں",
     orContinue: "یا ان کے ساتھ آگے بڑھیں",
     googleLogin: "گوگل سے سائن ان کریں",
     guestLogin: "اکاؤنٹ کے بغیر آگے بڑھیں",
@@ -307,10 +307,10 @@ export default function AuthScreen() {
           keyboardShouldPersistTaps="handled"
         >
           {/* Header */}
-          <View style={styles.headerContainer}>
-            <View style={styles.titleArea}>
-              <Text style={styles.appTitle}>{t.title}</Text>
-              <Text style={styles.appSubtitle}>{t.subtitle}</Text>
+          <View style={[styles.headerContainer, lang === 'ur' && { flexDirection: 'row-reverse' }]}>
+            <View style={[styles.titleArea, lang === 'ur' && { alignItems: 'flex-end' }]}>
+              <Text style={[styles.appTitle, lang === 'ur' && { textAlign: 'right' }]}>{t.title}</Text>
+              <Text style={[styles.appSubtitle, lang === 'ur' && { textAlign: 'right' }]}>{t.subtitle}</Text>
             </View>
 
             <TouchableOpacity
@@ -325,7 +325,7 @@ export default function AuthScreen() {
 
           {/* Form Card */}
           <View style={styles.card}>
-            <View style={styles.tabContainer}>
+            <View style={[styles.tabContainer, lang === 'ur' && { flexDirection: 'row-reverse' }]}>
               <TouchableOpacity
                 style={[styles.tabBtn, isLogin && styles.activeTabBtn]}
                 onPress={() => setIsLogin(true)}
@@ -395,7 +395,7 @@ export default function AuthScreen() {
                     style={[
                       styles.input,
                       styles.passwordInput,
-                      lang === 'ur' && { textAlign: 'right' },
+                      lang === 'ur' && { textAlign: 'right', paddingRight: 16, paddingLeft: 50 },
                       focusedInput === 'password' && styles.inputFocused,
                     ]}
                     placeholder={t.passwordPlaceholder}
@@ -408,7 +408,7 @@ export default function AuthScreen() {
                   />
                 </View>
                 <TouchableOpacity
-                  style={styles.eyeBtn}
+                  style={[styles.eyeBtn, lang === 'ur' ? { left: 14, right: undefined } : { right: 14 }]}
                   onPress={() => setShowPassword(!showPassword)}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
@@ -423,7 +423,7 @@ export default function AuthScreen() {
 
             {isLogin && (
               <TouchableOpacity 
-                style={styles.forgotPassBtn}
+                style={[styles.forgotPassBtn, lang === 'ur' && { alignSelf: 'flex-start' }]}
                 onPress={handleForgotPassword}
                 activeOpacity={0.7}
               >
@@ -445,13 +445,13 @@ export default function AuthScreen() {
               )}
             </TouchableOpacity>
 
-            <View style={styles.switchRow}>
+            <View style={[styles.switchRow, lang === 'ur' && { flexDirection: 'row-reverse' }]}>
               <Text style={styles.switchText}>
-                {isLogin ? t.noAccount : t.hasAccount}
+                {isLogin ? t.noAccountText : t.hasAccountText}
               </Text>
               <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
                 <Text style={styles.switchLink}>
-                  {isLogin ? t.toggleSignUp : t.toggleSignIn}
+                  {isLogin ? t.noAccountAction : t.hasAccountAction}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -475,7 +475,7 @@ export default function AuthScreen() {
 
           {/* Footer Section */}
           <View style={styles.footerSection}>
-            <View style={styles.statusBadge}>
+            <View style={[styles.statusBadge, lang === 'ur' && { flexDirection: 'row-reverse' }]}>
               <View style={styles.pulseDot} />
               <Text style={styles.statusText}>{t.serverStatus}</Text>
             </View>
@@ -492,11 +492,11 @@ export default function AuthScreen() {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalCard}>
-              <Text style={styles.modalTitle}>{t.resetModalTitle}</Text>
-              <Text style={styles.modalSub}>{t.resetModalSub}</Text>
+              <Text style={[styles.modalTitle, lang === 'ur' && { textAlign: 'right' }]}>{t.resetModalTitle}</Text>
+              <Text style={[styles.modalSub, lang === 'ur' && { textAlign: 'right' }]}>{t.resetModalSub}</Text>
 
               <TextInput
-                style={styles.modalInput}
+                style={[styles.modalInput, lang === 'ur' && { textAlign: 'right' }]}
                 placeholder={t.otpPlaceholder}
                 placeholderTextColor="#94A3B8"
                 keyboardType="number-pad"
@@ -506,7 +506,7 @@ export default function AuthScreen() {
               />
 
               <TextInput
-                style={styles.modalInput}
+                style={[styles.modalInput, lang === 'ur' && { textAlign: 'right' }]}
                 placeholder={t.newPassPlaceholder}
                 placeholderTextColor="#94A3B8"
                 secureTextEntry={true}
@@ -551,7 +551,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', 
     justifyContent: 'space-between', 
     alignItems: 'center', 
-    marginBottom: 24, // Margin increase kiya gaya hai card aur header ke beech balanced gap ke liye
+    marginBottom: 24, 
     marginTop: 4 
   },
   titleArea: { flex: 1 },
@@ -599,12 +599,12 @@ const styles = StyleSheet.create({
   },
   passwordContainer: { position: 'relative', justifyContent: 'center' },
   passwordInput: { paddingRight: 50 },
-  eyeBtn: { position: 'absolute', right: 14, height: '100%', justifyContent: 'center', alignItems: 'center', zIndex: 10 },
+  eyeBtn: { position: 'absolute', height: '100%', justifyContent: 'center', alignItems: 'center', zIndex: 10 },
   forgotPassBtn: { alignSelf: 'flex-end', marginBottom: 16 },
   forgotPassText: { color: '#60A5FA', fontSize: 12, fontWeight: '600' },
   submitBtn: { backgroundColor: '#2563EB', height: 48, borderRadius: 14, justifyContent: 'center', alignItems: 'center', shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
   submitBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800', letterSpacing: 0.5 },
-  switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 14 },
+  switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 14, gap: 4 },
   switchText: { color: '#94A3B8', fontSize: 13 },
   switchLink: { color: '#60A5FA', fontSize: 13, fontWeight: '800' },
 
