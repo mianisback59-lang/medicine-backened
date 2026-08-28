@@ -86,7 +86,6 @@ export default function AuthScreen() {
   const [lang, setLang] = useState<'en' | 'ur'>('en');
   const t = translations[lang];
 
-  // Default value false rakhi hai taakay check hone tak blank na lagay
   const [isLogin, setIsLogin] = useState<boolean>(false);
   const [fullName, setFullName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
@@ -95,10 +94,8 @@ export default function AuthScreen() {
   const [loading, setLoading] = useState<boolean>(false);
   const [checkingAuth, setCheckingAuth] = useState<boolean>(true);
 
-  // Input Field Focus Highlight State
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
-  // Reset Password Modal States
   const [resetModalVisible, setResetModalVisible] = useState<boolean>(false);
   const [resetCode, setResetCode] = useState<string>('');
   const [newPassword, setNewPassword] = useState<string>('');
@@ -116,12 +113,11 @@ export default function AuthScreen() {
         return;
       }
 
-      // Check karein ke user pehle account bana chuka hai ya nahi
       const hasAccount = await AsyncStorage.getItem('hasAccount');
       if (hasAccount === 'true') {
-        setIsLogin(true); // Purane user ke liye -> Sign In Tab
+        setIsLogin(true);
       } else {
-        setIsLogin(false); // Naye user ke liye -> Create Account Tab
+        setIsLogin(false);
       }
 
     } catch (error) {
@@ -175,7 +171,6 @@ export default function AuthScreen() {
       if (response.ok) {
         await AsyncStorage.setItem('userToken', data.token || email);
         await AsyncStorage.setItem('appLanguage', lang);
-        // User status update karein taakay agli baar Sign In khule
         await AsyncStorage.setItem('hasAccount', 'true');
         router.replace('/'); 
       } else {
@@ -189,7 +184,6 @@ export default function AuthScreen() {
     }
   };
 
-  // Forgot Password Functionality with Confirmation Alert & Code Sending
   const handleForgotPassword = () => {
     Keyboard.dismiss();
     const userEmail = email.trim().toLowerCase();
@@ -235,7 +229,6 @@ export default function AuthScreen() {
     );
   };
 
-  // Confirm OTP & Update Password Endpoint Trigger
   const handleConfirmReset = async () => {
     if (!resetCode.trim() || !newPassword.trim()) {
       Alert.alert('Error', 'Please enter both the reset code and your new password.');
@@ -449,7 +442,6 @@ export default function AuthScreen() {
           </View>
         </ScrollView>
 
-        {/* Reset Password Code Verification Modal */}
         <Modal
           visible={resetModalVisible}
           transparent={true}
@@ -510,12 +502,11 @@ export default function AuthScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0A0F1D' },
   scrollContent: { 
-    flexGrow: 1,
-    justifyContent: 'center',
     paddingHorizontal: 20, 
-    paddingVertical: 20,
+    paddingTop: 16, 
+    paddingBottom: 30 
   },
-  headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
+  headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   titleArea: { flex: 1 },
   badgeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 6 },
   aiDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#3B82F6' },
@@ -526,17 +517,14 @@ const styles = StyleSheet.create({
   langIcon: { fontSize: 14 },
   langBtnText: { color: '#60A5FA', fontWeight: '800', fontSize: 12 },
   card: { backgroundColor: '#111827', borderRadius: 24, borderWidth: 1.5, borderColor: 'rgba(59, 130, 246, 0.3)', padding: 22, shadowColor: '#3B82F6', shadowOpacity: 0.15, shadowRadius: 10, elevation: 6 },
-  tabContainer: { flexDirection: 'row', backgroundColor: '#1E293B', borderRadius: 14, padding: 4, marginBottom: 24 },
+  tabContainer: { flexDirection: 'row', backgroundColor: '#1E293B', borderRadius: 14, padding: 4, marginBottom: 20 },
   tabBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 10 },
   activeTabBtn: { backgroundColor: '#2563EB' },
   tabText: { color: '#94A3B8', fontSize: 13, fontWeight: '700' },
   activeTabText: { color: '#FFFFFF', fontWeight: '800' },
-  inputGroup: { marginBottom: 16 },
+  inputGroup: { marginBottom: 14 },
   label: { fontSize: 12, fontWeight: '700', color: '#CBD5E1', marginBottom: 6 },
-  inputWrapper: {
-    borderRadius: 14,
-    overflow: 'hidden',
-  },
+  inputWrapper: { borderRadius: 14, overflow: 'hidden' },
   input: { 
     backgroundColor: '#1E293B', 
     borderStyle: 'solid',  
@@ -559,15 +547,14 @@ const styles = StyleSheet.create({
   passwordInput: { paddingRight: 50 },
   eyeBtn: { position: 'absolute', right: 14, height: '100%', justifyContent: 'center', alignItems: 'center', zIndex: 10 },
   eyeIcon: { fontSize: 16 },
-  forgotPassBtn: { alignSelf: 'flex-end', marginBottom: 20 },
+  forgotPassBtn: { alignSelf: 'flex-end', marginBottom: 18 },
   forgotPassText: { color: '#60A5FA', fontSize: 12, fontWeight: '600' },
-  submitBtn: { backgroundColor: '#2563EB', height: 50, borderRadius: 14, justifyContent: 'center', alignItems: 'center', shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 8, elevation: 4, marginTop: 8 },
+  submitBtn: { backgroundColor: '#2563EB', height: 50, borderRadius: 14, justifyContent: 'center', alignItems: 'center', shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 8, elevation: 4, marginTop: 4 },
   submitBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800', letterSpacing: 0.5 },
-  switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 20 },
+  switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 18 },
   switchText: { color: '#94A3B8', fontSize: 13 },
   switchLink: { color: '#60A5FA', fontSize: 13, fontWeight: '800' },
 
-  // Modal Overlay Styles
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.75)', justifyContent: 'center', alignItems: 'center', padding: 20 },
   modalCard: { backgroundColor: '#111827', width: '100%', borderRadius: 20, padding: 22, borderWidth: 1, borderColor: '#3B82F6' },
   modalTitle: { fontSize: 18, fontWeight: '800', color: '#FFFFFF', marginBottom: 6 },

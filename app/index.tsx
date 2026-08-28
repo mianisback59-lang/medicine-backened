@@ -584,15 +584,14 @@ const styles = StyleSheet.create({
   safeContainer: { flex: 1, backgroundColor: '#0A0F1D' },
   container: { flex: 1 },
   scrollContent: { 
-    flexGrow: 1,
     paddingHorizontal: 20, 
     paddingTop: 16, 
-    paddingBottom: 40 
+    paddingBottom: 30 
   },
   containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#0A0F1D' },
   permissionText: { fontSize: 16, textAlign: 'center', color: '#94A3B8', marginBottom: 20 },
   
-  headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
+  headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   titleArea: { flex: 1 },
   badgeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 6 },
   aiDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#3B82F6' },
@@ -637,8 +636,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     overflow: 'hidden'
   },
-  cameraCard: { height: 230, width: '100%', position: 'relative' },
-  overlayFrame: { flex: 1, margin: 30, borderWidth: 1.5, borderColor: 'rgba(59, 130, 246, 0.6)', borderRadius: 16, backgroundColor: 'transparent', position: 'relative' },
+  cameraCard: { height: 210, width: '100%', position: 'relative' },
+  overlayFrame: { flex: 1, margin: 24, borderWidth: 1.5, borderColor: 'rgba(59, 130, 246, 0.6)', borderRadius: 16, backgroundColor: 'transparent', position: 'relative' },
   
   corner: { position: 'absolute', width: 16, height: 16, borderColor: '#3B82F6' },
   topLeft: { top: -2, left: -2, borderTopWidth: 4, borderLeftWidth: 4 },
@@ -649,12 +648,12 @@ const styles = StyleSheet.create({
   torchBtn: { position: 'absolute', bottom: 12, right: 12, backgroundColor: 'rgba(15, 23, 42, 0.85)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16 },
   torchBtnText: { color: '#FFF', fontSize: 11, fontWeight: '700' },
   
-  manualSearchBox: { flexDirection: 'row', marginTop: 16, marginBottom: 16, gap: 10 },
+  manualSearchBox: { flexDirection: 'row', marginTop: 14, marginBottom: 14, gap: 10 },
   input: { flex: 1, backgroundColor: '#1E293B', borderWidth: 1, borderColor: '#334155', borderRadius: 14, paddingHorizontal: 16, fontSize: 14, color: '#FFFFFF', height: 48 },
   verifyBtn: { backgroundColor: '#2563EB', justifyContent: 'center', paddingHorizontal: 20, borderRadius: 14, height: 48, shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 },
   verifyBtnText: { color: '#FFF', fontWeight: '800', fontSize: 14 },
   
-  placeholderBox: { marginTop: 8, padding: 18, borderRadius: 20, backgroundColor: '#111827', borderStyle: 'dashed', borderWidth: 1.5, borderColor: '#334155', alignItems: 'center' },
+  placeholderBox: { marginTop: 4, padding: 16, borderRadius: 20, backgroundColor: '#111827', borderStyle: 'dashed', borderWidth: 1.5, borderColor: '#334155', alignItems: 'center' },
   scannerIconPlaceholder: { fontSize: 22, marginBottom: 4 },
   placeholderText: { fontSize: 13, color: '#94A3B8', textAlign: 'center', fontWeight: '500' },
   
