@@ -10,6 +10,7 @@ import {
   Platform,
   SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -282,6 +283,7 @@ export default function AuthScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#0A0F1D" translucent={false} />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -509,7 +511,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0A0F1D' },
   scrollContent: { 
     paddingHorizontal: 20, 
-    paddingTop: Platform.OS === 'android' ? 35 : 20, // Clean safe top gap
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 20 : 20, 
     paddingBottom: 40 
   },
   headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30 },

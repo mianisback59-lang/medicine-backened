@@ -13,6 +13,7 @@ import {
   Platform,
   SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -357,6 +358,7 @@ export default function Index() {
 
   return (
     <SafeAreaView style={styles.safeContainer}>
+      <StatusBar barStyle="light-content" backgroundColor="#0A0F1D" translucent={false} />
       <KeyboardAvoidingView 
         style={{ flex: 1 }} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -583,7 +585,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { 
     paddingHorizontal: 20, 
-    paddingTop: Platform.OS === 'android' ? 35 : 15, 
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 20 : 20, 
     paddingBottom: 40 
   },
   containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#0A0F1D' },
