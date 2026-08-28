@@ -8,7 +8,6 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -17,6 +16,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const translations = {
   en: {
@@ -83,6 +83,8 @@ const translations = {
 
 export default function AuthScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets(); // Device safe area read karega
+
   const [lang, setLang] = useState<'en' | 'ur'>('en');
   const t = translations[lang];
 
@@ -274,9 +276,14 @@ export default function AuthScreen() {
     );
   }
 
+  // Exact Status Bar Height Padding Dynamic Calculation
+  const topPadding = Platform.OS === 'android'
+    ? Math.max(insets.top, StatusBar.currentHeight || 24) + 8
+    : insets.top + 8;
+
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0A0F1D" translucent={false} />
+    <View style={[styles.container, { paddingTop: topPadding }]}>
+      <StatusBar barStyle="light-content" backgroundColor="#0A0F1D" translucent={true} />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -495,7 +502,7 @@ export default function AuthScreen() {
         </Modal>
 
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -503,7 +510,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0A0F1D' },
   scrollContent: { 
     paddingHorizontal: 20, 
-    paddingTop: 16, 
+    paddingTop: 4, 
     paddingBottom: 30 
   },
   headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },

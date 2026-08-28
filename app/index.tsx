@@ -11,7 +11,6 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -20,6 +19,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Medicine {
   id?: number;
@@ -94,6 +94,8 @@ const translations = {
 
 export default function Index() {
   const router = useRouter();
+  const insets = useSafeAreaInsets(); // Dynamic Status Bar Height
+
   const [lang, setLang] = useState<'en' | 'ur'>('en');
   const t = translations[lang];
 
@@ -356,9 +358,14 @@ export default function Index() {
     setStoreInfo('');
   };
 
+  // Status Bar padding fix
+  const topPadding = Platform.OS === 'android'
+    ? Math.max(insets.top, StatusBar.currentHeight || 24) + 8
+    : insets.top + 8;
+
   return (
-    <SafeAreaView style={styles.safeContainer}>
-      <StatusBar barStyle="light-content" backgroundColor="#0A0F1D" translucent={false} />
+    <View style={[styles.safeContainer, { paddingTop: topPadding }]}>
+      <StatusBar barStyle="light-content" backgroundColor="#0A0F1D" translucent={true} />
       <KeyboardAvoidingView 
         style={{ flex: 1 }} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -576,7 +583,7 @@ export default function Index() {
           </View>
         </Modal>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -585,7 +592,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { 
     paddingHorizontal: 20, 
-    paddingTop: 16, 
+    paddingTop: 4, 
     paddingBottom: 30 
   },
   containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#0A0F1D' },
