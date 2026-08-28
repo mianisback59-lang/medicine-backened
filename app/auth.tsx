@@ -39,6 +39,11 @@ const translations = {
     hasAccount: "Already have an account? ",
     toggleSignUp: "Sign Up",
     toggleSignIn: "Sign In",
+    orContinue: "OR CONTINUE WITH",
+    googleLogin: "Continue with Google",
+    guestLogin: "Quick Verification as Guest",
+    footerText: "Official Drug Verification System",
+    serverStatus: "AI Engine Active",
     resetTitle: "Reset Password",
     resetConfirm: "A reset email with instructions will be sent to:\n\n",
     enterEmailNotice: "Please type your email address in the Email field first.",
@@ -69,6 +74,11 @@ const translations = {
     hasAccount: "پہلے سے اکاؤنٹ موجود ہے؟ ",
     toggleSignUp: "سائن اپ کریں",
     toggleSignIn: "سائن ان کریں",
+    orContinue: "یا ان کے ساتھ آگے بڑھیں",
+    googleLogin: "گوگل سے سائن ان کریں",
+    guestLogin: "بطور مہمان سکین کریں",
+    footerText: "سرکاری دواؤں کی تصدیق کا نظام",
+    serverStatus: "اے آئی انجن فعال ہے",
     resetTitle: "پاس ورڈ ری سیٹ",
     resetConfirm: "پاس ورڈ ری سیٹ کی ای میل اس ایڈریس پر بھیجی جائے گی:\n\n",
     enterEmailNotice: "براہ کرم پہلے ای میل والے خانے میں اپنا ای میل درج کریں۔",
@@ -83,12 +93,12 @@ const translations = {
 
 export default function AuthScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets(); // Device safe area read karega
+  const insets = useSafeAreaInsets();
 
   const [lang, setLang] = useState<'en' | 'ur'>('en');
   const t = translations[lang];
 
-  const [isLogin, setIsLogin] = useState<boolean>(false);
+  const [isLogin, setIsLogin] = useState<boolean>(true);
   const [fullName, setFullName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -124,7 +134,7 @@ export default function AuthScreen() {
 
     } catch (error) {
       console.log('Error checking auth status:', error);
-      setIsLogin(false);
+      setIsLogin(true);
     } finally {
       setCheckingAuth(false);
     }
@@ -134,6 +144,11 @@ export default function AuthScreen() {
     const newLang = lang === 'en' ? 'ur' : 'en';
     setLang(newLang);
     await AsyncStorage.setItem('appLanguage', newLang);
+  };
+
+  const handleGuestLogin = async () => {
+    await AsyncStorage.setItem('userToken', 'guest_session');
+    router.replace('/');
   };
 
   const handleAuth = async () => {
@@ -276,13 +291,12 @@ export default function AuthScreen() {
     );
   }
 
-  // Exact Status Bar Height Padding Dynamic Calculation
   const topPadding = Platform.OS === 'android'
     ? Math.max(insets.top, StatusBar.currentHeight || 24) + 8
     : insets.top + 8;
 
   return (
-    <View style={[styles.container, { paddingTop: topPadding }]}>
+    <View style={[styles.container, { paddingTop: topPadding, paddingBottom: Math.max(insets.bottom, 12) }]}>
       <StatusBar barStyle="light-content" backgroundColor="#0A0F1D" translucent={true} />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -293,6 +307,7 @@ export default function AuthScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Header */}
           <View style={styles.headerContainer}>
             <View style={styles.titleArea}>
               <View style={styles.badgeRow}>
@@ -313,6 +328,25 @@ export default function AuthScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Professional App Trust Bar */}
+          <View style={styles.trustBanner}>
+            <View style={styles.trustItem}>
+              <Text style={styles.trustIcon}>🛡️</Text>
+              <Text style={styles.trustText}>DRAP Registered</Text>
+            </View>
+            <View style={styles.trustDivider} />
+            <View style={styles.trustItem}>
+              <Text style={styles.trustIcon}>⚡</Text>
+              <Text style={styles.trustText}>Instant AI Scan</Text>
+            </View>
+            <View style={styles.trustDivider} />
+            <View style={styles.trustItem}>
+              <Text style={styles.trustIcon}>🔒</Text>
+              <Text style={styles.trustText}>256-bit Secure</Text>
+            </View>
+          </View>
+
+          {/* Form Card */}
           <View style={styles.card}>
             <View style={styles.tabContainer}>
               <TouchableOpacity
@@ -350,8 +384,6 @@ export default function AuthScreen() {
                     onChangeText={setFullName}
                     onFocus={() => setFocusedInput('fullName')}
                     onBlur={() => setFocusedInput(null)}
-                    autoComplete="off"
-                    textContentType="none"
                   />
                 </View>
               </View>
@@ -374,8 +406,6 @@ export default function AuthScreen() {
                   onChangeText={setEmail}
                   onFocus={() => setFocusedInput('email')}
                   onBlur={() => setFocusedInput(null)}
-                  autoComplete="off"
-                  textContentType="none"
                 />
               </View>
             </View>
@@ -398,8 +428,6 @@ export default function AuthScreen() {
                     onChangeText={setPassword}
                     onFocus={() => setFocusedInput('password')}
                     onBlur={() => setFocusedInput(null)}
-                    autoComplete="off"
-                    textContentType="none"
                   />
                 </View>
                 <TouchableOpacity
@@ -446,9 +474,36 @@ export default function AuthScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
+
+            {/* Divider */}
+            <View style={styles.dividerRow}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>{t.orContinue}</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Quick Guest Access Button */}
+            <TouchableOpacity 
+              style={styles.secondaryActionBtn} 
+              onPress={handleGuestLogin}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.secondaryActionIcon}>🚀</Text>
+              <Text style={styles.secondaryActionText}>{t.guestLogin}</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Modern Footer Section */}
+          <View style={styles.footerSection}>
+            <View style={styles.statusBadge}>
+              <View style={styles.pulseDot} />
+              <Text style={styles.statusText}>{t.serverStatus}</Text>
+            </View>
+            <Text style={styles.footerBrandText}>{t.footerText}</Text>
           </View>
         </ScrollView>
 
+        {/* Modal */}
         <Modal
           visible={resetModalVisible}
           transparent={true}
@@ -510,10 +565,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0A0F1D' },
   scrollContent: { 
     paddingHorizontal: 20, 
-    paddingTop: 4, 
-    paddingBottom: 30 
+    paddingBottom: 20,
   },
-  headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
   titleArea: { flex: 1 },
   badgeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 6 },
   aiDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#3B82F6' },
@@ -523,8 +577,28 @@ const styles = StyleSheet.create({
   premiumLangBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(30, 41, 59, 0.8)', borderWidth: 1, borderColor: 'rgba(59, 130, 246, 0.4)', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 22, gap: 6 },
   langIcon: { fontSize: 14 },
   langBtnText: { color: '#60A5FA', fontWeight: '800', fontSize: 12 },
-  card: { backgroundColor: '#111827', borderRadius: 24, borderWidth: 1.5, borderColor: 'rgba(59, 130, 246, 0.3)', padding: 22, shadowColor: '#3B82F6', shadowOpacity: 0.15, shadowRadius: 10, elevation: 6 },
-  tabContainer: { flexDirection: 'row', backgroundColor: '#1E293B', borderRadius: 14, padding: 4, marginBottom: 20 },
+
+  // Trust Banner
+  trustBanner: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(17, 24, 39, 0.7)',
+    borderWidth: 1,
+    borderColor: 'rgba(51, 65, 85, 0.6)',
+    borderRadius: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  trustItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  trustIcon: { fontSize: 12 },
+  trustText: { color: '#94A3B8', fontSize: 11, fontWeight: '700' },
+  trustDivider: { width: 1, height: 14, backgroundColor: 'rgba(51, 65, 85, 0.8)' },
+
+  // Card & Inputs
+  card: { backgroundColor: '#111827', borderRadius: 24, borderWidth: 1.5, borderColor: 'rgba(59, 130, 246, 0.25)', padding: 20, shadowColor: '#3B82F6', shadowOpacity: 0.15, shadowRadius: 10, elevation: 6 },
+  tabContainer: { flexDirection: 'row', backgroundColor: '#1E293B', borderRadius: 14, padding: 4, marginBottom: 18 },
   tabBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 10 },
   activeTabBtn: { backgroundColor: '#2563EB' },
   tabText: { color: '#94A3B8', fontSize: 13, fontWeight: '700' },
@@ -534,7 +608,6 @@ const styles = StyleSheet.create({
   inputWrapper: { borderRadius: 14, overflow: 'hidden' },
   input: { 
     backgroundColor: '#1E293B', 
-    borderStyle: 'solid',  
     borderWidth: 1.5,  
     borderColor: '#334155',  
     borderRadius: 14, 
@@ -554,14 +627,40 @@ const styles = StyleSheet.create({
   passwordInput: { paddingRight: 50 },
   eyeBtn: { position: 'absolute', right: 14, height: '100%', justifyContent: 'center', alignItems: 'center', zIndex: 10 },
   eyeIcon: { fontSize: 16 },
-  forgotPassBtn: { alignSelf: 'flex-end', marginBottom: 18 },
+  forgotPassBtn: { alignSelf: 'flex-end', marginBottom: 16 },
   forgotPassText: { color: '#60A5FA', fontSize: 12, fontWeight: '600' },
-  submitBtn: { backgroundColor: '#2563EB', height: 50, borderRadius: 14, justifyContent: 'center', alignItems: 'center', shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 8, elevation: 4, marginTop: 4 },
+  submitBtn: { backgroundColor: '#2563EB', height: 48, borderRadius: 14, justifyContent: 'center', alignItems: 'center', shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
   submitBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800', letterSpacing: 0.5 },
-  switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 18 },
+  switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 14 },
   switchText: { color: '#94A3B8', fontSize: 13 },
   switchLink: { color: '#60A5FA', fontSize: 13, fontWeight: '800' },
 
+  // Divider & Secondary Action
+  dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 16, gap: 10 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: 'rgba(51, 65, 85, 0.6)' },
+  dividerText: { color: '#64748B', fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
+  secondaryActionBtn: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    backgroundColor: '#1E293B', 
+    borderWidth: 1, 
+    borderColor: '#334155', 
+    height: 46, 
+    borderRadius: 14, 
+    gap: 8 
+  },
+  secondaryActionIcon: { fontSize: 14 },
+  secondaryActionText: { color: '#E2E8F0', fontWeight: '700', fontSize: 13 },
+
+  // Footer Section
+  footerSection: { marginTop: 20, alignItems: 'center', gap: 6 },
+  statusBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(16, 185, 129, 0.1)', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(16, 185, 129, 0.3)', gap: 6 },
+  pulseDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#10B981' },
+  statusText: { color: '#34D399', fontSize: 11, fontWeight: '700' },
+  footerBrandText: { color: '#64748B', fontSize: 11, fontWeight: '600' },
+
+  // Modal
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.75)', justifyContent: 'center', alignItems: 'center', padding: 20 },
   modalCard: { backgroundColor: '#111827', width: '100%', borderRadius: 20, padding: 22, borderWidth: 1, borderColor: '#3B82F6' },
   modalTitle: { fontSize: 18, fontWeight: '800', color: '#FFFFFF', marginBottom: 6 },
