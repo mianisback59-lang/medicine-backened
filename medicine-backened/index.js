@@ -157,7 +157,7 @@ app.post('/api/forgot-password', async (req, res) => {
     user.resetCode = resetCode;
     await user.save();
 
-    // Resend Email Operation
+    // Send email using Resend API (English Template)
     await resend.emails.send({
       from: 'MedVerify AI <onboarding@resend.dev>',
       to: cleanEmail,
@@ -166,12 +166,12 @@ app.post('/api/forgot-password', async (req, res) => {
         <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #0A0F1D; color: #ffffff; border-radius: 10px;">
           <h2 style="color: #3B82F6;">MedVerify AI</h2>
           <p>Hi ${user.name || 'User'},</p>
-          <p>Aap ne password reset karne ki request ki hai.</p>
-          <p>Aap ka 6-digit Security Verification Code yeh hai:</p>
+          <p>You have requested to reset your password.</p>
+          <p>Your 6-digit Security Verification Code is:</p>
           <div style="background-color: #1E293B; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0;">
             <span style="font-size: 28px; font-weight: bold; letter-spacing: 6px; color: #60A5FA;">${resetCode}</span>
           </div>
-          <p style="color: #94A3B8; font-size: 12px;">Agar aap ne yeh request nahi ki, toh is email ko ignore karein.</p>
+          <p style="color: #94A3B8; font-size: 12px;">If you did not request a password reset, please ignore this email.</p>
         </div>
       `
     });
