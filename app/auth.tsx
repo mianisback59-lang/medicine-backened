@@ -161,7 +161,7 @@ export default function AuthScreen() {
   const [lang, setLang] = useState<'en' | 'ur'>('en');
   const t = translations[lang];
 
-  // نئے یوزر کے لیے لازمی ڈیفالٹ Create Account (isLogin = false)
+  // Default value set to FALSE -> Iska matlab by default Create Account show hoga
   const [isLogin, setIsLogin] = useState<boolean>(false);
   
   const [fullName, setFullName] = useState<string>('');
@@ -190,12 +190,14 @@ export default function AuthScreen() {
         return;
       }
 
-      // صرف اور صرف تب Sign In دکھائیں جب صارف پہلے لاگ ان ہو چکا ہو
+      // ONLY CHANGE IN CODE:
+      // Agar pehle account ban chuka ho tu tabhi Sign In section show hoga.
+      // Warna default create account par rahega.
       const hasAccount = await AsyncStorage.getItem('hasAccount');
       if (hasAccount === 'true') {
         setIsLogin(true);
       } else {
-        setIsLogin(false); // نئے صارف کے لیے فورسڈ Create Account
+        setIsLogin(false);
       }
 
     } catch (error) {
@@ -253,7 +255,7 @@ export default function AuthScreen() {
       if (response.ok) {
         await AsyncStorage.setItem('userToken', data.token || email);
         await AsyncStorage.setItem('appLanguage', lang);
-        await AsyncStorage.setItem('hasAccount', 'true');
+        await AsyncStorage.setItem('hasAccount', 'true'); // Isse next time system sign-in tab show karega
         router.replace('/'); 
       } else {
         Alert.alert('Failed', data.message || 'Authentication failed.');
@@ -704,7 +706,7 @@ const styles = StyleSheet.create({
     elevation: 4 
   },
   input: { 
-    backgroundColor: '#1E293B', // واضح بیک گراؤنڈ سیٹ کیا ہے تاکہ پیلا رنگ اس کے نیچے چھپ جائے
+    backgroundColor: '#1E293B', 
     paddingHorizontal: 16, 
     fontSize: 14, 
     color: '#FFFFFF', 
