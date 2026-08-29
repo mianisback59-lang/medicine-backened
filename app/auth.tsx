@@ -90,7 +90,6 @@ const translations = {
   }
 };
 
-// Truly Soft & Seamless Premium Ambient Glow Background
 const BackgroundGlow = () => {
   const pulseAnim = useRef(new Animated.Value(0.3)).current;
 
@@ -115,7 +114,6 @@ const BackgroundGlow = () => {
 
   return (
     <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
-      {/* Top Left Soft Blue Ambient Glow */}
       <Animated.View
         style={[
           styles.glowOrb,
@@ -127,8 +125,6 @@ const BackgroundGlow = () => {
           },
         ]}
       />
-
-      {/* Bottom Right Soft Cyan Ambient Glow */}
       <Animated.View
         style={[
           styles.glowOrb,
@@ -140,8 +136,6 @@ const BackgroundGlow = () => {
           },
         ]}
       />
-
-      {/* Center Soft AI Core Ambient */}
       <View
         style={[
           styles.glowOrb,
@@ -186,6 +180,7 @@ export default function AuthScreen() {
     checkLoginStatus();
   }, []);
 
+  // New User vs Existing User Logic
   const checkLoginStatus = async () => {
     try {
       const userToken = await AsyncStorage.getItem('userToken');
@@ -196,14 +191,14 @@ export default function AuthScreen() {
 
       const hasAccount = await AsyncStorage.getItem('hasAccount');
       if (hasAccount === 'true') {
-        setIsLogin(true);
+        setIsLogin(true); // اکاؤنٹ پہلے سے بنا ہے -> Sign In
       } else {
-        setIsLogin(false);
+        setIsLogin(false); // نیا صارف -> Create Account
       }
 
     } catch (error) {
       console.log('Error checking auth status:', error);
-      setIsLogin(true);
+      setIsLogin(false);
     } finally {
       setCheckingAuth(false);
     }
@@ -368,7 +363,6 @@ export default function AuthScreen() {
     <View style={[styles.container, { paddingTop: topPadding, paddingBottom: Math.max(insets.bottom, 12) }]}>
       <StatusBar barStyle="light-content" backgroundColor="#0A0F1D" translucent={true} />
       
-      {/* Soft & Seamless Ambient Glow Background */}
       <BackgroundGlow />
 
       <KeyboardAvoidingView
@@ -431,12 +425,11 @@ export default function AuthScreen() {
             {!isLogin && (
               <View style={styles.inputGroup}>
                 <Text style={[styles.label, lang === 'ur' && { textAlign: 'right' }]}>{t.fullNameLabel}</Text>
-                <View style={[styles.inputWrapper, { backgroundColor: '#1E293B' }]}>
+                <View style={[styles.inputWrapper, focusedInput === 'fullName' && styles.inputWrapperFocused]}>
                   <TextInput
                     style={[
                       styles.input,
                       lang === 'ur' && { textAlign: 'right' },
-                      focusedInput === 'fullName' && styles.inputFocused,
                     ]}
                     placeholder={t.fullNamePlaceholder}
                     placeholderTextColor="#94A3B8"
@@ -447,6 +440,8 @@ export default function AuthScreen() {
                     autoComplete="off"
                     importantForAutofill="no"
                     textContentType="none"
+                    underlineColorAndroid="transparent"
+                    selectionColor="#3B82F6"
                   />
                 </View>
               </View>
@@ -454,12 +449,11 @@ export default function AuthScreen() {
 
             <View style={styles.inputGroup}>
               <Text style={[styles.label, lang === 'ur' && { textAlign: 'right' }]}>{t.emailLabel}</Text>
-              <View style={[styles.inputWrapper, { backgroundColor: '#1E293B' }]}>
+              <View style={[styles.inputWrapper, focusedInput === 'email' && styles.inputWrapperFocused]}>
                 <TextInput
                   style={[
                     styles.input,
                     lang === 'ur' && { textAlign: 'right' },
-                    focusedInput === 'email' && styles.inputFocused,
                   ]}
                   placeholder={t.emailPlaceholder}
                   placeholderTextColor="#94A3B8"
@@ -472,6 +466,8 @@ export default function AuthScreen() {
                   autoComplete="off"
                   importantForAutofill="no"
                   textContentType="none"
+                  underlineColorAndroid="transparent"
+                  selectionColor="#3B82F6"
                 />
               </View>
             </View>
@@ -479,13 +475,12 @@ export default function AuthScreen() {
             <View style={styles.inputGroup}>
               <Text style={[styles.label, lang === 'ur' && { textAlign: 'right' }]}>{t.passwordLabel}</Text>
               <View style={styles.passwordContainer}>
-                <View style={[styles.inputWrapper, { backgroundColor: '#1E293B' }]}>
+                <View style={[styles.inputWrapper, focusedInput === 'password' && styles.inputWrapperFocused]}>
                   <TextInput
                     style={[
                       styles.input,
                       styles.passwordInput,
                       lang === 'ur' && { textAlign: 'right', paddingRight: 16, paddingLeft: 50 },
-                      focusedInput === 'password' && styles.inputFocused,
                     ]}
                     placeholder={t.passwordPlaceholder}
                     placeholderTextColor="#94A3B8"
@@ -497,6 +492,8 @@ export default function AuthScreen() {
                     autoComplete="off"
                     importantForAutofill="no"
                     textContentType="none"
+                    underlineColorAndroid="transparent"
+                    selectionColor="#3B82F6"
                   />
                 </View>
                 <TouchableOpacity
@@ -548,14 +545,12 @@ export default function AuthScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Divider */}
             <View style={styles.dividerRow}>
               <View style={styles.dividerLine} />
               <Text style={styles.dividerText}>{t.orContinue}</Text>
               <View style={styles.dividerLine} />
             </View>
 
-            {/* Clean Guest Access Action */}
             <TouchableOpacity 
               style={styles.secondaryActionBtn} 
               onPress={handleGuestLogin}
@@ -597,6 +592,8 @@ export default function AuthScreen() {
                 maxLength={6}
                 value={resetCode}
                 onChangeText={setResetCode}
+                underlineColorAndroid="transparent"
+                selectionColor="#3B82F6"
               />
 
               <TextInput
@@ -606,6 +603,8 @@ export default function AuthScreen() {
                 secureTextEntry={true}
                 value={newPassword}
                 onChangeText={setNewPassword}
+                underlineColorAndroid="transparent"
+                selectionColor="#3B82F6"
               />
 
               <TouchableOpacity
@@ -646,7 +645,6 @@ const styles = StyleSheet.create({
     width: 300,
     height: 300,
     borderRadius: 150,
-    // Soft blurred ambient glow without solid borders
     shadowColor: '#2563EB',
     shadowOpacity: 1,
     shadowRadius: 140,
@@ -675,7 +673,6 @@ const styles = StyleSheet.create({
   },
   langBtnText: { color: '#60A5FA', fontWeight: '800', fontSize: 12 },
 
-  // Card & Inputs
   card: { backgroundColor: '#111827', borderRadius: 24, borderWidth: 1.5, borderColor: 'rgba(59, 130, 246, 0.25)', padding: 18, shadowColor: '#3B82F6', shadowOpacity: 0.15, shadowRadius: 10, elevation: 6 },
   tabContainer: { flexDirection: 'row', backgroundColor: '#1E293B', borderRadius: 14, padding: 4, marginBottom: 14 },
   tabBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 10 },
@@ -684,23 +681,27 @@ const styles = StyleSheet.create({
   activeTabText: { color: '#FFFFFF', fontWeight: '800' },
   inputGroup: { marginBottom: 12 },
   label: { fontSize: 12, fontWeight: '700', color: '#CBD5E1', marginBottom: 5 },
-  inputWrapper: { borderRadius: 14, overflow: 'hidden' },
-  input: { 
-    backgroundColor: '#1E293B', 
+  
+  inputWrapper: { 
+    borderRadius: 14, 
     borderWidth: 1.5,  
     borderColor: '#334155',  
-    borderRadius: 14, 
-    paddingHorizontal: 16, 
-    fontSize: 14, 
-    color: '#FFFFFF', 
-    height: 46 
+    backgroundColor: '#1E293B', 
+    overflow: 'hidden' 
   },
-  inputFocused: {
+  inputWrapperFocused: {
     borderColor: '#3B82F6',
     shadowColor: '#3B82F6',
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 4 
+  },
+  input: { 
+    backgroundColor: 'transparent', 
+    paddingHorizontal: 16, 
+    fontSize: 14, 
+    color: '#FFFFFF', 
+    height: 46 
   },
   passwordContainer: { position: 'relative', justifyContent: 'center' },
   passwordInput: { paddingRight: 50 },
@@ -713,7 +714,6 @@ const styles = StyleSheet.create({
   switchText: { color: '#94A3B8', fontSize: 13 },
   switchLink: { color: '#60A5FA', fontSize: 13, fontWeight: '800' },
 
-  // Divider & Secondary Action
   dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 14, gap: 10 },
   dividerLine: { flex: 1, height: 1, backgroundColor: 'rgba(51, 65, 85, 0.6)' },
   dividerText: { color: '#64748B', fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
@@ -729,14 +729,12 @@ const styles = StyleSheet.create({
   },
   secondaryActionText: { color: '#94A3B8', fontWeight: '700', fontSize: 13 },
 
-  // Footer Section
   footerSection: { marginTop: 18, alignItems: 'center', gap: 6 },
   statusBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(16, 185, 129, 0.1)', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(16, 185, 129, 0.3)', gap: 6 },
   pulseDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#10B981' },
   statusText: { color: '#34D399', fontSize: 11, fontWeight: '700' },
   footerBrandText: { color: '#64748B', fontSize: 11, fontWeight: '600', textAlign: 'center' },
 
-  // Modal
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.75)', justifyContent: 'center', alignItems: 'center', padding: 20 },
   modalCard: { backgroundColor: '#111827', width: '100%', borderRadius: 20, padding: 22, borderWidth: 1, borderColor: '#3B82F6' },
   modalTitle: { fontSize: 18, fontWeight: '800', color: '#FFFFFF', marginBottom: 6 },
