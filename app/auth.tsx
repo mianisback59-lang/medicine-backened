@@ -90,22 +90,22 @@ const translations = {
   }
 };
 
-// Premium AI Medical Glow Background 
+// Truly Soft & Seamless Premium Ambient Glow Background
 const BackgroundGlow = () => {
-  const pulseAnim = useRef(new Animated.Value(0.35)).current;
+  const pulseAnim = useRef(new Animated.Value(0.3)).current;
 
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
-          toValue: 0.7,
-          duration: 3500,
+          toValue: 0.6,
+          duration: 4000,
           easing: Easing.inOut(Easing.quad),
           useNativeDriver: true,
         }),
         Animated.timing(pulseAnim, {
-          toValue: 0.35,
-          duration: 3500,
+          toValue: 0.3,
+          duration: 4000,
           easing: Easing.inOut(Easing.quad),
           useNativeDriver: true,
         }),
@@ -115,43 +115,44 @@ const BackgroundGlow = () => {
 
   return (
     <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
-      {/* Top Left Neon Blue Glow */}
+      {/* Top Left Soft Blue Ambient Glow */}
       <Animated.View
         style={[
           styles.glowOrb,
           {
-            top: -50,
-            left: -50,
-            backgroundColor: '#2563EB',
+            top: -120,
+            left: -120,
+            backgroundColor: '#1D4ED8',
             opacity: pulseAnim,
           },
         ]}
       />
 
-      {/* Bottom Right Cyan Glow */}
+      {/* Bottom Right Soft Cyan Ambient Glow */}
       <Animated.View
         style={[
           styles.glowOrb,
           {
-            bottom: -70,
-            right: -50,
-            backgroundColor: '#06B6D4',
+            bottom: -140,
+            right: -120,
+            backgroundColor: '#0891B2',
             opacity: pulseAnim,
           },
         ]}
       />
 
-      {/* Center Soft Ambient Glow */}
+      {/* Center Soft AI Core Ambient */}
       <View
         style={[
           styles.glowOrb,
           {
-            top: '38%',
+            top: '32%',
             alignSelf: 'center',
-            backgroundColor: '#3B82F6',
-            opacity: 0.1,
-            width: 280,
-            height: 280,
+            backgroundColor: '#2563EB',
+            opacity: 0.08,
+            width: 320,
+            height: 320,
+            borderRadius: 160,
           },
         ]}
       />
@@ -367,7 +368,7 @@ export default function AuthScreen() {
     <View style={[styles.container, { paddingTop: topPadding, paddingBottom: Math.max(insets.bottom, 12) }]}>
       <StatusBar barStyle="light-content" backgroundColor="#0A0F1D" translucent={true} />
       
-      {/* Modern Soft Glow Background */}
+      {/* Soft & Seamless Ambient Glow Background */}
       <BackgroundGlow />
 
       <KeyboardAvoidingView
@@ -443,6 +444,8 @@ export default function AuthScreen() {
                     onChangeText={setFullName}
                     onFocus={() => setFocusedInput('fullName')}
                     onBlur={() => setFocusedInput(null)}
+                    autoComplete="off"
+                    textContentType="name"
                   />
                 </View>
               </View>
@@ -465,6 +468,8 @@ export default function AuthScreen() {
                   onChangeText={setEmail}
                   onFocus={() => setFocusedInput('email')}
                   onBlur={() => setFocusedInput(null)}
+                  autoComplete="off"
+                  textContentType="none"
                 />
               </View>
             </View>
@@ -487,6 +492,8 @@ export default function AuthScreen() {
                     onChangeText={setPassword}
                     onFocus={() => setFocusedInput('password')}
                     onBlur={() => setFocusedInput(null)}
+                    autoComplete="off"
+                    textContentType="none"
                   />
                 </View>
                 <TouchableOpacity
@@ -633,14 +640,14 @@ const styles = StyleSheet.create({
   },
   glowOrb: {
     position: 'absolute',
-    width: 250,
-    height: 250,
-    borderRadius: 125,
-    transform: [{ scale: 1.2 }],
-    shadowColor: '#3B82F6',
-    shadowOpacity: 0.8,
-    shadowRadius: 90,
-    elevation: 20,
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    // Soft blurred ambient glow without solid borders
+    shadowColor: '#2563EB',
+    shadowOpacity: 1,
+    shadowRadius: 140,
+    elevation: 30,
   },
   headerContainer: { 
     flexDirection: 'row', 
