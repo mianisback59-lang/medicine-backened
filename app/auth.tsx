@@ -431,7 +431,7 @@ export default function AuthScreen() {
             {!isLogin && (
               <View style={styles.inputGroup}>
                 <Text style={[styles.label, lang === 'ur' && { textAlign: 'right' }]}>{t.fullNameLabel}</Text>
-                <View style={styles.inputWrapper}>
+                <View style={[styles.inputWrapper, { backgroundColor: '#1E293B' }]}>
                   <TextInput
                     style={[
                       styles.input,
@@ -445,7 +445,8 @@ export default function AuthScreen() {
                     onFocus={() => setFocusedInput('fullName')}
                     onBlur={() => setFocusedInput(null)}
                     autoComplete="off"
-                    textContentType="name"
+                    importantForAutofill="no"
+                    textContentType="none"
                   />
                 </View>
               </View>
@@ -453,7 +454,7 @@ export default function AuthScreen() {
 
             <View style={styles.inputGroup}>
               <Text style={[styles.label, lang === 'ur' && { textAlign: 'right' }]}>{t.emailLabel}</Text>
-              <View style={styles.inputWrapper}>
+              <View style={[styles.inputWrapper, { backgroundColor: '#1E293B' }]}>
                 <TextInput
                   style={[
                     styles.input,
@@ -469,6 +470,7 @@ export default function AuthScreen() {
                   onFocus={() => setFocusedInput('email')}
                   onBlur={() => setFocusedInput(null)}
                   autoComplete="off"
+                  importantForAutofill="no"
                   textContentType="none"
                 />
               </View>
@@ -477,7 +479,7 @@ export default function AuthScreen() {
             <View style={styles.inputGroup}>
               <Text style={[styles.label, lang === 'ur' && { textAlign: 'right' }]}>{t.passwordLabel}</Text>
               <View style={styles.passwordContainer}>
-                <View style={styles.inputWrapper}>
+                <View style={[styles.inputWrapper, { backgroundColor: '#1E293B' }]}>
                   <TextInput
                     style={[
                       styles.input,
@@ -493,6 +495,7 @@ export default function AuthScreen() {
                     onFocus={() => setFocusedInput('password')}
                     onBlur={() => setFocusedInput(null)}
                     autoComplete="off"
+                    importantForAutofill="no"
                     textContentType="none"
                   />
                 </View>
