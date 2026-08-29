@@ -72,7 +72,7 @@ const translations = {
     noAccountAction: "سائن اپ کریں",
     hasAccountText: "پہلے سے اکاؤنٹ موجود ہے؟",
     hasAccountAction: "سائن ان کریں",
-    orContinue: "یا پھر",
+    orContinue: "یا",
     guestLogin: "اکاؤنٹ کے بغیر آگے بڑھیں",
     footerText: "سرکاری دواؤں کی تصدیق کا نظام",
     serverStatus: "اے آئی انجن فعال ہے",
