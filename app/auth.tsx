@@ -289,11 +289,11 @@ export default function AuthScreen() {
   }
 
   const topPadding = Platform.OS === 'android'
-    ? Math.max(insets.top, StatusBar.currentHeight || 24) + 8
-    : insets.top + 8;
+    ? Math.max(insets.top, StatusBar.currentHeight || 24) + 4
+    : insets.top + 4;
 
   return (
-    <View style={[styles.container, { paddingTop: topPadding, paddingBottom: Math.max(insets.bottom, 12) }]}>
+    <View style={[styles.container, { paddingTop: topPadding, paddingBottom: Math.max(insets.bottom, 8) }]}>
       <StatusBar barStyle="light-content" backgroundColor="#0A0F1D" translucent={true} />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -307,11 +307,20 @@ export default function AuthScreen() {
           {/* Header */}
           <View style={[styles.headerContainer, lang === 'ur' && { flexDirection: 'row-reverse' }]}>
             <View style={[styles.titleArea, lang === 'ur' && { alignItems: 'flex-end' }]}>
-              <Text style={[styles.appTitle, lang === 'ur' && { textAlign: 'right' }]}>{t.title}</Text>
+              <Text 
+                style={[
+                  styles.appTitle, 
+                  lang === 'ur' && { textAlign: 'right', fontSize: 21 }
+                ]}
+                numberOfLines={1}
+                adjustsFontSizeToFit={true}
+              >
+                {t.title}
+              </Text>
               <Text 
                 style={[
                   styles.appSubtitle, 
-                  lang === 'ur' && { textAlign: 'right', fontSize: 11.5 }
+                  lang === 'ur' && { textAlign: 'right', fontSize: 11 }
                 ]}
                 numberOfLines={1}
                 adjustsFontSizeToFit={true}
@@ -325,7 +334,7 @@ export default function AuthScreen() {
               activeOpacity={0.8}
               onPress={toggleLanguage}
             >
-              <Ionicons name="globe-outline" size={16} color="#60A5FA" />
+              <Ionicons name="globe-outline" size={15} color="#60A5FA" />
               <Text style={styles.langBtnText}>{t.langToggle}</Text>
             </TouchableOpacity>
           </View>
@@ -421,7 +430,7 @@ export default function AuthScreen() {
                 >
                   <Ionicons
                     name={showPassword ? 'eye-outline' : 'eye-off-outline'}
-                    size={20}
+                    size={18}
                     color="#94A3B8"
                   />
                 </TouchableOpacity>
@@ -554,50 +563,50 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0A0F1D' },
   scrollContent: { 
     paddingHorizontal: 20, 
-    paddingBottom: 16,
+    paddingBottom: 8,
   },
   headerContainer: { 
     flexDirection: 'row', 
     justifyContent: 'space-between', 
     alignItems: 'center', 
-    marginBottom: 20, 
-    marginTop: 4 
+    marginBottom: 10, 
+    marginTop: 0 
   },
   titleArea: { flex: 1, paddingRight: 8 },
-  appTitle: { fontSize: 28, fontWeight: '900', color: '#FFFFFF', letterSpacing: 0.5 },
-  appSubtitle: { fontSize: 12, color: '#94A3B8', marginTop: 2 },
+  appTitle: { fontSize: 26, fontWeight: '900', color: '#FFFFFF', letterSpacing: 0.5 },
+  appSubtitle: { fontSize: 11.5, color: '#94A3B8', marginTop: 1 },
   premiumLangBtn: { 
     flexDirection: 'row', 
     alignItems: 'center', 
     backgroundColor: 'rgba(30, 41, 59, 0.8)', 
     borderWidth: 1, 
     borderColor: 'rgba(59, 130, 246, 0.4)', 
-    paddingVertical: 8, 
-    paddingHorizontal: 14, 
-    borderRadius: 22, 
-    gap: 6 
+    paddingVertical: 6, 
+    paddingHorizontal: 12, 
+    borderRadius: 20, 
+    gap: 5 
   },
-  langBtnText: { color: '#60A5FA', fontWeight: '800', fontSize: 12 },
+  langBtnText: { color: '#60A5FA', fontWeight: '800', fontSize: 11.5 },
 
   // Card & Inputs
-  card: { backgroundColor: '#111827', borderRadius: 24, borderWidth: 1.5, borderColor: 'rgba(59, 130, 246, 0.25)', padding: 18, shadowColor: '#3B82F6', shadowOpacity: 0.15, shadowRadius: 10, elevation: 6 },
-  tabContainer: { flexDirection: 'row', backgroundColor: '#1E293B', borderRadius: 14, padding: 4, marginBottom: 14 },
-  tabBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 10 },
+  card: { backgroundColor: '#111827', borderRadius: 20, borderWidth: 1.5, borderColor: 'rgba(59, 130, 246, 0.25)', padding: 14, shadowColor: '#3B82F6', shadowOpacity: 0.15, shadowRadius: 10, elevation: 6 },
+  tabContainer: { flexDirection: 'row', backgroundColor: '#1E293B', borderRadius: 12, padding: 3, marginBottom: 10 },
+  tabBtn: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 9 },
   activeTabBtn: { backgroundColor: '#2563EB' },
-  tabText: { color: '#94A3B8', fontSize: 13, fontWeight: '700' },
+  tabText: { color: '#94A3B8', fontSize: 12.5, fontWeight: '700' },
   activeTabText: { color: '#FFFFFF', fontWeight: '800' },
-  inputGroup: { marginBottom: 12 },
-  label: { fontSize: 12, fontWeight: '700', color: '#CBD5E1', marginBottom: 5 },
-  inputWrapper: { borderRadius: 14, overflow: 'hidden' },
+  inputGroup: { marginBottom: 8 },
+  label: { fontSize: 11.5, fontWeight: '700', color: '#CBD5E1', marginBottom: 3 },
+  inputWrapper: { borderRadius: 12, overflow: 'hidden' },
   input: { 
     backgroundColor: '#1E293B', 
     borderWidth: 1.5,  
     borderColor: '#334155',  
-    borderRadius: 14, 
-    paddingHorizontal: 16, 
-    fontSize: 14, 
+    borderRadius: 12, 
+    paddingHorizontal: 14, 
+    fontSize: 13.5, 
     color: '#FFFFFF', 
-    height: 46 
+    height: 42 
   },
   inputFocused: {
     borderColor: '#3B82F6',
@@ -607,20 +616,20 @@ const styles = StyleSheet.create({
     elevation: 4 
   },
   passwordContainer: { position: 'relative', justifyContent: 'center' },
-  passwordInput: { paddingRight: 50 },
+  passwordInput: { paddingRight: 46 },
   eyeBtn: { position: 'absolute', height: '100%', justifyContent: 'center', alignItems: 'center', zIndex: 10 },
-  forgotPassBtn: { alignSelf: 'flex-end', marginBottom: 14 },
-  forgotPassText: { color: '#60A5FA', fontSize: 12, fontWeight: '600' },
-  submitBtn: { backgroundColor: '#2563EB', height: 46, borderRadius: 14, justifyContent: 'center', alignItems: 'center', shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
-  submitBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800', letterSpacing: 0.5 },
-  switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 12, gap: 4 },
-  switchText: { color: '#94A3B8', fontSize: 13 },
-  switchLink: { color: '#60A5FA', fontSize: 13, fontWeight: '800' },
+  forgotPassBtn: { alignSelf: 'flex-end', marginBottom: 10, marginTop: 2 },
+  forgotPassText: { color: '#60A5FA', fontSize: 11.5, fontWeight: '600' },
+  submitBtn: { backgroundColor: '#2563EB', height: 42, borderRadius: 12, justifyContent: 'center', alignItems: 'center', shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
+  submitBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800', letterSpacing: 0.5 },
+  switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 8, gap: 4 },
+  switchText: { color: '#94A3B8', fontSize: 12 },
+  switchLink: { color: '#60A5FA', fontSize: 12, fontWeight: '800' },
 
   // Divider & Secondary Action
-  dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 14, gap: 10 },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 10, gap: 8 },
   dividerLine: { flex: 1, height: 1, backgroundColor: 'rgba(51, 65, 85, 0.6)' },
-  dividerText: { color: '#64748B', fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
+  dividerText: { color: '#64748B', fontSize: 9.5, fontWeight: '800', letterSpacing: 0.5 },
   secondaryActionBtn: { 
     flexDirection: 'row', 
     alignItems: 'center', 
@@ -628,25 +637,25 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(30, 41, 59, 0.6)', 
     borderWidth: 1, 
     borderColor: '#334155', 
-    height: 44, 
-    borderRadius: 14, 
+    height: 40, 
+    borderRadius: 12, 
   },
-  secondaryActionText: { color: '#94A3B8', fontWeight: '700', fontSize: 13 },
+  secondaryActionText: { color: '#94A3B8', fontWeight: '700', fontSize: 12.5 },
 
   // Footer Section
-  footerSection: { marginTop: 18, alignItems: 'center', gap: 6 },
-  statusBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(16, 185, 129, 0.1)', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(16, 185, 129, 0.3)', gap: 6 },
-  pulseDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#10B981' },
-  statusText: { color: '#34D399', fontSize: 11, fontWeight: '700' },
-  footerBrandText: { color: '#64748B', fontSize: 11, fontWeight: '600', textAlign: 'center' },
+  footerSection: { marginTop: 10, alignItems: 'center', gap: 4 },
+  statusBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(16, 185, 129, 0.1)', paddingVertical: 3, paddingHorizontal: 8, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(16, 185, 129, 0.3)', gap: 5 },
+  pulseDot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: '#10B981' },
+  statusText: { color: '#34D399', fontSize: 10.5, fontWeight: '700' },
+  footerBrandText: { color: '#64748B', fontSize: 10.5, fontWeight: '600', textAlign: 'center' },
 
   // Modal
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.75)', justifyContent: 'center', alignItems: 'center', padding: 20 },
   modalCard: { backgroundColor: '#111827', width: '100%', borderRadius: 20, padding: 22, borderWidth: 1, borderColor: '#3B82F6' },
   modalTitle: { fontSize: 18, fontWeight: '800', color: '#FFFFFF', marginBottom: 6 },
   modalSub: { fontSize: 12, color: '#94A3B8', marginBottom: 16 },
-  modalInput: { backgroundColor: '#1E293B', borderWidth: 1, borderColor: '#334155', borderRadius: 12, paddingHorizontal: 14, height: 46, color: '#FFFFFF', marginBottom: 12 },
-  modalBtn: { backgroundColor: '#2563EB', height: 46, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginTop: 6 },
+  modalInput: { backgroundColor: '#1E293B', borderWidth: 1, borderColor: '#334155', borderRadius: 12, paddingHorizontal: 14, height: 42, color: '#FFFFFF', marginBottom: 12 },
+  modalBtn: { backgroundColor: '#2563EB', height: 42, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginTop: 6 },
   modalBtnText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
   modalCancelBtn: { marginTop: 12, alignItems: 'center' },
   modalCancelText: { color: '#94A3B8', fontSize: 13, fontWeight: '600' },
