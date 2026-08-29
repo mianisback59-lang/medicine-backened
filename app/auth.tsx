@@ -161,7 +161,9 @@ export default function AuthScreen() {
   const [lang, setLang] = useState<'en' | 'ur'>('en');
   const t = translations[lang];
 
-  const [isLogin, setIsLogin] = useState<boolean>(true);
+  // ڈیفالٹ لاجک: نیا صارف سمجھ کر Create Account (false) کھلے گا
+  const [isLogin, setIsLogin] = useState<boolean>(false);
+  
   const [fullName, setFullName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -180,7 +182,6 @@ export default function AuthScreen() {
     checkLoginStatus();
   }, []);
 
-  // New User vs Existing User Logic
   const checkLoginStatus = async () => {
     try {
       const userToken = await AsyncStorage.getItem('userToken');
@@ -191,13 +192,12 @@ export default function AuthScreen() {
 
       const hasAccount = await AsyncStorage.getItem('hasAccount');
       if (hasAccount === 'true') {
-        setIsLogin(true); // اکاؤنٹ پہلے سے بنا ہے -> Sign In
+        setIsLogin(true); // پرانا یوزر ہے تو ہی Sign In میں سوئچ ہوگا
       } else {
-        setIsLogin(false); // نیا صارف -> Create Account
+        setIsLogin(false); // نیا یوزر ہے تو Create Account رہے گا
       }
 
     } catch (error) {
-      console.log('Error checking auth status:', error);
       setIsLogin(false);
     } finally {
       setCheckingAuth(false);
@@ -438,7 +438,7 @@ export default function AuthScreen() {
                     onFocus={() => setFocusedInput('fullName')}
                     onBlur={() => setFocusedInput(null)}
                     autoComplete="off"
-                    importantForAutofill="no"
+                    importantForAutofill="noExcludeDescendants"
                     textContentType="none"
                     underlineColorAndroid="transparent"
                     selectionColor="#3B82F6"
@@ -464,7 +464,7 @@ export default function AuthScreen() {
                   onFocus={() => setFocusedInput('email')}
                   onBlur={() => setFocusedInput(null)}
                   autoComplete="off"
-                  importantForAutofill="no"
+                  importantForAutofill="noExcludeDescendants"
                   textContentType="none"
                   underlineColorAndroid="transparent"
                   selectionColor="#3B82F6"
@@ -490,7 +490,7 @@ export default function AuthScreen() {
                     onFocus={() => setFocusedInput('password')}
                     onBlur={() => setFocusedInput(null)}
                     autoComplete="off"
-                    importantForAutofill="no"
+                    importantForAutofill="noExcludeDescendants"
                     textContentType="none"
                     underlineColorAndroid="transparent"
                     selectionColor="#3B82F6"
