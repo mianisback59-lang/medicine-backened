@@ -39,8 +39,7 @@ const translations = {
     noAccountAction: "Sign Up",
     hasAccountText: "Already have an account?",
     hasAccountAction: "Sign In",
-    orContinue: "OR CONTINUE WITH",
-    googleLogin: "Continue with Google",
+    orContinue: "OR",
     guestLogin: "Explore Without Account",
     footerText: "Official Drug Verification System",
     serverStatus: "AI Engine Active",
@@ -73,8 +72,7 @@ const translations = {
     noAccountAction: "سائن اپ کریں",
     hasAccountText: "پہلے سے اکاؤنٹ موجود ہے؟",
     hasAccountAction: "سائن ان کریں",
-    orContinue: "یا ان کے ساتھ آگے بڑھیں",
-    googleLogin: "گوگل سے سائن ان کریں",
+    orContinue: "یا پھر",
     guestLogin: "اکاؤنٹ کے بغیر آگے بڑھیں",
     footerText: "سرکاری دواؤں کی تصدیق کا نظام",
     serverStatus: "اے آئی انجن فعال ہے",
@@ -310,7 +308,16 @@ export default function AuthScreen() {
           <View style={[styles.headerContainer, lang === 'ur' && { flexDirection: 'row-reverse' }]}>
             <View style={[styles.titleArea, lang === 'ur' && { alignItems: 'flex-end' }]}>
               <Text style={[styles.appTitle, lang === 'ur' && { textAlign: 'right' }]}>{t.title}</Text>
-              <Text style={[styles.appSubtitle, lang === 'ur' && { textAlign: 'right' }]}>{t.subtitle}</Text>
+              <Text 
+                style={[
+                  styles.appSubtitle, 
+                  lang === 'ur' && { textAlign: 'right', fontSize: 11.5 }
+                ]}
+                numberOfLines={1}
+                adjustsFontSizeToFit={true}
+              >
+                {t.subtitle}
+              </Text>
             </View>
 
             <TouchableOpacity
@@ -547,16 +554,16 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0A0F1D' },
   scrollContent: { 
     paddingHorizontal: 20, 
-    paddingBottom: 20,
+    paddingBottom: 16,
   },
   headerContainer: { 
     flexDirection: 'row', 
     justifyContent: 'space-between', 
     alignItems: 'center', 
-    marginBottom: 24, 
+    marginBottom: 20, 
     marginTop: 4 
   },
-  titleArea: { flex: 1 },
+  titleArea: { flex: 1, paddingRight: 8 },
   appTitle: { fontSize: 28, fontWeight: '900', color: '#FFFFFF', letterSpacing: 0.5 },
   appSubtitle: { fontSize: 12, color: '#94A3B8', marginTop: 2 },
   premiumLangBtn: { 
@@ -573,14 +580,14 @@ const styles = StyleSheet.create({
   langBtnText: { color: '#60A5FA', fontWeight: '800', fontSize: 12 },
 
   // Card & Inputs
-  card: { backgroundColor: '#111827', borderRadius: 24, borderWidth: 1.5, borderColor: 'rgba(59, 130, 246, 0.25)', padding: 20, shadowColor: '#3B82F6', shadowOpacity: 0.15, shadowRadius: 10, elevation: 6 },
-  tabContainer: { flexDirection: 'row', backgroundColor: '#1E293B', borderRadius: 14, padding: 4, marginBottom: 18 },
+  card: { backgroundColor: '#111827', borderRadius: 24, borderWidth: 1.5, borderColor: 'rgba(59, 130, 246, 0.25)', padding: 18, shadowColor: '#3B82F6', shadowOpacity: 0.15, shadowRadius: 10, elevation: 6 },
+  tabContainer: { flexDirection: 'row', backgroundColor: '#1E293B', borderRadius: 14, padding: 4, marginBottom: 14 },
   tabBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 10 },
   activeTabBtn: { backgroundColor: '#2563EB' },
   tabText: { color: '#94A3B8', fontSize: 13, fontWeight: '700' },
   activeTabText: { color: '#FFFFFF', fontWeight: '800' },
-  inputGroup: { marginBottom: 14 },
-  label: { fontSize: 12, fontWeight: '700', color: '#CBD5E1', marginBottom: 6 },
+  inputGroup: { marginBottom: 12 },
+  label: { fontSize: 12, fontWeight: '700', color: '#CBD5E1', marginBottom: 5 },
   inputWrapper: { borderRadius: 14, overflow: 'hidden' },
   input: { 
     backgroundColor: '#1E293B', 
@@ -590,7 +597,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, 
     fontSize: 14, 
     color: '#FFFFFF', 
-    height: 48 
+    height: 46 
   },
   inputFocused: {
     borderColor: '#3B82F6',
@@ -602,16 +609,16 @@ const styles = StyleSheet.create({
   passwordContainer: { position: 'relative', justifyContent: 'center' },
   passwordInput: { paddingRight: 50 },
   eyeBtn: { position: 'absolute', height: '100%', justifyContent: 'center', alignItems: 'center', zIndex: 10 },
-  forgotPassBtn: { alignSelf: 'flex-end', marginBottom: 16 },
+  forgotPassBtn: { alignSelf: 'flex-end', marginBottom: 14 },
   forgotPassText: { color: '#60A5FA', fontSize: 12, fontWeight: '600' },
-  submitBtn: { backgroundColor: '#2563EB', height: 48, borderRadius: 14, justifyContent: 'center', alignItems: 'center', shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
+  submitBtn: { backgroundColor: '#2563EB', height: 46, borderRadius: 14, justifyContent: 'center', alignItems: 'center', shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
   submitBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800', letterSpacing: 0.5 },
-  switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 14, gap: 4 },
+  switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 12, gap: 4 },
   switchText: { color: '#94A3B8', fontSize: 13 },
   switchLink: { color: '#60A5FA', fontSize: 13, fontWeight: '800' },
 
   // Divider & Secondary Action
-  dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 16, gap: 10 },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 14, gap: 10 },
   dividerLine: { flex: 1, height: 1, backgroundColor: 'rgba(51, 65, 85, 0.6)' },
   dividerText: { color: '#64748B', fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
   secondaryActionBtn: { 
@@ -621,13 +628,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(30, 41, 59, 0.6)', 
     borderWidth: 1, 
     borderColor: '#334155', 
-    height: 46, 
+    height: 44, 
     borderRadius: 14, 
   },
   secondaryActionText: { color: '#94A3B8', fontWeight: '700', fontSize: 13 },
 
   // Footer Section
-  footerSection: { marginTop: 24, alignItems: 'center', gap: 6 },
+  footerSection: { marginTop: 18, alignItems: 'center', gap: 6 },
   statusBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(16, 185, 129, 0.1)', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(16, 185, 129, 0.3)', gap: 6 },
   pulseDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#10B981' },
   statusText: { color: '#34D399', fontSize: 11, fontWeight: '700' },
