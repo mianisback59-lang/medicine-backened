@@ -161,7 +161,7 @@ export default function AuthScreen() {
   const [lang, setLang] = useState<'en' | 'ur'>('en');
   const t = translations[lang];
 
-  // ڈیفالٹ لاجک: نیا صارف سمجھ کر Create Account (false) کھلے گا
+  // نئے یوزر کے لیے لازمی ڈیفالٹ Create Account (isLogin = false)
   const [isLogin, setIsLogin] = useState<boolean>(false);
   
   const [fullName, setFullName] = useState<string>('');
@@ -190,11 +190,12 @@ export default function AuthScreen() {
         return;
       }
 
+      // صرف اور صرف تب Sign In دکھائیں جب صارف پہلے لاگ ان ہو چکا ہو
       const hasAccount = await AsyncStorage.getItem('hasAccount');
       if (hasAccount === 'true') {
-        setIsLogin(true); // پرانا یوزر ہے تو ہی Sign In میں سوئچ ہوگا
+        setIsLogin(true);
       } else {
-        setIsLogin(false); // نیا یوزر ہے تو Create Account رہے گا
+        setIsLogin(false); // نئے صارف کے لیے فورسڈ Create Account
       }
 
     } catch (error) {
@@ -437,8 +438,9 @@ export default function AuthScreen() {
                     onChangeText={setFullName}
                     onFocus={() => setFocusedInput('fullName')}
                     onBlur={() => setFocusedInput(null)}
+                    autoCapitalize="words"
                     autoComplete="off"
-                    importantForAutofill="noExcludeDescendants"
+                    importantForAutofill="no"
                     textContentType="none"
                     underlineColorAndroid="transparent"
                     selectionColor="#3B82F6"
@@ -464,7 +466,7 @@ export default function AuthScreen() {
                   onFocus={() => setFocusedInput('email')}
                   onBlur={() => setFocusedInput(null)}
                   autoComplete="off"
-                  importantForAutofill="noExcludeDescendants"
+                  importantForAutofill="no"
                   textContentType="none"
                   underlineColorAndroid="transparent"
                   selectionColor="#3B82F6"
@@ -489,8 +491,9 @@ export default function AuthScreen() {
                     onChangeText={setPassword}
                     onFocus={() => setFocusedInput('password')}
                     onBlur={() => setFocusedInput(null)}
+                    autoCapitalize="none"
                     autoComplete="off"
-                    importantForAutofill="noExcludeDescendants"
+                    importantForAutofill="no"
                     textContentType="none"
                     underlineColorAndroid="transparent"
                     selectionColor="#3B82F6"
@@ -592,6 +595,8 @@ export default function AuthScreen() {
                 maxLength={6}
                 value={resetCode}
                 onChangeText={setResetCode}
+                autoComplete="off"
+                importantForAutofill="no"
                 underlineColorAndroid="transparent"
                 selectionColor="#3B82F6"
               />
@@ -603,6 +608,8 @@ export default function AuthScreen() {
                 secureTextEntry={true}
                 value={newPassword}
                 onChangeText={setNewPassword}
+                autoComplete="off"
+                importantForAutofill="no"
                 underlineColorAndroid="transparent"
                 selectionColor="#3B82F6"
               />
@@ -697,7 +704,7 @@ const styles = StyleSheet.create({
     elevation: 4 
   },
   input: { 
-    backgroundColor: 'transparent', 
+    backgroundColor: '#1E293B', // واضح بیک گراؤنڈ سیٹ کیا ہے تاکہ پیلا رنگ اس کے نیچے چھپ جائے
     paddingHorizontal: 16, 
     fontSize: 14, 
     color: '#FFFFFF', 
