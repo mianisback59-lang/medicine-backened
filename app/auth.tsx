@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
+  Easing,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
@@ -18,6 +20,10 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
+
+// TypeScript Component Type Fix
+const AnimatedPath = Animated.createAnimatedComponent(Path as React.ComponentType<any>);
 
 const translations = {
   en: {
@@ -86,6 +92,90 @@ const translations = {
     updatePassBtn: "پاس ورڈ ری سیٹ کریں",
     cancelBtn: "منسوخ کریں",
   }
+};
+
+// Wavy Snake Background Animation Component
+const BackgroundWaves = () => {
+  const animVal = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(animVal, {
+        toValue: 1,
+        duration: 8000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, [animVal]);
+
+  const translateY1 = animVal.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [0, -35, 0],
+  });
+
+  const translateY2 = animVal.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [0, 45, 0],
+  });
+
+  const translateX = animVal.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [-15, 15, -15],
+  });
+
+  return (
+    <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
+      <Svg height="100%" width="100%" style={StyleSheet.absoluteFillObject}>
+        <Defs>
+          <LinearGradient id="waveGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <Stop offset="0%" stopColor="#3B82F6" stopOpacity="0.35" />
+            <Stop offset="50%" stopColor="#60A5FA" stopOpacity="0.15" />
+            <Stop offset="100%" stopColor="#1D4ED8" stopOpacity="0.0" />
+          </LinearGradient>
+
+          <LinearGradient id="waveGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
+            <Stop offset="0%" stopColor="#06B6D4" stopOpacity="0.3" />
+            <Stop offset="50%" stopColor="#3B82F6" stopOpacity="0.1" />
+            <Stop offset="100%" stopColor="#0A0F1D" stopOpacity="0.0" />
+          </LinearGradient>
+        </Defs>
+
+        {/* Outer Snake Wave Line 1 */}
+        <AnimatedPath
+          d="M-50,120 Q80,30 220,180 T460,90 T700,280"
+          fill="none"
+          stroke="url(#waveGrad1)"
+          strokeWidth="5"
+          style={{
+            transform: [{ translateY: translateY1 }, { translateX }],
+          }}
+        />
+
+        {/* Outer Snake Wave Line 2 */}
+        <AnimatedPath
+          d="M-50,320 Q110,460 260,310 T510,490 T750,330"
+          fill="none"
+          stroke="url(#waveGrad2)"
+          strokeWidth="4"
+          style={{
+            transform: [{ translateY: translateY2 }, { translateX }],
+          }}
+        />
+
+        {/* Bottom Ambient Wave Line 3 */}
+        <AnimatedPath
+          d="M-80,620 Q140,500 290,660 T630,570"
+          fill="none"
+          stroke="url(#waveGrad1)"
+          strokeWidth="5"
+          style={{
+            transform: [{ translateY: translateY1 }],
+          }}
+        />
+      </Svg>
+    </View>
+  );
 };
 
 export default function AuthScreen() {
@@ -295,6 +385,10 @@ export default function AuthScreen() {
   return (
     <View style={[styles.container, { paddingTop: topPadding, paddingBottom: Math.max(insets.bottom, 12) }]}>
       <StatusBar barStyle="light-content" backgroundColor="#0A0F1D" translucent={true} />
+      
+      {/* Background Snake Waves Animation */}
+      <BackgroundWaves />
+
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
