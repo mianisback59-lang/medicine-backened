@@ -20,10 +20,6 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
-
-// TypeScript Component Type Fix
-const AnimatedPath = Animated.createAnimatedComponent(Path as React.ComponentType<any>);
 
 const translations = {
   en: {
@@ -60,7 +56,7 @@ const translations = {
     cancelBtn: "Cancel",
   },
   ur: {
-    title: "میڈ ویریفائی AI", // Single line fix
+    title: "میڈ ویریفائی AI",
     subtitle: "فوری اصلیت اور حفاظت کا سکینر",
     langToggle: "English",
     loginTab: "سائن ان",
@@ -94,86 +90,71 @@ const translations = {
   }
 };
 
-// Wavy Snake Background Animation Component
-const BackgroundWaves = () => {
-  const animVal = useRef(new Animated.Value(0)).current;
+// Premium AI Medical Glow Background 
+const BackgroundGlow = () => {
+  const pulseAnim = useRef(new Animated.Value(0.35)).current;
 
   useEffect(() => {
     Animated.loop(
-      Animated.timing(animVal, {
-        toValue: 1,
-        duration: 8000,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 0.7,
+          duration: 3500,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0.35,
+          duration: 3500,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ])
     ).start();
-  }, [animVal]);
-
-  const translateY1 = animVal.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [0, -35, 0],
-  });
-
-  const translateY2 = animVal.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [0, 45, 0],
-  });
-
-  const translateX = animVal.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [-15, 15, -15],
-  });
+  }, [pulseAnim]);
 
   return (
     <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
-      <Svg height="100%" width="100%" style={StyleSheet.absoluteFillObject}>
-        <Defs>
-          <LinearGradient id="waveGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-            <Stop offset="0%" stopColor="#3B82F6" stopOpacity="0.35" />
-            <Stop offset="50%" stopColor="#60A5FA" stopOpacity="0.15" />
-            <Stop offset="100%" stopColor="#1D4ED8" stopOpacity="0.0" />
-          </LinearGradient>
+      {/* Top Left Neon Blue Glow */}
+      <Animated.View
+        style={[
+          styles.glowOrb,
+          {
+            top: -50,
+            left: -50,
+            backgroundColor: '#2563EB',
+            opacity: pulseAnim,
+          },
+        ]}
+      />
 
-          <LinearGradient id="waveGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
-            <Stop offset="0%" stopColor="#06B6D4" stopOpacity="0.3" />
-            <Stop offset="50%" stopColor="#3B82F6" stopOpacity="0.1" />
-            <Stop offset="100%" stopColor="#0A0F1D" stopOpacity="0.0" />
-          </LinearGradient>
-        </Defs>
+      {/* Bottom Right Cyan Glow */}
+      <Animated.View
+        style={[
+          styles.glowOrb,
+          {
+            bottom: -70,
+            right: -50,
+            backgroundColor: '#06B6D4',
+            opacity: pulseAnim,
+          },
+        ]}
+      />
 
-        {/* Outer Snake Wave Line 1 */}
-        <AnimatedPath
-          d="M-50,120 Q80,30 220,180 T460,90 T700,280"
-          fill="none"
-          stroke="url(#waveGrad1)"
-          strokeWidth="5"
-          style={{
-            transform: [{ translateY: translateY1 }, { translateX }],
-          }}
-        />
-
-        {/* Outer Snake Wave Line 2 */}
-        <AnimatedPath
-          d="M-50,320 Q110,460 260,310 T510,490 T750,330"
-          fill="none"
-          stroke="url(#waveGrad2)"
-          strokeWidth="4"
-          style={{
-            transform: [{ translateY: translateY2 }, { translateX }],
-          }}
-        />
-
-        {/* Bottom Ambient Wave Line 3 */}
-        <AnimatedPath
-          d="M-80,620 Q140,500 290,660 T630,570"
-          fill="none"
-          stroke="url(#waveGrad1)"
-          strokeWidth="5"
-          style={{
-            transform: [{ translateY: translateY1 }],
-          }}
-        />
-      </Svg>
+      {/* Center Soft Ambient Glow */}
+      <View
+        style={[
+          styles.glowOrb,
+          {
+            top: '38%',
+            alignSelf: 'center',
+            backgroundColor: '#3B82F6',
+            opacity: 0.1,
+            width: 280,
+            height: 280,
+          },
+        ]}
+      />
     </View>
   );
 };
@@ -386,8 +367,8 @@ export default function AuthScreen() {
     <View style={[styles.container, { paddingTop: topPadding, paddingBottom: Math.max(insets.bottom, 12) }]}>
       <StatusBar barStyle="light-content" backgroundColor="#0A0F1D" translucent={true} />
       
-      {/* Background Snake Waves Animation */}
-      <BackgroundWaves />
+      {/* Modern Soft Glow Background */}
+      <BackgroundGlow />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -649,6 +630,17 @@ const styles = StyleSheet.create({
   scrollContent: { 
     paddingHorizontal: 20, 
     paddingBottom: 16,
+  },
+  glowOrb: {
+    position: 'absolute',
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    transform: [{ scale: 1.2 }],
+    shadowColor: '#3B82F6',
+    shadowOpacity: 0.8,
+    shadowRadius: 90,
+    elevation: 20,
   },
   headerContainer: { 
     flexDirection: 'row', 
