@@ -720,7 +720,7 @@ const styles = StyleSheet.create({
   },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(10, 15, 29, 0.85)', justifyContent: 'center', padding: 20 },
-  modalContainer: { backgroundColor: '#111827', borderRadius: 24, padding: 22, borderWidth: 1, borderColor: '#334155', elevation: 10 },
+  modalContainer: { backgroundColor: 'rgb(17, 24, 39)', borderRadius: 24, padding: 22, borderWidth: 1, borderColor: '#334155', elevation: 10 },
   modalTitle: { fontSize: 18, fontWeight: '900', color: '#FFFFFF' },
   modalSub: { fontSize: 13, color: '#94A3B8', marginTop: 4, marginBottom: 18 },
   inputLabel: { fontSize: 12, fontWeight: '700', color: '#CBD5E1', marginBottom: 6 },
@@ -728,6 +728,6 @@ const styles = StyleSheet.create({
   submitReportBtn: { backgroundColor: '#EF4444', paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
   submitReportText: { color: '#FFF', fontWeight: '800', fontSize: 13 },
   cancelBtn: { paddingVertical: 12, alignItems: 'center', marginTop: 6 },
-  cancelText: { color: '#94A3B8', fontSize: '13' as any, fontWeight: '700' },
+  cancelText: { color: '#94A3B8', fontSize: 13, fontWeight: '700' },
   refCode: { fontSize: 12, fontWeight: '800', color: '#34D399', backgroundColor: 'rgba(52, 211, 153, 0.1)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, marginTop: 12, overflow: 'hidden' },
 });
