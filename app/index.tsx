@@ -382,10 +382,6 @@ export default function Index() {
           {/* Header */}
           <View style={styles.headerContainer}>
             <View style={styles.titleArea}>
-              <View style={styles.badgeRow}>
-                <View style={styles.aiDot} />
-                <Text style={styles.aiBadgeText}>AI SECURE SYSTEM</Text>
-              </View>
               <Text style={styles.appTitle}>{t.appTitle}</Text>
               <Text style={styles.appSubtitle}>{t.appSubtitle}</Text>
             </View>
@@ -600,9 +596,6 @@ const styles = StyleSheet.create({
   
   headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   titleArea: { flex: 1 },
-  badgeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 6 },
-  aiDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#3B82F6' },
-  aiBadgeText: { fontSize: 10, fontWeight: '800', color: '#3B82F6', letterSpacing: 1 },
   appTitle: { fontSize: 26, fontWeight: '900', color: '#FFFFFF', letterSpacing: 0.5 },
   appSubtitle: { fontSize: 12, color: '#94A3B8', marginTop: 2 },
   
@@ -674,6 +667,7 @@ const styles = StyleSheet.create({
   detailLabel: { fontSize: 13, color: '#94A3B8', fontWeight: '500' },
   detailValue: { fontSize: 13, fontWeight: '700', color: '#F8FAFC' },
   reportBtn: { backgroundColor: '#EF4444', paddingVertical: 14, borderRadius: 14, alignItems: 'center', marginBottom: 10, shadowColor: '#EF4444', shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 },
+  reportBtnTitle: { color: '#FFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
   reportBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
   resetBtn: { backgroundColor: '#334155', paddingVertical: 14, borderRadius: 14, alignItems: 'center' },
   resetBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
