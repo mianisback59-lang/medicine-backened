@@ -64,7 +64,6 @@ const translations = {
     cancel: "Cancel",
     reportSuccess: "Report Submitted!",
     done: "Done",
-    logout: "Logout",
     navScan: "Scan",
     navProfile: "Profile",
   },
@@ -90,7 +89,6 @@ const translations = {
     cancel: "منسوخ کریں",
     reportSuccess: "رپورٹ جمع ہو گئی!",
     done: "مکمل",
-    logout: "لاگ آؤٹ",
     navScan: "سکین",
     navProfile: "پروفائل",
   }
@@ -98,7 +96,7 @@ const translations = {
 
 export default function Index() {
   const router = useRouter();
-  const insets = useSafeAreaInsets(); // Dynamic Status Bar Height
+  const insets = useSafeAreaInsets();
 
   const [lang, setLang] = useState<'en' | 'ur'>('en');
   const t = translations[lang];
@@ -112,14 +110,12 @@ export default function Index() {
   const [torch, setTorch] = useState<boolean>(false);
   const [manualCode, setManualCode] = useState<string>('');
 
-  // Report Modal States
   const [isReportModalVisible, setIsReportModalVisible] = useState<boolean>(false);
   const [reportReason, setReportReason] = useState<string>('');
   const [storeInfo, setStoreInfo] = useState<string>('');
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [isSubmittingReport, setIsSubmittingReport] = useState<boolean>(false);
 
-  // Check Auth on Mount
   useEffect(() => {
     checkUserLogin();
   }, []);
@@ -141,43 +137,31 @@ export default function Index() {
     }
   };
 
-  // Clear & Effective Multilingual Voice Alert Logic
   const playVoiceAlert = (status: string) => {
     try {
       Speech.stop();
-
       let speechText = '';
       let speechLang = lang === 'ur' ? 'ur-PK' : 'en-US';
 
       if (status === 'FAKE' || status === 'SUSPICIOUS') {
-        speechText = lang === 'ur' 
-          ? 'خطرہ! یہ دوائی جعلی یا غیر مصدقہ ہے۔' 
-          : 'Warning! Fake or unverified medicine detected.';
+        speechText = lang === 'ur' ? 'خطرہ! یہ دوائی جعلی یا غیر مصدقہ ہے۔' : 'Warning! Fake or unverified medicine detected.';
       } else if (status === 'EXPIRED') {
-        speechText = lang === 'ur' 
-          ? 'خبردار! اس دوائی کی معیاد ختم ہو چکی ہے۔' 
-          : 'Warning! Expired medicine detected.';
+        speechText = lang === 'ur' ? 'خبردار! اس دوائی کی معیاد ختم ہو چکی ہے۔' : 'Warning! Expired medicine detected.';
       }
 
       if (speechText) {
-        Speech.speak(speechText, {
-          language: speechLang,
-          pitch: 1.1,
-          rate: 0.85,
-        });
+        Speech.speak(speechText, { language: speechLang, pitch: 1.1, rate: 0.85 });
       }
     } catch (error) {
       console.log('Error playing voice alert:', error);
     }
   };
 
-  // Animated Smooth Auto-Scroll
   useEffect(() => {
     if (result) {
       const timer = setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 300);
-
       return () => clearTimeout(timer);
     }
   }, [result]);
@@ -190,20 +174,10 @@ export default function Index() {
     );
   }
 
-  if (!permission) {
+  if (!permission || !permission.granted) {
     return (
       <View style={styles.containerCenter}>
-        <Text style={styles.permissionText}>Loading camera status...</Text>
-      </View>
-    );
-  }
-
-  if (!permission.granted) {
-    return (
-      <View style={styles.containerCenter}>
-        <Text style={styles.permissionText}>
-          Camera permission is required to verify medicine authenticity.
-        </Text>
+        <Text style={styles.permissionText}>Camera permission is required to verify medicine authenticity.</Text>
         <Button onPress={requestPermission} title="Grant Permission" color="#2563EB" />
       </View>
     );
@@ -218,15 +192,11 @@ export default function Index() {
       cleaned = parts[parts.length - 1] || cleaned;
     }
 
-    if (cleaned.length <= 15) {
-      return cleaned;
-    }
+    if (cleaned.length <= 15) return cleaned;
 
     if (cleaned.includes('10')) {
       const match = cleaned.match(/10([A-Za-z0-9\-]{3,15}?)(11|17|21|240|[A-Za-z\s\/]|$)/);
-      if (match && match[1]) {
-        return match[1];
-      }
+      if (match && match[1]) return match[1];
     }
 
     return cleaned;
@@ -254,17 +224,13 @@ export default function Index() {
         `https://medicine-backened.vercel.app/api/verify/${encodeURIComponent(searchTarget)}`,
         {
           method: 'GET',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          },
+          headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
           signal: controller.signal,
         }
       );
 
       clearTimeout(timeoutId);
       const apiResponse = await response.json();
-
       const isOk = response.ok && apiResponse.success === true;
 
       if (!isOk || !apiResponse.data || apiResponse.status === 'FAKE') {
@@ -278,8 +244,7 @@ export default function Index() {
         playVoiceAlert('FAKE');
       } else {
         const rawStatus = apiResponse.status || 'AUTHENTIC';
-        const statusColor =
-          rawStatus === 'AUTHENTIC' ? '#10B981' : rawStatus === 'EXPIRED' ? '#F59E0B' : '#EF4444';
+        const statusColor = rawStatus === 'AUTHENTIC' ? '#10B981' : rawStatus === 'EXPIRED' ? '#F59E0B' : '#EF4444';
 
         setResult({
           status: rawStatus as any,
@@ -357,7 +322,6 @@ export default function Index() {
     setStoreInfo('');
   };
 
-  // Status Bar padding fix
   const topPadding = Platform.OS === 'android'
     ? Math.max(insets.top, StatusBar.currentHeight || 24) + 8
     : insets.top + 8;
@@ -507,24 +471,26 @@ export default function Index() {
 
         </ScrollView>
 
-        {/* BOTTOM NAVIGATION FOOTER */}
-        <View style={styles.footerNav}>
-          <TouchableOpacity 
-            style={[styles.navItem, styles.activeNavItem]} 
-            activeOpacity={0.9}
-          >
-            <Text style={styles.navIcon}>🏠</Text>
-            <Text style={[styles.navText, styles.activeNavText]}>{t.navScan}</Text>
-          </TouchableOpacity>
+        {/* 🌟 NEW PROFESSIONAL FLOATING GLASS FOOTER */}
+        <View style={styles.floatingFooterContainer}>
+          <View style={styles.floatingNavBar}>
+            <TouchableOpacity 
+              style={[styles.navItem, styles.activeNavItem]} 
+              activeOpacity={0.85}
+            >
+              <Text style={styles.navIcon}>🛡️</Text>
+              <Text style={[styles.navText, styles.activeNavText]}>{t.navScan}</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={styles.navItem} 
-            activeOpacity={0.9}
-            onPress={() => router.push('/profile')}
-          >
-            <Text style={styles.navIcon}>👤</Text>
-            <Text style={styles.navText}>{t.navProfile}</Text>
-          </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.navItem} 
+              activeOpacity={0.85}
+              onPress={() => router.push('/profile')}
+            >
+              <Text style={styles.navIcon}>👤</Text>
+              <Text style={styles.navText}>{t.navProfile}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* REPORT MODAL */}
@@ -598,7 +564,7 @@ const styles = StyleSheet.create({
   scrollContent: { 
     paddingHorizontal: 20, 
     paddingTop: 4, 
-    paddingBottom: 30 
+    paddingBottom: 110 // Extra bottom space so cards don't hide behind floating footer
   },
   containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#0A0F1D' },
   permissionText: { fontSize: 16, textAlign: 'center', color: '#94A3B8', marginBottom: 20 },
@@ -669,38 +635,53 @@ const styles = StyleSheet.create({
   resetBtn: { backgroundColor: '#334155', paddingVertical: 14, borderRadius: 14, alignItems: 'center' },
   resetBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
 
-  // Footer Navigation Styles
-  footerNav: {
-    flexDirection: 'row',
-    backgroundColor: '#111827',
-    borderTopWidth: 1,
-    borderTopColor: '#1E293B',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    justifyContent: 'space-around',
+  // 🌟 PROFESSIONAL FLOATING GLASS FOOTER STYLES
+  floatingFooterContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
     alignItems: 'center',
+  },
+  floatingNavBar: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(17, 24, 39, 0.95)',
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.35)',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    width: '100%',
+    justifyContent: 'space-around',
+    shadowColor: '#3B82F6',
+    shadowOpacity: 0.35,
+    shadowRadius: 15,
+    elevation: 10,
   },
   navItem: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 30,
-    borderRadius: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 28,
+    borderRadius: 20,
+    gap: 8,
   },
   activeNavItem: {
-    backgroundColor: 'rgba(37, 99, 235, 0.15)',
+    backgroundColor: 'rgba(37, 99, 235, 0.25)',
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.5)',
   },
   navIcon: {
-    fontSize: 20,
-    marginBottom: 2,
+    fontSize: 18,
   },
   navText: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#94A3B8',
     fontWeight: '700',
   },
   activeNavText: {
-    color: '#3B82F6',
+    color: '#60A5FA',
   },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(10, 15, 29, 0.85)', justifyContent: 'center', padding: 20 },
