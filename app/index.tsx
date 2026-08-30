@@ -112,6 +112,9 @@ export default function Index() {
   const [torch, setTorch] = useState<boolean>(false);
   const [manualCode, setManualCode] = useState<string>('');
 
+  // State to track keyboard visibility for hiding footer
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
+
   const [isReportModalVisible, setIsReportModalVisible] = useState<boolean>(false);
   const [reportReason, setReportReason] = useState<string>('');
   const [storeInfo, setStoreInfo] = useState<string>('');
@@ -120,6 +123,21 @@ export default function Index() {
 
   useEffect(() => {
     checkUserLogin();
+
+    // Keyboard listeners to hide footer when typing
+    const keyboardDidShowListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => setIsKeyboardVisible(true)
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setIsKeyboardVisible(false)
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
   }, []);
 
   const checkUserLogin = async () => {
@@ -473,41 +491,43 @@ export default function Index() {
 
         </ScrollView>
 
-        {/* 🌟 3-ICON PROFESSIONAL FLOATING GLASS FOOTER */}
-        <View style={[styles.floatingFooterContainer, { bottom: Math.max(insets.bottom + 10, 24) }]}>
-          <View style={styles.floatingNavBar}>
-            
-            {/* Scan Tab */}
-            <TouchableOpacity 
-              style={[styles.navItem, styles.activeNavItem]} 
-              activeOpacity={0.85}
-            >
-              <Text style={styles.navIcon}>🛡️</Text>
-              <Text style={[styles.navText, styles.activeNavText]}>{t.navScan}</Text>
-            </TouchableOpacity>
+        {/* 🌟 3-ICON PROFESSIONAL FLOATING GLASS FOOTER (Hidden automatically when keyboard opens) */}
+        {!isKeyboardVisible && (
+          <View style={[styles.floatingFooterContainer, { bottom: Math.max(insets.bottom + 10, 24) }]}>
+            <View style={styles.floatingNavBar}>
+              
+              {/* Scan Tab */}
+              <TouchableOpacity 
+                style={[styles.navItem, styles.activeNavItem]} 
+                activeOpacity={0.85}
+              >
+                <Text style={styles.navIcon}>🛡️</Text>
+                <Text style={[styles.navText, styles.activeNavText]}>{t.navScan}</Text>
+              </TouchableOpacity>
 
-            {/* History Tab */}
-            <TouchableOpacity 
-              style={styles.navItem} 
-              activeOpacity={0.85}
-              onPress={() => router.push('/history')}
-            >
-              <Text style={styles.navIcon}>🕒</Text>
-              <Text style={styles.navText}>{t.navHistory}</Text>
-            </TouchableOpacity>
+              {/* History Tab */}
+              <TouchableOpacity 
+                style={styles.navItem} 
+                activeOpacity={0.85}
+                onPress={() => router.push('/history')}
+              >
+                <Text style={styles.navIcon}>🕒</Text>
+                <Text style={styles.navText}>{t.navHistory}</Text>
+              </TouchableOpacity>
 
-            {/* Profile Tab */}
-            <TouchableOpacity 
-              style={styles.navItem} 
-              activeOpacity={0.85}
-              onPress={() => router.push('/profile')}
-            >
-              <Text style={styles.navIcon}>👤</Text>
-              <Text style={styles.navText}>{t.navProfile}</Text>
-            </TouchableOpacity>
+              {/* Profile Tab */}
+              <TouchableOpacity 
+                style={styles.navItem} 
+                activeOpacity={0.85}
+                onPress={() => router.push('/profile')}
+              >
+                <Text style={styles.navIcon}>👤</Text>
+                <Text style={styles.navText}>{t.navProfile}</Text>
+              </TouchableOpacity>
 
+            </View>
           </View>
-        </View>
+        )}
 
         {/* REPORT MODAL */}
         <Modal visible={isReportModalVisible} animationType="slide" transparent={true}>
