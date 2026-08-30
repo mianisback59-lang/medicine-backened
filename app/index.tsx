@@ -488,10 +488,10 @@ export default function Index() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* 🌟 FIXED FOOTER (Always locked at bottom cleanly) */}
+      {/* 🌟 FIXED FOOTER STUCK AT SCREEN BOTTOM WITH BACKGROUND OVERLAY */}
       {!isKeyboardVisible && (
-        <View style={[styles.floatingFooterContainer, { bottom: Math.max(insets.bottom, 12) }]}>
-          <View style={styles.floatingNavBar}>
+        <View style={styles.footerWrapper} pointerEvents="box-none">
+          <View style={[styles.floatingNavBar, { marginBottom: Math.max(insets.bottom, 12) }]}>
             
             {/* Scan Tab */}
             <TouchableOpacity 
@@ -596,7 +596,7 @@ const styles = StyleSheet.create({
   scrollContent: { 
     paddingHorizontal: 20, 
     paddingTop: 16, 
-    paddingBottom: 110 // Extra bottom padding so content doesn't hide behind footer
+    paddingBottom: 150 // 🌟 Increased bottom padding so content fully scrolls above the footer without hiding
   },
   containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#0A0F1D' },
   permissionText: { fontSize: 16, textAlign: 'center', color: '#94A3B8', marginBottom: 20 },
@@ -667,17 +667,20 @@ const styles = StyleSheet.create({
   resetBtn: { backgroundColor: '#334155', paddingVertical: 14, borderRadius: 14, alignItems: 'center' },
   resetBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
 
-  // 🌟 FIXED FOOTER STYLES
-  floatingFooterContainer: {
+  // 🌟 FIXED FOOTER STYLES (Locked permanently at the bottom layout layer)
+  footerWrapper: {
     position: 'absolute',
-    left: 20,
-    right: 20,
+    bottom: 0,
+    left: 0,
+    right: 0,
     alignItems: 'center',
-    zIndex: 99,
+    paddingHorizontal: 20,
+    backgroundColor: 'transparent',
+    zIndex: 999,
   },
   floatingNavBar: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(17, 24, 39, 0.95)',
+    backgroundColor: 'rgba(17, 24, 39, 0.98)',
     borderRadius: 30,
     borderWidth: 1,
     borderColor: 'rgba(59, 130, 246, 0.35)',
@@ -685,8 +688,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     width: '100%',
     justifyContent: 'space-between',
-    shadowColor: '#3B82F6',
-    shadowOpacity: 0.35,
+    shadowColor: '#000',
+    shadowOpacity: 0.5,
     shadowRadius: 15,
     elevation: 10,
   },
