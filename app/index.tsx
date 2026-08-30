@@ -124,19 +124,16 @@ export default function Index() {
   useEffect(() => {
     checkUserLogin();
 
-    // Keyboard listeners to hide footer when typing
-    const keyboardDidShowListener = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      () => setIsKeyboardVisible(true)
-    );
-    const keyboardDidHideListener = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => setIsKeyboardVisible(false)
-    );
+    // Improved cross-platform keyboard listeners using 'Will' events for smoother hiding/showing
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const keyboardShowListener = Keyboard.addListener(showEvent, () => setIsKeyboardVisible(true));
+    const keyboardHideListener = Keyboard.addListener(hideEvent, () => setIsKeyboardVisible(false));
 
     return () => {
-      keyboardDidShowListener.remove();
-      keyboardDidHideListener.remove();
+      keyboardShowListener.remove();
+      keyboardHideListener.remove();
     };
   }, []);
 
@@ -600,7 +597,7 @@ const styles = StyleSheet.create({
   scrollContent: { 
     paddingHorizontal: 20, 
     paddingTop: 16, 
-    paddingBottom: 135 // Extra bottom space so cards don't hide behind floating footer
+    paddingBottom: 135 
   },
   containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#0A0F1D' },
   permissionText: { fontSize: 16, textAlign: 'center', color: '#94A3B8', marginBottom: 20 },
