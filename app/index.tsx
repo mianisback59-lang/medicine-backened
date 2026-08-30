@@ -440,23 +440,23 @@ export default function Index() {
                 <View style={styles.detailsContainer}>
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>{lang === 'ur' ? 'دوائی کا نام' : 'Medicine Name'}</Text>
-                    <Text style={styles.detailValue}>{result.data.medicine_name || 'N/A'}</Text>
+                    <Text style={styles.detailValue} numberOfLines={1} ellipsizeMode="tail">{result.data.medicine_name || 'N/A'}</Text>
                   </View>
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>{lang === 'ur' ? 'کمپنی / برانڈ' : 'Brand / Manufacturer'}</Text>
-                    <Text style={styles.detailValue}>{result.data.brand_name || 'N/A'}</Text>
+                    <Text style={styles.detailValue} numberOfLines={1} ellipsizeMode="tail">{result.data.brand_name || 'N/A'}</Text>
                   </View>
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>{lang === 'ur' ? 'بیچ کوڈ' : 'Batch Code'}</Text>
-                    <Text style={styles.detailValue}>{result.data.batch_number || activeBatch}</Text>
+                    <Text style={styles.detailValue} numberOfLines={1} ellipsizeMode="tail">{result.data.batch_number || activeBatch}</Text>
                   </View>
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>{lang === 'ur' ? 'تیاری کی تاریخ' : 'Manufacturing Date'}</Text>
-                    <Text style={styles.detailValue}>{result.data.manufacturing_date || 'N/A'}</Text>
+                    <Text style={styles.detailValue} numberOfLines={1} ellipsizeMode="tail">{result.data.manufacturing_date || 'N/A'}</Text>
                   </View>
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>{lang === 'ur' ? 'تاریخِ میعاد' : 'Expiry Date'}</Text>
-                    <Text style={styles.detailValue}>{result.data.expiry_date || 'N/A'}</Text>
+                    <Text style={styles.detailValue} numberOfLines={1} ellipsizeMode="tail">{result.data.expiry_date || 'N/A'}</Text>
                   </View>
                 </View>
               )}
@@ -488,7 +488,7 @@ export default function Index() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* 🌟 FIXED FOOTER OUTSIDE KEYBOARD VIEW (Never moves up unexpectedly) */}
+      {/* 🌟 FIXED FOOTER (Always locked at bottom cleanly) */}
       {!isKeyboardVisible && (
         <View style={[styles.floatingFooterContainer, { bottom: Math.max(insets.bottom, 12) }]}>
           <View style={styles.floatingNavBar}>
@@ -659,9 +659,9 @@ const styles = StyleSheet.create({
   resultTitle: { fontSize: 18, fontWeight: '900', marginBottom: 6 },
   resultMsg: { fontSize: 13, color: '#94A3B8', marginBottom: 16, lineHeight: 18 },
   detailsContainer: { backgroundColor: '#1E293B', padding: 14, borderRadius: 14, gap: 10, marginBottom: 16, borderWidth: 1, borderColor: '#334155' },
-  detailRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: '#334155' },
-  detailLabel: { fontSize: 13, color: '#94A3B8', fontWeight: '500' },
-  detailValue: { fontSize: 13, fontWeight: '700', color: '#F8FAFC' },
+  detailRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: '#334155' },
+  detailLabel: { fontSize: 12, color: '#94A3B8', fontWeight: '500', flex: 1, marginRight: 8 },
+  detailValue: { fontSize: 12, fontWeight: '700', color: '#F8FAFC', flex: 1.2, textAlign: 'right' },
   reportBtn: { backgroundColor: '#EF4444', paddingVertical: 14, borderRadius: 14, alignItems: 'center', marginBottom: 10, shadowColor: '#EF4444', shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 },
   reportBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
   resetBtn: { backgroundColor: '#334155', paddingVertical: 14, borderRadius: 14, alignItems: 'center' },
