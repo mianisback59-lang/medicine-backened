@@ -345,7 +345,6 @@ export default function Index() {
     <View style={[styles.safeContainer, { paddingTop: topPadding }]}>
       <StatusBar barStyle="light-content" backgroundColor="#0A0F1D" translucent={true} />
       
-      {/* Scrollable content wrapped in KeyboardAvoidingView */}
       <KeyboardAvoidingView 
         style={{ flex: 1 }} 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -488,12 +487,11 @@ export default function Index() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* 🌟 FIXED FOOTER OUTSIDE KEYBOARD VIEW (Never moves up unexpectedly) */}
+      {/* FIXED FOOTER OUTSIDE KEYBOARD VIEW */}
       {!isKeyboardVisible && (
         <View style={[styles.floatingFooterContainer, { bottom: Math.max(insets.bottom, 12) }]}>
           <View style={styles.floatingNavBar}>
             
-            {/* Scan Tab */}
             <TouchableOpacity 
               style={[styles.navItem, styles.activeNavItem]} 
               activeOpacity={0.85}
@@ -502,7 +500,6 @@ export default function Index() {
               <Text style={[styles.navText, styles.activeNavText]}>{t.navScan}</Text>
             </TouchableOpacity>
 
-            {/* History Tab */}
             <TouchableOpacity 
               style={styles.navItem} 
               activeOpacity={0.85}
@@ -512,7 +509,6 @@ export default function Index() {
               <Text style={styles.navText}>{t.navHistory}</Text>
             </TouchableOpacity>
 
-            {/* Profile Tab */}
             <TouchableOpacity 
               style={styles.navItem} 
               activeOpacity={0.85}
@@ -596,7 +592,7 @@ const styles = StyleSheet.create({
   scrollContent: { 
     paddingHorizontal: 20, 
     paddingTop: 16, 
-    paddingBottom: 110 // Extra bottom padding so content doesn't hide behind footer
+    paddingBottom: 110 
   },
   containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#0A0F1D' },
   permissionText: { fontSize: 16, textAlign: 'center', color: '#94A3B8', marginBottom: 20 },
@@ -667,7 +663,6 @@ const styles = StyleSheet.create({
   resetBtn: { backgroundColor: '#334155', paddingVertical: 14, borderRadius: 14, alignItems: 'center' },
   resetBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
 
-  // 🌟 FIXED FOOTER STYLES
   floatingFooterContainer: {
     position: 'absolute',
     left: 20,
@@ -725,6 +720,6 @@ const styles = StyleSheet.create({
   submitReportBtn: { backgroundColor: '#EF4444', paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
   submitReportText: { color: '#FFF', fontWeight: '800', fontSize: 13 },
   cancelBtn: { paddingVertical: 12, alignItems: 'center', marginTop: 6 },
-  cancelText: { color: '#94A3B8', fontSize: '13' as any, fontWeight: '700' },
+  cancelText: { color: '#94A3B8', fontSize: 13, fontWeight: '700' },
   refCode: { fontSize: 12, fontWeight: '800', color: '#34D399', backgroundColor: 'rgba(52, 211, 153, 0.1)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, marginTop: 12, overflow: 'hidden' },
 });
