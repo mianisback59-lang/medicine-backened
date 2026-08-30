@@ -492,7 +492,7 @@ export default function Index() {
               activeOpacity={0.85}
               onPress={() => router.push('/history')}
             >
-              <Text style={styles.navIcon}>📜</Text>
+              <Text style={styles.navIcon}>🕒</Text>
               <Text style={styles.navText}>{t.navHistory}</Text>
             </TouchableOpacity>
 
