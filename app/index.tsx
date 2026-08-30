@@ -65,9 +65,11 @@ const translations = {
     reportSuccess: "Report Submitted!",
     done: "Done",
     logout: "Logout",
+    navScan: "Scan",
+    navProfile: "Profile",
   },
   ur: {
-    appTitle: "میڈ ویریفائی اے آئی",
+    appTitle: "میڈ ویریفائی AI",
     appSubtitle: "فوری اصلیت اور حفاظت کا سکینر",
     langToggle: "English",
     flashOn: "💡 فلیش آن",
@@ -89,6 +91,8 @@ const translations = {
     reportSuccess: "رپورٹ جمع ہو گئی!",
     done: "مکمل",
     logout: "لاگ آؤٹ",
+    navScan: "سکین",
+    navProfile: "پروفائل",
   }
 };
 
@@ -135,11 +139,6 @@ export default function Index() {
     } finally {
       setCheckingAuth(false);
     }
-  };
-
-  const handleLogout = async () => {
-    await AsyncStorage.removeItem('userToken');
-    router.replace('/auth');
   };
 
   // Clear & Effective Multilingual Voice Alert Logic
@@ -386,28 +385,18 @@ export default function Index() {
               <Text style={styles.appSubtitle}>{t.appSubtitle}</Text>
             </View>
 
-            <View style={styles.actionBtnsRow}>
-              <TouchableOpacity 
-                style={styles.premiumLangBtn} 
-                activeOpacity={0.8}
-                onPress={async () => {
-                  const newLang = lang === 'en' ? 'ur' : 'en';
-                  setLang(newLang);
-                  await AsyncStorage.setItem('appLanguage', newLang);
-                }}
-              >
-                <Text style={styles.langIcon}>🌐</Text>
-                <Text style={styles.langBtnText}>{t.langToggle}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.logoutHeaderBtn} 
-                activeOpacity={0.8}
-                onPress={handleLogout}
-              >
-                <Text style={styles.logoutHeaderIcon}>🚪</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity 
+              style={styles.premiumLangBtn} 
+              activeOpacity={0.8}
+              onPress={async () => {
+                const newLang = lang === 'en' ? 'ur' : 'en';
+                setLang(newLang);
+                await AsyncStorage.setItem('appLanguage', newLang);
+              }}
+            >
+              <Text style={styles.langIcon}>🌐</Text>
+              <Text style={styles.langBtnText}>{t.langToggle}</Text>
+            </TouchableOpacity>
           </View>
 
           {/* Camera Card */}
@@ -518,6 +507,26 @@ export default function Index() {
 
         </ScrollView>
 
+        {/* BOTTOM NAVIGATION FOOTER */}
+        <View style={styles.footerNav}>
+          <TouchableOpacity 
+            style={[styles.navItem, styles.activeNavItem]} 
+            activeOpacity={0.9}
+          >
+            <Text style={styles.navIcon}>🏠</Text>
+            <Text style={[styles.navText, styles.activeNavText]}>{t.navScan}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.navItem} 
+            activeOpacity={0.9}
+            onPress={() => router.push('/profile')}
+          >
+            <Text style={styles.navIcon}>👤</Text>
+            <Text style={styles.navText}>{t.navProfile}</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* REPORT MODAL */}
         <Modal visible={isReportModalVisible} animationType="slide" transparent={true}>
           <View style={styles.modalOverlay}>
@@ -599,7 +608,6 @@ const styles = StyleSheet.create({
   appTitle: { fontSize: 26, fontWeight: '900', color: '#FFFFFF', letterSpacing: 0.5 },
   appSubtitle: { fontSize: 12, color: '#94A3B8', marginTop: 2 },
   
-  actionBtnsRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   premiumLangBtn: { 
     flexDirection: 'row', 
     alignItems: 'center', 
@@ -614,16 +622,6 @@ const styles = StyleSheet.create({
   },
   langIcon: { fontSize: 13 },
   langBtnText: { color: '#60A5FA', fontWeight: '800', fontSize: 11 },
-  logoutHeaderBtn: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.4)',
-    padding: 8,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  logoutHeaderIcon: { fontSize: 13 },
 
   cameraWrapper: { 
     borderRadius: 24, 
@@ -667,10 +665,43 @@ const styles = StyleSheet.create({
   detailLabel: { fontSize: 13, color: '#94A3B8', fontWeight: '500' },
   detailValue: { fontSize: 13, fontWeight: '700', color: '#F8FAFC' },
   reportBtn: { backgroundColor: '#EF4444', paddingVertical: 14, borderRadius: 14, alignItems: 'center', marginBottom: 10, shadowColor: '#EF4444', shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 },
-  reportBtnTitle: { color: '#FFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
   reportBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
   resetBtn: { backgroundColor: '#334155', paddingVertical: 14, borderRadius: 14, alignItems: 'center' },
   resetBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
+
+  // Footer Navigation Styles
+  footerNav: {
+    flexDirection: 'row',
+    backgroundColor: '#111827',
+    borderTopWidth: 1,
+    borderTopColor: '#1E293B',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
+  navItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 30,
+    borderRadius: 16,
+  },
+  activeNavItem: {
+    backgroundColor: 'rgba(37, 99, 235, 0.15)',
+  },
+  navIcon: {
+    fontSize: 20,
+    marginBottom: 2,
+  },
+  navText: {
+    fontSize: 12,
+    color: '#94A3B8',
+    fontWeight: '700',
+  },
+  activeNavText: {
+    color: '#3B82F6',
+  },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(10, 15, 29, 0.85)', justifyContent: 'center', padding: 20 },
   modalContainer: { backgroundColor: '#111827', borderRadius: 24, padding: 22, borderWidth: 1, borderColor: '#334155', elevation: 10 },
@@ -681,6 +712,6 @@ const styles = StyleSheet.create({
   submitReportBtn: { backgroundColor: '#EF4444', paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
   submitReportText: { color: '#FFF', fontWeight: '800', fontSize: 13 },
   cancelBtn: { paddingVertical: 12, alignItems: 'center', marginTop: 6 },
-  cancelText: { color: '#94A3B8', fontSize: 13, fontWeight: '700' },
+  cancelText: { color: '#94A3B8', fontSize: '13' as any, fontWeight: '700' },
   refCode: { fontSize: 12, fontWeight: '800', color: '#34D399', backgroundColor: 'rgba(52, 211, 153, 0.1)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, marginTop: 12, overflow: 'hidden' },
 });
