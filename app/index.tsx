@@ -440,23 +440,23 @@ export default function Index() {
                 <View style={styles.detailsContainer}>
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>{lang === 'ur' ? 'دوائی کا نام' : 'Medicine Name'}</Text>
-                    <Text style={styles.detailValue} numberOfLines={1} ellipsizeMode="tail">{result.data.medicine_name || 'N/A'}</Text>
+                    <Text style={styles.detailValue}>{result.data.medicine_name || 'N/A'}</Text>
                   </View>
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>{lang === 'ur' ? 'کمپنی / برانڈ' : 'Brand / Manufacturer'}</Text>
-                    <Text style={styles.detailValue} numberOfLines={1} ellipsizeMode="tail">{result.data.brand_name || 'N/A'}</Text>
+                    <Text style={styles.detailValue}>{result.data.brand_name || 'N/A'}</Text>
                   </View>
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>{lang === 'ur' ? 'بیچ کوڈ' : 'Batch Code'}</Text>
-                    <Text style={styles.detailValue} numberOfLines={1} ellipsizeMode="tail">{result.data.batch_number || activeBatch}</Text>
+                    <Text style={styles.detailValue}>{result.data.batch_number || activeBatch}</Text>
                   </View>
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>{lang === 'ur' ? 'تیاری کی تاریخ' : 'Manufacturing Date'}</Text>
-                    <Text style={styles.detailValue} numberOfLines={1} ellipsizeMode="tail">{result.data.manufacturing_date || 'N/A'}</Text>
+                    <Text style={styles.detailValue}>{result.data.manufacturing_date || 'N/A'}</Text>
                   </View>
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>{lang === 'ur' ? 'تاریخِ میعاد' : 'Expiry Date'}</Text>
-                    <Text style={styles.detailValue} numberOfLines={1} ellipsizeMode="tail">{result.data.expiry_date || 'N/A'}</Text>
+                    <Text style={styles.detailValue}>{result.data.expiry_date || 'N/A'}</Text>
                   </View>
                 </View>
               )}
@@ -488,10 +488,10 @@ export default function Index() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* 🌟 FIXED FOOTER STUCK AT SCREEN BOTTOM WITH BACKGROUND OVERLAY */}
+      {/* 🌟 FIXED FOOTER OUTSIDE KEYBOARD VIEW (Never moves up unexpectedly) */}
       {!isKeyboardVisible && (
-        <View style={styles.footerWrapper} pointerEvents="box-none">
-          <View style={[styles.floatingNavBar, { marginBottom: Math.max(insets.bottom, 12) }]}>
+        <View style={[styles.floatingFooterContainer, { bottom: Math.max(insets.bottom, 12) }]}>
+          <View style={styles.floatingNavBar}>
             
             {/* Scan Tab */}
             <TouchableOpacity 
@@ -596,7 +596,7 @@ const styles = StyleSheet.create({
   scrollContent: { 
     paddingHorizontal: 20, 
     paddingTop: 16, 
-    paddingBottom: 150 // 🌟 Increased bottom padding so content fully scrolls above the footer without hiding
+    paddingBottom: 110 // Extra bottom padding so content doesn't hide behind footer
   },
   containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#0A0F1D' },
   permissionText: { fontSize: 16, textAlign: 'center', color: '#94A3B8', marginBottom: 20 },
@@ -659,28 +659,25 @@ const styles = StyleSheet.create({
   resultTitle: { fontSize: 18, fontWeight: '900', marginBottom: 6 },
   resultMsg: { fontSize: 13, color: '#94A3B8', marginBottom: 16, lineHeight: 18 },
   detailsContainer: { backgroundColor: '#1E293B', padding: 14, borderRadius: 14, gap: 10, marginBottom: 16, borderWidth: 1, borderColor: '#334155' },
-  detailRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: '#334155' },
-  detailLabel: { fontSize: 12, color: '#94A3B8', fontWeight: '500', flex: 1, marginRight: 8 },
-  detailValue: { fontSize: 12, fontWeight: '700', color: '#F8FAFC', flex: 1.2, textAlign: 'right' },
+  detailRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: '#334155' },
+  detailLabel: { fontSize: 13, color: '#94A3B8', fontWeight: '500' },
+  detailValue: { fontSize: 13, fontWeight: '700', color: '#F8FAFC' },
   reportBtn: { backgroundColor: '#EF4444', paddingVertical: 14, borderRadius: 14, alignItems: 'center', marginBottom: 10, shadowColor: '#EF4444', shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 },
   reportBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
   resetBtn: { backgroundColor: '#334155', paddingVertical: 14, borderRadius: 14, alignItems: 'center' },
   resetBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
 
-  // 🌟 FIXED FOOTER STYLES (Locked permanently at the bottom layout layer)
-  footerWrapper: {
+  // 🌟 FIXED FOOTER STYLES
+  floatingFooterContainer: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    left: 20,
+    right: 20,
     alignItems: 'center',
-    paddingHorizontal: 20,
-    backgroundColor: 'transparent',
-    zIndex: 999,
+    zIndex: 99,
   },
   floatingNavBar: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(17, 24, 39, 0.98)',
+    backgroundColor: 'rgba(17, 24, 39, 0.95)',
     borderRadius: 30,
     borderWidth: 1,
     borderColor: 'rgba(59, 130, 246, 0.35)',
@@ -688,8 +685,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     width: '100%',
     justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOpacity: 0.5,
+    shadowColor: '#3B82F6',
+    shadowOpacity: 0.35,
     shadowRadius: 15,
     elevation: 10,
   },
@@ -720,7 +717,7 @@ const styles = StyleSheet.create({
   },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(10, 15, 29, 0.85)', justifyContent: 'center', padding: 20 },
-  modalContainer: { backgroundColor: 'rgb(17, 24, 39)', borderRadius: 24, padding: 22, borderWidth: 1, borderColor: '#334155', elevation: 10 },
+  modalContainer: { backgroundColor: '#111827', borderRadius: 24, padding: 22, borderWidth: 1, borderColor: '#334155', elevation: 10 },
   modalTitle: { fontSize: 18, fontWeight: '900', color: '#FFFFFF' },
   modalSub: { fontSize: 13, color: '#94A3B8', marginTop: 4, marginBottom: 18 },
   inputLabel: { fontSize: 12, fontWeight: '700', color: '#CBD5E1', marginBottom: 6 },
@@ -728,6 +725,6 @@ const styles = StyleSheet.create({
   submitReportBtn: { backgroundColor: '#EF4444', paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
   submitReportText: { color: '#FFF', fontWeight: '800', fontSize: 13 },
   cancelBtn: { paddingVertical: 12, alignItems: 'center', marginTop: 6 },
-  cancelText: { color: '#94A3B8', fontSize: 13, fontWeight: '700' },
+  cancelText: { color: '#94A3B8', fontSize: '13' as any, fontWeight: '700' },
   refCode: { fontSize: 12, fontWeight: '800', color: '#34D399', backgroundColor: 'rgba(52, 211, 153, 0.1)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, marginTop: 12, overflow: 'hidden' },
 });
