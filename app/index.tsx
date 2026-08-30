@@ -65,6 +65,7 @@ const translations = {
     reportSuccess: "Report Submitted!",
     done: "Done",
     navScan: "Scan",
+    navHistory: "History",
     navProfile: "Profile",
   },
   ur: {
@@ -90,6 +91,7 @@ const translations = {
     reportSuccess: "رپورٹ جمع ہو گئی!",
     done: "مکمل",
     navScan: "سکین",
+    navHistory: "ہسٹری",
     navProfile: "پروفائل",
   }
 };
@@ -323,8 +325,8 @@ export default function Index() {
   };
 
   const topPadding = Platform.OS === 'android'
-    ? Math.max(insets.top, StatusBar.currentHeight || 24) + 8
-    : insets.top + 8;
+    ? Math.max(insets.top, StatusBar.currentHeight || 24) + 16
+    : insets.top + 16;
 
   return (
     <View style={[styles.safeContainer, { paddingTop: topPadding }]}>
@@ -471,9 +473,11 @@ export default function Index() {
 
         </ScrollView>
 
-        {/* 🌟 NEW PROFESSIONAL FLOATING GLASS FOOTER */}
-        <View style={styles.floatingFooterContainer}>
+        {/* 🌟 3-ICON PROFESSIONAL FLOATING GLASS FOOTER */}
+        <View style={[styles.floatingFooterContainer, { bottom: Math.max(insets.bottom + 10, 24) }]}>
           <View style={styles.floatingNavBar}>
+            
+            {/* Scan Tab */}
             <TouchableOpacity 
               style={[styles.navItem, styles.activeNavItem]} 
               activeOpacity={0.85}
@@ -482,6 +486,17 @@ export default function Index() {
               <Text style={[styles.navText, styles.activeNavText]}>{t.navScan}</Text>
             </TouchableOpacity>
 
+            {/* History Tab */}
+            <TouchableOpacity 
+              style={styles.navItem} 
+              activeOpacity={0.85}
+              onPress={() => router.push('/history')}
+            >
+              <Text style={styles.navIcon}>📜</Text>
+              <Text style={styles.navText}>{t.navHistory}</Text>
+            </TouchableOpacity>
+
+            {/* Profile Tab */}
             <TouchableOpacity 
               style={styles.navItem} 
               activeOpacity={0.85}
@@ -490,6 +505,7 @@ export default function Index() {
               <Text style={styles.navIcon}>👤</Text>
               <Text style={styles.navText}>{t.navProfile}</Text>
             </TouchableOpacity>
+
           </View>
         </View>
 
@@ -563,8 +579,8 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { 
     paddingHorizontal: 20, 
-    paddingTop: 4, 
-    paddingBottom: 110 // Extra bottom space so cards don't hide behind floating footer
+    paddingTop: 16, 
+    paddingBottom: 135 // Extra bottom space so cards don't hide behind floating footer
   },
   containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#0A0F1D' },
   permissionText: { fontSize: 16, textAlign: 'center', color: '#94A3B8', marginBottom: 20 },
@@ -635,13 +651,13 @@ const styles = StyleSheet.create({
   resetBtn: { backgroundColor: '#334155', paddingVertical: 14, borderRadius: 14, alignItems: 'center' },
   resetBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
 
-  // 🌟 PROFESSIONAL FLOATING GLASS FOOTER STYLES
+  // 🌟 PROFESSIONAL 3-ICON FLOATING GLASS FOOTER STYLES
   floatingFooterContainer: {
     position: 'absolute',
-    bottom: 20,
     left: 20,
     right: 20,
     alignItems: 'center',
+    zIndex: 99,
   },
   floatingNavBar: {
     flexDirection: 'row',
@@ -650,22 +666,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(59, 130, 246, 0.35)',
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
     width: '100%',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     shadowColor: '#3B82F6',
     shadowOpacity: 0.35,
     shadowRadius: 15,
     elevation: 10,
   },
   navItem: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 10,
-    paddingHorizontal: 28,
     borderRadius: 20,
-    gap: 8,
+    gap: 6,
   },
   activeNavItem: {
     backgroundColor: 'rgba(37, 99, 235, 0.25)',
@@ -673,10 +689,10 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(59, 130, 246, 0.5)',
   },
   navIcon: {
-    fontSize: 18,
+    fontSize: 16,
   },
   navText: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#94A3B8',
     fontWeight: '700',
   },
