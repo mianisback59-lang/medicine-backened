@@ -112,7 +112,6 @@ export default function Index() {
   const [torch, setTorch] = useState<boolean>(false);
   const [manualCode, setManualCode] = useState<string>('');
 
-  // State to track keyboard visibility for hiding footer
   const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
 
   const [isReportModalVisible, setIsReportModalVisible] = useState<boolean>(false);
@@ -124,7 +123,6 @@ export default function Index() {
   useEffect(() => {
     checkUserLogin();
 
-    // Improved cross-platform keyboard listeners using 'Will' events for smoother hiding/showing
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
     const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
 
@@ -346,10 +344,11 @@ export default function Index() {
   return (
     <View style={[styles.safeContainer, { paddingTop: topPadding }]}>
       <StatusBar barStyle="light-content" backgroundColor="#0A0F1D" translucent={true} />
+      
+      {/* Scrollable content wrapped in KeyboardAvoidingView */}
       <KeyboardAvoidingView 
         style={{ flex: 1 }} 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView 
           ref={scrollViewRef}
@@ -487,106 +486,106 @@ export default function Index() {
           )}
 
         </ScrollView>
-
-        {/* 🌟 3-ICON PROFESSIONAL FLOATING GLASS FOOTER (Hidden automatically when keyboard opens) */}
-        {!isKeyboardVisible && (
-          <View style={[styles.floatingFooterContainer, { bottom: Math.max(insets.bottom + 10, 24) }]}>
-            <View style={styles.floatingNavBar}>
-              
-              {/* Scan Tab */}
-              <TouchableOpacity 
-                style={[styles.navItem, styles.activeNavItem]} 
-                activeOpacity={0.85}
-              >
-                <Text style={styles.navIcon}>🛡️</Text>
-                <Text style={[styles.navText, styles.activeNavText]}>{t.navScan}</Text>
-              </TouchableOpacity>
-
-              {/* History Tab */}
-              <TouchableOpacity 
-                style={styles.navItem} 
-                activeOpacity={0.85}
-                onPress={() => router.push('/history')}
-              >
-                <Text style={styles.navIcon}>🕒</Text>
-                <Text style={styles.navText}>{t.navHistory}</Text>
-              </TouchableOpacity>
-
-              {/* Profile Tab */}
-              <TouchableOpacity 
-                style={styles.navItem} 
-                activeOpacity={0.85}
-                onPress={() => router.push('/profile')}
-              >
-                <Text style={styles.navIcon}>👤</Text>
-                <Text style={styles.navText}>{t.navProfile}</Text>
-              </TouchableOpacity>
-
-            </View>
-          </View>
-        )}
-
-        {/* REPORT MODAL */}
-        <Modal visible={isReportModalVisible} animationType="slide" transparent={true}>
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContainer}>
-              {!isSubmitted ? (
-                <>
-                  <Text style={styles.modalTitle}>{t.modalTitle}</Text>
-                  <Text style={styles.modalSub}>
-                    {t.reportingBatch} <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text>
-                  </Text>
-
-                  <Text style={styles.inputLabel}>{t.reasonLabel}</Text>
-                  <TextInput
-                    style={styles.modalInput}
-                    placeholder={t.reasonPlaceholder}
-                    placeholderTextColor="#94A3B8"
-                    value={reportReason}
-                    onChangeText={setReportReason}
-                  />
-
-                  <Text style={styles.inputLabel}>{t.storeLabel}</Text>
-                  <TextInput
-                    style={styles.modalInput}
-                    placeholder={t.storePlaceholder}
-                    placeholderTextColor="#94A3B8"
-                    value={storeInfo}
-                    onChangeText={setStoreInfo}
-                  />
-
-                  <TouchableOpacity
-                    style={[styles.submitReportBtn, isSubmittingReport && { backgroundColor: '#94A3B8' }]}
-                    onPress={handleReportSubmit}
-                    disabled={isSubmittingReport}
-                  >
-                    <Text style={styles.submitReportText}>
-                      {isSubmittingReport ? t.submitting : t.submitReport}
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity style={styles.cancelBtn} onPress={closeReportModal}>
-                    <Text style={styles.cancelText}>{t.cancel}</Text>
-                  </TouchableOpacity>
-                </>
-              ) : (
-                <View style={{ alignItems: 'center', paddingVertical: 10 }}>
-                  <Text style={{ fontSize: 40, marginBottom: 10 }}>✅</Text>
-                  <Text style={styles.modalTitle}>{t.reportSuccess}</Text>
-                  <Text style={[styles.modalSub, { textAlign: 'center', marginTop: 8 }]}>
-                    Batch <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text> has been flagged and sent to Drug Regulatory Authority.
-                  </Text>
-                  <Text style={styles.refCode}>Ref ID: DRAP-2026-{Math.floor(1000 + Math.random() * 9000)}</Text>
-
-                  <TouchableOpacity style={[styles.submitReportBtn, { width: '100%', marginTop: 20 }]} onPress={closeReportModal}>
-                    <Text style={styles.submitReportText}>{t.done}</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-          </View>
-        </Modal>
       </KeyboardAvoidingView>
+
+      {/* 🌟 FIXED FOOTER OUTSIDE KEYBOARD VIEW (Never moves up unexpectedly) */}
+      {!isKeyboardVisible && (
+        <View style={[styles.floatingFooterContainer, { bottom: Math.max(insets.bottom, 12) }]}>
+          <View style={styles.floatingNavBar}>
+            
+            {/* Scan Tab */}
+            <TouchableOpacity 
+              style={[styles.navItem, styles.activeNavItem]} 
+              activeOpacity={0.85}
+            >
+              <Text style={styles.navIcon}>🛡️</Text>
+              <Text style={[styles.navText, styles.activeNavText]}>{t.navScan}</Text>
+            </TouchableOpacity>
+
+            {/* History Tab */}
+            <TouchableOpacity 
+              style={styles.navItem} 
+              activeOpacity={0.85}
+              onPress={() => router.push('/history')}
+            >
+              <Text style={styles.navIcon}>🕒</Text>
+              <Text style={styles.navText}>{t.navHistory}</Text>
+            </TouchableOpacity>
+
+            {/* Profile Tab */}
+            <TouchableOpacity 
+              style={styles.navItem} 
+              activeOpacity={0.85}
+              onPress={() => router.push('/profile')}
+            >
+              <Text style={styles.navIcon}>👤</Text>
+              <Text style={styles.navText}>{t.navProfile}</Text>
+            </TouchableOpacity>
+
+          </View>
+        </View>
+      )}
+
+      {/* REPORT MODAL */}
+      <Modal visible={isReportModalVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            {!isSubmitted ? (
+              <>
+                <Text style={styles.modalTitle}>{t.modalTitle}</Text>
+                <Text style={styles.modalSub}>
+                  {t.reportingBatch} <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text>
+                </Text>
+
+                <Text style={styles.inputLabel}>{t.reasonLabel}</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder={t.reasonPlaceholder}
+                  placeholderTextColor="#94A3B8"
+                  value={reportReason}
+                  onChangeText={setReportReason}
+                />
+
+                <Text style={styles.inputLabel}>{t.storeLabel}</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder={t.storePlaceholder}
+                  placeholderTextColor="#94A3B8"
+                  value={storeInfo}
+                  onChangeText={setStoreInfo}
+                />
+
+                <TouchableOpacity
+                  style={[styles.submitReportBtn, isSubmittingReport && { backgroundColor: '#94A3B8' }]}
+                  onPress={handleReportSubmit}
+                  disabled={isSubmittingReport}
+                >
+                  <Text style={styles.submitReportText}>
+                    {isSubmittingReport ? t.submitting : t.submitReport}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.cancelBtn} onPress={closeReportModal}>
+                  <Text style={styles.cancelText}>{t.cancel}</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <View style={{ alignItems: 'center', paddingVertical: 10 }}>
+                <Text style={{ fontSize: 40, marginBottom: 10 }}>✅</Text>
+                <Text style={styles.modalTitle}>{t.reportSuccess}</Text>
+                <Text style={[styles.modalSub, { textAlign: 'center', marginTop: 8 }]}>
+                  Batch <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text> has been flagged and sent to Drug Regulatory Authority.
+                </Text>
+                <Text style={styles.refCode}>Ref ID: DRAP-2026-{Math.floor(1000 + Math.random() * 9000)}</Text>
+
+                <TouchableOpacity style={[styles.submitReportBtn, { width: '100%', marginTop: 20 }]} onPress={closeReportModal}>
+                  <Text style={styles.submitReportText}>{t.done}</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -597,7 +596,7 @@ const styles = StyleSheet.create({
   scrollContent: { 
     paddingHorizontal: 20, 
     paddingTop: 16, 
-    paddingBottom: 135 
+    paddingBottom: 110 // Extra bottom padding so content doesn't hide behind footer
   },
   containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#0A0F1D' },
   permissionText: { fontSize: 16, textAlign: 'center', color: '#94A3B8', marginBottom: 20 },
@@ -668,7 +667,7 @@ const styles = StyleSheet.create({
   resetBtn: { backgroundColor: '#334155', paddingVertical: 14, borderRadius: 14, alignItems: 'center' },
   resetBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
 
-  // 🌟 PROFESSIONAL 3-ICON FLOATING GLASS FOOTER STYLES
+  // 🌟 FIXED FOOTER STYLES
   floatingFooterContainer: {
     position: 'absolute',
     left: 20,
