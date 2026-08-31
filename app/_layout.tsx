@@ -1,66 +1,113 @@
-
-import { Stack } from 'expo-router';
+import { Stack, usePathname, useRouter } from 'expo-router';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Yeh wahi exact footer component hai jo index file se nikaala gaya tha
-function AppFooter() {
+function FloatingNavBar() {
+  const router = useRouter();
+  const pathname = usePathname();
+
   return (
-    <View style={styles.footerContainer}>
-      <Text style={styles.footerTitle}>MedVerify AI</Text>
-      <Text style={styles.footerText}>
-        Instant Authenticity & Safety Scanner for Pharmaceuticals.
-      </Text>
-      <Text style={styles.footerCopy}>
-        © {new Date().getFullYear()} DRAP Verified System. All Rights Reserved.
-      </Text>
+    <View style={styles.floatingNavBar}>
+      <TouchableOpacity 
+        style={[styles.navItem, pathname === '/' && styles.activeNavItem]} 
+        activeOpacity={1}
+        onPress={() => router.replace('/')}
+      >
+        <Text style={styles.navIcon}>🛡️</Text>
+        <Text style={[styles.navText, pathname === '/' && styles.activeNavText]}>Scan</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={[styles.navItem, pathname === '/history' && styles.activeNavItem]} 
+        activeOpacity={1}
+        onPress={() => router.replace('/history')}
+      >
+        <Text style={styles.navIcon}>🕒</Text>
+        <Text style={[styles.navText, pathname === '/history' && styles.activeNavText]}>History</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={[styles.navItem, pathname === '/profile' && styles.activeNavItem]} 
+        activeOpacity={1}
+        onPress={() => router.replace('/profile')}
+      >
+        <Text style={styles.navIcon}>👤</Text>
+        <Text style={[styles.navText, pathname === '/profile' && styles.activeNavText]}>Profile</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 export default function RootLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={{ flex: 1, backgroundColor: '#070b19' }}>
+    <View style={{ flex: 1, backgroundColor: '#0A0F1D' }}>
       <Stack
         screenOptions={{
           headerShown: false,
           animation: 'none',
           animationDuration: 0,
           contentStyle: { 
-            backgroundColor: '#070b19' // Yeh zaroori hai jo white flash ko rokey ga
+            backgroundColor: '#0A0F1D'
           },
         }}
       />
-      <AppFooter />
+      
+      <View style={[styles.floatingFooterContainer, { bottom: Math.max(insets.bottom, 16) }]}>
+        <FloatingNavBar />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  footerContainer: {
-    paddingVertical: 15,
-    paddingHorizontal: 20,
+  floatingFooterContainer: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#1E293B',
+    zIndex: 99,
+  },
+  floatingNavBar: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(17, 24, 39, 0.95)',
+    borderRadius: 28,
+    borderWidth: 1.5,
+    borderColor: 'rgba(59, 130, 246, 0.6)',
+    paddingVertical: 6,
+    paddingHorizontal: 6,
     width: '100%',
-    backgroundColor: '#0A0F1D',
+    justifyContent: 'space-between',
+    shadowColor: '#3B82F6',
+    shadowOpacity: 0.45,
+    shadowRadius: 15,
+    elevation: 12,
   },
-  footerTitle: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#60A5FA',
-    marginBottom: 4,
+  navItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 20,
+    gap: 6,
   },
-  footerText: {
-    fontSize: 11,
+  activeNavItem: {
+    backgroundColor: 'rgba(37, 99, 235, 0.25)',
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.5)',
+  },
+  navIcon: {
+    fontSize: 16,
+  },
+  navText: {
+    fontSize: 12,
     color: '#94A3B8',
-    textAlign: 'center',
-    marginBottom: 6,
+    fontWeight: '700',
   },
-  footerCopy: {
-    fontSize: 10,
-    color: '#64748B',
-    fontWeight: '600',
+  activeNavText: {
+    color: '#60A5FA',
   },
 });
