@@ -669,7 +669,7 @@ const styles = StyleSheet.create({
   resetBtn: { backgroundColor: '#334155', paddingVertical: 14, borderRadius: 14, alignItems: 'center' },
   resetBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
 
-  // 🌟 REFINED PROFESSIONAL FOOTER STYLES
+ // 🌟 GLOWING & PROFESSIONAL FOOTER STYLES
   floatingFooterBackground: {
     position: 'absolute',
     left: 0,
@@ -688,18 +688,18 @@ const styles = StyleSheet.create({
   },
   floatingNavBar: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(17, 24, 39, 0.96)',
+    backgroundColor: 'rgba(17, 24, 39, 0.95)',
     borderRadius: 28,
-    borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.2)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(59, 130, 246, 0.6)', // Yeh border glow ko wapas roshan kar dega
     paddingVertical: 6,
     paddingHorizontal: 6,
     width: '100%',
     justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowColor: '#3B82F6', // Yeh neela glow/shadow dobara le ayega
+    shadowOpacity: 0.45,
+    shadowRadius: 15,
+    elevation: 12,
   },
   navItem: {
     flex: 1,
@@ -711,9 +711,9 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   activeNavItem: {
-    backgroundColor: 'rgba(37, 99, 235, 0.2)',
+    backgroundColor: 'rgba(37, 99, 235, 0.25)',
     borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.4)',
+    borderColor: 'rgba(59, 130, 246, 0.5)',
   },
   navIcon: {
     fontSize: 16,
@@ -726,7 +726,6 @@ const styles = StyleSheet.create({
   activeNavText: {
     color: '#60A5FA',
   },
-
   modalOverlay: { flex: 1, backgroundColor: 'rgba(10, 15, 29, 0.85)', justifyContent: 'center', padding: 20 },
   modalContainer: { backgroundColor: '#111827', borderRadius: 24, padding: 22, borderWidth: 1, borderColor: '#334155', elevation: 10 },
   modalTitle: { fontSize: 18, fontWeight: '900', color: '#FFFFFF' },
