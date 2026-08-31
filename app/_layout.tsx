@@ -3,44 +3,10 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-function FloatingNavBar() {
-  const router = useRouter();
-  const pathname = usePathname();
-
-  return (
-    <View style={styles.floatingNavBar}>
-      <TouchableOpacity 
-        style={[styles.navItem, pathname === '/' && styles.activeNavItem]} 
-        activeOpacity={1}
-        onPress={() => router.replace('/')}
-      >
-        <Text style={styles.navIcon}>🛡️</Text>
-        <Text style={[styles.navText, pathname === '/' && styles.activeNavText]}>Scan</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity 
-        style={[styles.navItem, pathname === '/history' && styles.activeNavItem]} 
-        activeOpacity={1}
-        onPress={() => router.replace('/history')}
-      >
-        <Text style={styles.navIcon}>🕒</Text>
-        <Text style={[styles.navText, pathname === '/history' && styles.activeNavText]}>History</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity 
-        style={[styles.navItem, pathname === '/profile' && styles.activeNavItem]} 
-        activeOpacity={1}
-        onPress={() => router.replace('/profile')}
-      >
-        <Text style={styles.navIcon}>👤</Text>
-        <Text style={[styles.navText, pathname === '/profile' && styles.activeNavText]}>Profile</Text>
-      </TouchableOpacity>
-    </View>
-  );
-}
-
 export default function RootLayout() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
+  const pathname = usePathname();
 
   return (
     <View style={{ flex: 1, backgroundColor: '#0A0F1D' }}>
@@ -55,14 +21,54 @@ export default function RootLayout() {
         }}
       />
       
-      <View style={[styles.floatingFooterContainer, { bottom: Math.max(insets.bottom, 16) }]}>
-        <FloatingNavBar />
+      <View style={styles.floatingFooterBackground}>
+        <View style={[styles.floatingFooterContainer, { bottom: Math.max(insets.bottom, 16) }]}>
+          <View style={styles.floatingNavBar}>
+            
+            <TouchableOpacity 
+              style={[styles.navItem, pathname === '/' && styles.activeNavItem]} 
+              activeOpacity={1}
+              onPress={() => router.replace('/')}
+            >
+              <Text style={styles.navIcon}>🛡️</Text>
+              <Text style={[styles.navText, pathname === '/' && styles.activeNavText]}>Scan</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.navItem, pathname === '/history' && styles.activeNavItem]} 
+              activeOpacity={1}
+              onPress={() => router.replace('/history')}
+            >
+              <Text style={styles.navIcon}>🕒</Text>
+              <Text style={[styles.navText, pathname === '/history' && styles.activeNavText]}>History</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.navItem, pathname === '/profile' && styles.activeNavItem]} 
+              activeOpacity={1}
+              onPress={() => router.replace('/profile')}
+            >
+              <Text style={styles.navIcon}>👤</Text>
+              <Text style={[styles.navText, pathname === '/profile' && styles.activeNavText]}>Profile</Text>
+            </TouchableOpacity>
+
+          </View>
+        </View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  floatingFooterBackground: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 105,
+    backgroundColor: '#0A0F1D',
+    zIndex: 98,
+  },
   floatingFooterContainer: {
     position: 'absolute',
     left: 20,
