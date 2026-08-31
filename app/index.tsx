@@ -676,7 +676,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     height: 90,
-    backgroundColor: '#0A0F1D', // Solid background taake neeche se content bilkul na dikhe
+    backgroundColor: '#05070E',
     zIndex: 98,
   },
   floatingFooterContainer: {
