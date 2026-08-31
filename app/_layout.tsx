@@ -8,7 +8,7 @@ export default function RootLayout() {
         animation: 'none',
         animationDuration: 0,
         contentStyle: { 
-          backgroundColor: '#070b19' // Yeh sab se zaroori hai jo white flash ko rokey ga
+          backgroundColor: '#070b19' // Yeh zaroori hai jo white flash ko rokey ga
         },
       }}
     />
