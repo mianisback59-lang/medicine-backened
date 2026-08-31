@@ -675,7 +675,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    height: 90,
+    height: 85,
     backgroundColor: '#05070E',
     zIndex: 98,
   },
