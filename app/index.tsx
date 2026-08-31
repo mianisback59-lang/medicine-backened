@@ -488,10 +488,10 @@ export default function Index() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* 🌟 SOLID BACKGROUND CONTAINER BEHIND FOOTER TO BLOCK SCROLLING CONTENT */}
+      {/* 🌟 REFINED PROFESSIONAL FOOTER */}
       {!isKeyboardVisible && (
         <View style={styles.floatingFooterBackground}>
-          <View style={[styles.floatingFooterContainer, { bottom: Math.max(insets.bottom, 12) }]}>
+          <View style={[styles.floatingFooterContainer, { bottom: Math.max(insets.bottom, 16) }]}>
             <View style={styles.floatingNavBar}>
               
               {/* Scan Tab */}
@@ -598,7 +598,7 @@ const styles = StyleSheet.create({
   scrollContent: { 
     paddingHorizontal: 20, 
     paddingTop: 16, 
-    paddingBottom: 130 // Barha diya gaya hai taake content footer ke upar hi ruk jaye
+    paddingBottom: 140 
   },
   containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#0A0F1D' },
   permissionText: { fontSize: 16, textAlign: 'center', color: '#94A3B8', marginBottom: 20 },
@@ -669,14 +669,14 @@ const styles = StyleSheet.create({
   resetBtn: { backgroundColor: '#334155', paddingVertical: 14, borderRadius: 14, alignItems: 'center' },
   resetBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
 
-  // 🌟 FIXED FOOTER STYLES WITH SOLID BACKGROUND COVERING SCREEN END
+  // 🌟 REFINED PROFESSIONAL FOOTER STYLES
   floatingFooterBackground: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-    height: 100,
-    backgroundColor: '#141C2E',
+    height: 105,
+    backgroundColor: '#0A0F1D',
     zIndex: 98,
   },
   floatingFooterContainer: {
@@ -688,18 +688,18 @@ const styles = StyleSheet.create({
   },
   floatingNavBar: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(17, 24, 39, 0.95)',
-    borderRadius: 30,
+    backgroundColor: 'rgba(17, 24, 39, 0.96)',
+    borderRadius: 28,
     borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.35)',
-    paddingVertical: 8,
-    paddingHorizontal: 8,
+    borderColor: 'rgba(59, 130, 246, 0.2)',
+    paddingVertical: 6,
+    paddingHorizontal: 6,
     width: '100%',
     justifyContent: 'space-between',
-    shadowColor: '#3B82F6',
-    shadowOpacity: 0.35,
-    shadowRadius: 15,
-    elevation: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
   },
   navItem: {
     flex: 1,
@@ -711,9 +711,9 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   activeNavItem: {
-    backgroundColor: 'rgba(37, 99, 235, 0.25)',
+    backgroundColor: 'rgba(37, 99, 235, 0.2)',
     borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.5)',
+    borderColor: 'rgba(59, 130, 246, 0.4)',
   },
   navIcon: {
     fontSize: 16,
