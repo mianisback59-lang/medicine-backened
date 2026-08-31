@@ -345,7 +345,6 @@ export default function Index() {
     <View style={[styles.safeContainer, { paddingTop: topPadding }]}>
       <StatusBar barStyle="light-content" backgroundColor="#0A0F1D" translucent={true} />
       
-      {/* Scrollable content wrapped in KeyboardAvoidingView */}
       <KeyboardAvoidingView 
         style={{ flex: 1 }} 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -358,7 +357,6 @@ export default function Index() {
           showsVerticalScrollIndicator={false}
         >
           
-          {/* Header */}
           <View style={styles.headerContainer}>
             <View style={styles.titleArea}>
               <Text style={styles.appTitle}>{t.appTitle}</Text>
@@ -379,7 +377,6 @@ export default function Index() {
             </TouchableOpacity>
           </View>
 
-          {/* Camera Card */}
           <View style={styles.cameraWrapper}>
             <View style={styles.cameraCard}>
               <CameraView
@@ -404,7 +401,6 @@ export default function Index() {
             </View>
           </View>
 
-          {/* Search Bar */}
           <View style={styles.manualSearchBox}>
             <TextInput
               style={[styles.input, lang === 'ur' && { textAlign: 'right' }]}
@@ -427,7 +423,6 @@ export default function Index() {
             </TouchableOpacity>
           </View>
 
-          {/* Verification Result Card */}
           {result ? (
             <View style={[styles.resultCard, { borderColor: result.color }]}>
               <View style={[styles.badge, { backgroundColor: result.color }]}>
@@ -488,36 +483,40 @@ export default function Index() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* 🌟 REFINED PROFESSIONAL FOOTER */}
       {!isKeyboardVisible && (
         <View style={styles.floatingFooterBackground}>
           <View style={[styles.floatingFooterContainer, { bottom: Math.max(insets.bottom, 16) }]}>
             <View style={styles.floatingNavBar}>
               
-              {/* Scan Tab */}
               <TouchableOpacity 
                 style={[styles.navItem, styles.activeNavItem]} 
-                activeOpacity={0.9}
+                activeOpacity={1}
               >
                 <Text style={styles.navIcon}>🛡️</Text>
                 <Text style={[styles.navText, styles.activeNavText]}>{t.navScan}</Text>
               </TouchableOpacity>
 
-              {/* History Tab */}
               <TouchableOpacity 
                 style={styles.navItem} 
-                activeOpacity={0.9}
-                onPress={() => router.replace('/history')}
+                activeOpacity={1}
+                onPress={() => {
+                  requestAnimationFrame(() => {
+                    router.replace('/history');
+                  });
+                }}
               >
                 <Text style={styles.navIcon}>🕒</Text>
                 <Text style={styles.navText}>{t.navHistory}</Text>
               </TouchableOpacity>
 
-              {/* Profile Tab */}
               <TouchableOpacity 
                 style={styles.navItem} 
-                activeOpacity={0.9}
-                onPress={() => router.replace('/profile')}
+                activeOpacity={1}
+                onPress={() => {
+                  requestAnimationFrame(() => {
+                    router.replace('/profile');
+                  });
+                }}
               >
                 <Text style={styles.navIcon}>👤</Text>
                 <Text style={styles.navText}>{t.navProfile}</Text>
@@ -528,7 +527,6 @@ export default function Index() {
         </View>
       )}
 
-      {/* REPORT MODAL */}
       <Modal visible={isReportModalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
@@ -669,7 +667,6 @@ const styles = StyleSheet.create({
   resetBtn: { backgroundColor: '#334155', paddingVertical: 14, borderRadius: 14, alignItems: 'center' },
   resetBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
 
- // 🌟 GLOWING & PROFESSIONAL FOOTER STYLES
   floatingFooterBackground: {
     position: 'absolute',
     left: 0,

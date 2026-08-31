@@ -95,10 +95,17 @@ export default function ProfileScreen() {
   const handleLogout = () => {
     Alert.alert(
       isUrdu ? "لاگ آؤٹ" : "Log Out",
-      isUrdu ? "کیا آپ واقعی اکاؤنٹ سے باہر نکلنا चाहते हैं؟" : "Are you sure you want to log out?",
+      isUrdu ? "کیا آپ واقعی اکاؤنٹ سے باہر نکلنا چاہتے ہیں؟" : "Are you sure you want to log out?",
       [
         { text: isUrdu ? "نہیں" : "Cancel", style: "cancel" },
-        { text: isUrdu ? "ہاں" : "Logout", onPress: () => router.replace('/') }
+        { 
+          text: isUrdu ? "ہاں" : "Logout", 
+          onPress: () => {
+            requestAnimationFrame(() => {
+              router.replace('/auth');
+            });
+          } 
+        }
       ]
     );
   };
@@ -195,8 +202,12 @@ export default function ProfileScreen() {
               {/* Scan Tab */}
               <TouchableOpacity 
                 style={styles.navItem} 
-                activeOpacity={0.9}
-                onPress={() => router.replace('/')}
+                activeOpacity={1}
+                onPress={() => {
+                  requestAnimationFrame(() => {
+                    router.replace('/');
+                  });
+                }}
               >
                 <Text style={styles.navIcon}>🛡️</Text>
                 <Text style={styles.navText}>{t.navScan}</Text>
@@ -205,8 +216,12 @@ export default function ProfileScreen() {
               {/* History Tab */}
               <TouchableOpacity 
                 style={styles.navItem} 
-                activeOpacity={0.9}
-                onPress={() => router.replace('/history')}
+                activeOpacity={1}
+                onPress={() => {
+                  requestAnimationFrame(() => {
+                    router.replace('/history');
+                  });
+                }}
               >
                 <Text style={styles.navIcon}>🕒</Text>
                 <Text style={styles.navText}>{t.navHistory}</Text>
@@ -215,7 +230,7 @@ export default function ProfileScreen() {
               {/* Profile Tab (Active) */}
               <TouchableOpacity 
                 style={[styles.navItem, styles.activeNavItem]} 
-                activeOpacity={0.9}
+                activeOpacity={1}
               >
                 <Text style={styles.navIcon}>👤</Text>
                 <Text style={[styles.navText, styles.activeNavText]}>{t.navProfile}</Text>
