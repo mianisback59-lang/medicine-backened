@@ -196,7 +196,7 @@ export default function ProfileScreen() {
               <TouchableOpacity 
                 style={styles.navItem} 
                 activeOpacity={0.85}
-                onPress={() => router.push('/')}
+                onPress={() => router.replace('/')}
               >
                 <Text style={styles.navIcon}>🛡️</Text>
                 <Text style={styles.navText}>{t.navScan}</Text>
@@ -206,7 +206,7 @@ export default function ProfileScreen() {
               <TouchableOpacity 
                 style={styles.navItem} 
                 activeOpacity={0.85}
-                onPress={() => router.push('/history')}
+                onPress={() => router.replace('/history')}
               >
                 <Text style={styles.navIcon}>🕒</Text>
                 <Text style={styles.navText}>{t.navHistory}</Text>

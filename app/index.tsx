@@ -507,7 +507,7 @@ export default function Index() {
               <TouchableOpacity 
                 style={styles.navItem} 
                 activeOpacity={0.85}
-                onPress={() => router.push('/history')}
+                onPress={() => router.replace('/history')}
               >
                 <Text style={styles.navIcon}>🕒</Text>
                 <Text style={styles.navText}>{t.navHistory}</Text>
@@ -517,7 +517,7 @@ export default function Index() {
               <TouchableOpacity 
                 style={styles.navItem} 
                 activeOpacity={0.85}
-                onPress={() => router.push('/profile')}
+                onPress={() => router.replace('/profile')}
               >
                 <Text style={styles.navIcon}>👤</Text>
                 <Text style={styles.navText}>{t.navProfile}</Text>
