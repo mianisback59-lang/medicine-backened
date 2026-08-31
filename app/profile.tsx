@@ -95,7 +95,7 @@ export default function ProfileScreen() {
   const handleLogout = () => {
     Alert.alert(
       isUrdu ? "لاگ آؤٹ" : "Log Out",
-      isUrdu ? "کیا آپ واقعی اکاؤنٹ سے باہر نکلنا چاہتے ہیں؟" : "Are you sure you want to log out?",
+      isUrdu ? "کیا آپ واقعی اکاؤنٹ سے باہر نکلنا चाहते हैं؟" : "Are you sure you want to log out?",
       [
         { text: isUrdu ? "نہیں" : "Cancel", style: "cancel" },
         { text: isUrdu ? "ہاں" : "Logout", onPress: () => router.replace('/') }
@@ -109,7 +109,7 @@ export default function ProfileScreen() {
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingTop: Math.max(insets.top, 20), paddingBottom: 135 }
+            { paddingTop: Math.max(insets.top, 20), paddingBottom: 140 }
           ]}
           showsVerticalScrollIndicator={false}
         >
@@ -187,28 +187,42 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </ScrollView>
 
-        {/* Floating Glass Footer */}
-        <View style={[styles.footer, { bottom: Math.max(insets.bottom + 10, 24) }]}>
-          <TouchableOpacity 
-            style={styles.footerItem} 
-            onPress={() => router.push('/scan')}
-          >
-            <Text style={styles.navIcon}>🛡️</Text>
-            <Text style={styles.footerText}>{t.navScan}</Text>
-          </TouchableOpacity>
+        {/* 🌟 GLOWING & PROFESSIONAL FOOTER (Matched with Scan Page) */}
+        <View style={styles.floatingFooterBackground}>
+          <View style={[styles.floatingFooterContainer, { bottom: Math.max(insets.bottom, 16) }]}>
+            <View style={styles.floatingNavBar}>
+              
+              {/* Scan Tab */}
+              <TouchableOpacity 
+                style={styles.navItem} 
+                activeOpacity={0.85}
+                onPress={() => router.push('/')}
+              >
+                <Text style={styles.navIcon}>🛡️</Text>
+                <Text style={styles.navText}>{t.navScan}</Text>
+              </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={styles.footerItem} 
-            onPress={() => router.push('/history')}
-          >
-            <Text style={styles.navIcon}>🕒</Text>
-            <Text style={styles.footerText}>{t.navHistory}</Text>
-          </TouchableOpacity>
+              {/* History Tab */}
+              <TouchableOpacity 
+                style={styles.navItem} 
+                activeOpacity={0.85}
+                onPress={() => router.push('/history')}
+              >
+                <Text style={styles.navIcon}>🕒</Text>
+                <Text style={styles.navText}>{t.navHistory}</Text>
+              </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.footerItem, styles.activeFooterItem]}>
-            <Text style={styles.navIcon}>👤</Text>
-            <Text style={[styles.footerText, styles.activeFooterText]}>{t.navProfile}</Text>
-          </TouchableOpacity>
+              {/* Profile Tab (Active) */}
+              <TouchableOpacity 
+                style={[styles.navItem, styles.activeNavItem]} 
+                activeOpacity={0.85}
+              >
+                <Text style={styles.navIcon}>👤</Text>
+                <Text style={[styles.navText, styles.activeNavText]}>{t.navProfile}</Text>
+              </TouchableOpacity>
+
+            </View>
+          </View>
         </View>
       </SafeAreaView>
     </View>
@@ -373,47 +387,62 @@ const styles = StyleSheet.create({
     color: '#f87171',
     fontWeight: 'bold',
   },
-  footer: {
+  
+  // 🌟 GLOWING & PROFESSIONAL FOOTER STYLES
+  floatingFooterBackground: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 105,
+    backgroundColor: '#070b19',
+    zIndex: 98,
+  },
+  floatingFooterContainer: {
     position: 'absolute',
     left: 20,
     right: 20,
-    backgroundColor: 'rgba(15, 23, 42, 0.85)',
-    borderRadius: 30,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.3)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    elevation: 10,
+    alignItems: 'center',
+    zIndex: 99,
   },
-  footerItem: {
+  floatingNavBar: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(17, 24, 39, 0.95)',
+    borderRadius: 28,
+    borderWidth: 1.5,
+    borderColor: 'rgba(59, 130, 246, 0.6)',
+    paddingVertical: 6,
+    paddingHorizontal: 6,
+    width: '100%',
+    justifyContent: 'space-between',
+    shadowColor: '#3B82F6',
+    shadowOpacity: 0.45,
+    shadowRadius: 15,
+    elevation: 12,
+  },
+  navItem: {
     flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 6,
+    paddingVertical: 10,
     borderRadius: 20,
+    gap: 6,
   },
-  activeFooterItem: {
+  activeNavItem: {
     backgroundColor: 'rgba(37, 99, 235, 0.25)',
     borderWidth: 1,
     borderColor: 'rgba(59, 130, 246, 0.5)',
   },
   navIcon: {
-    fontSize: 18,
-    marginBottom: 2,
+    fontSize: 16,
   },
-  footerText: {
+  navText: {
     fontSize: 12,
-    color: '#94a3b8',
-    fontWeight: '500',
+    color: '#94A3B8',
+    fontWeight: '700',
   },
-  activeFooterText: {
-    color: '#60a5fa',
-    fontWeight: 'bold',
+  activeNavText: {
+    color: '#60A5FA',
   },
 });
