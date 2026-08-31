@@ -488,40 +488,42 @@ export default function Index() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* 🌟 FIXED FOOTER (Always locked at bottom cleanly) */}
+      {/* 🌟 SOLID BACKGROUND CONTAINER BEHIND FOOTER TO BLOCK SCROLLING CONTENT */}
       {!isKeyboardVisible && (
-        <View style={[styles.floatingFooterContainer, { bottom: Math.max(insets.bottom, 12) }]}>
-          <View style={styles.floatingNavBar}>
-            
-            {/* Scan Tab */}
-            <TouchableOpacity 
-              style={[styles.navItem, styles.activeNavItem]} 
-              activeOpacity={0.85}
-            >
-              <Text style={styles.navIcon}>🛡️</Text>
-              <Text style={[styles.navText, styles.activeNavText]}>{t.navScan}</Text>
-            </TouchableOpacity>
+        <View style={styles.floatingFooterBackground}>
+          <View style={[styles.floatingFooterContainer, { bottom: Math.max(insets.bottom, 12) }]}>
+            <View style={styles.floatingNavBar}>
+              
+              {/* Scan Tab */}
+              <TouchableOpacity 
+                style={[styles.navItem, styles.activeNavItem]} 
+                activeOpacity={0.85}
+              >
+                <Text style={styles.navIcon}>🛡️</Text>
+                <Text style={[styles.navText, styles.activeNavText]}>{t.navScan}</Text>
+              </TouchableOpacity>
 
-            {/* History Tab */}
-            <TouchableOpacity 
-              style={styles.navItem} 
-              activeOpacity={0.85}
-              onPress={() => router.push('/history')}
-            >
-              <Text style={styles.navIcon}>🕒</Text>
-              <Text style={styles.navText}>{t.navHistory}</Text>
-            </TouchableOpacity>
+              {/* History Tab */}
+              <TouchableOpacity 
+                style={styles.navItem} 
+                activeOpacity={0.85}
+                onPress={() => router.push('/history')}
+              >
+                <Text style={styles.navIcon}>🕒</Text>
+                <Text style={styles.navText}>{t.navHistory}</Text>
+              </TouchableOpacity>
 
-            {/* Profile Tab */}
-            <TouchableOpacity 
-              style={styles.navItem} 
-              activeOpacity={0.85}
-              onPress={() => router.push('/profile')}
-            >
-              <Text style={styles.navIcon}>👤</Text>
-              <Text style={styles.navText}>{t.navProfile}</Text>
-            </TouchableOpacity>
+              {/* Profile Tab */}
+              <TouchableOpacity 
+                style={styles.navItem} 
+                activeOpacity={0.85}
+                onPress={() => router.push('/profile')}
+              >
+                <Text style={styles.navIcon}>👤</Text>
+                <Text style={styles.navText}>{t.navProfile}</Text>
+              </TouchableOpacity>
 
+            </View>
           </View>
         </View>
       )}
@@ -596,7 +598,7 @@ const styles = StyleSheet.create({
   scrollContent: { 
     paddingHorizontal: 20, 
     paddingTop: 16, 
-    paddingBottom: 110 // Extra bottom padding so content doesn't hide behind footer
+    paddingBottom: 130 // Barha diya gaya hai taake content footer ke upar hi ruk jaye
   },
   containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#0A0F1D' },
   permissionText: { fontSize: 16, textAlign: 'center', color: '#94A3B8', marginBottom: 20 },
@@ -667,7 +669,16 @@ const styles = StyleSheet.create({
   resetBtn: { backgroundColor: '#334155', paddingVertical: 14, borderRadius: 14, alignItems: 'center' },
   resetBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
 
-  // 🌟 FIXED FOOTER STYLES
+  // 🌟 FIXED FOOTER STYLES WITH SOLID BACKGROUND COVERING SCREEN END
+  floatingFooterBackground: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 90,
+    backgroundColor: '#0A0F1D', // Solid background taake neeche se content bilkul na dikhe
+    zIndex: 98,
+  },
   floatingFooterContainer: {
     position: 'absolute',
     left: 20,
