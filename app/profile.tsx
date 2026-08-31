@@ -5,11 +5,13 @@ import React, { useEffect, useState } from 'react';
 import {
   Alert,
   Image,
+  Modal,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Switch,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -17,40 +19,56 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const translations = {
   en: {
-    title: "User Profile",
-    subtitle: "Manage your account & preferences",
+    title: "Account & Profile",
+    subtitle: "Manage your credentials and app preferences",
     personalInfo: "Personal Information",
     role: "Verified Pharmacist / Inspector",
-    settings: "Preferences",
-    language: "Urdu Language (اردو)",
+    accountSettings: "Account Settings",
+    preferences: "Preferences",
+    language: "Language (Urdu / English)",
     notifications: "Push Notifications",
     privacy: "Privacy Policy",
     about: "About MedVerify AI",
-    logout: "Log Out",
-    changePhoto: "Tap to change photo",
-    photoSourceTitle: "Profile Photo",
-    photoSourceMsg: "Choose a source to update your profile picture",
-    camera: "Camera",
-    gallery: "Gallery",
+    logout: "Sign Out",
+    changePhoto: "Change Profile Photo",
+    photoSourceTitle: "Profile Picture",
+    photoSourceMsg: "Select an option to update your avatar",
+    camera: "Take Photo",
+    gallery: "Choose from Gallery",
+    removePhoto: "Remove Photo",
     cancel: "Cancel",
+    editProfile: "Edit Profile Details",
+    save: "Save Changes",
+    editTitle: "Edit Profile",
+    nameLabel: "Full Name",
+    emailLabel: "Email Address",
+    phoneLabel: "Phone Number",
   },
   ur: {
-    title: "یوزر پروفائل",
-    subtitle: "اپنا اکاؤنٹ اور ترجیحات مینیج کریں",
+    title: "اکاؤنٹ اور پروفائل",
+    subtitle: "اپنی معلومات اور ترجیحات کا انتظام کریں",
     personalInfo: "ذاتی معلومات",
     role: "تصدیق شدہ فارماسسٹ / انسپکٹر",
-    settings: "ترجیحات",
-    language: "اردو زبان (Urdu)",
+    accountSettings: "اکاؤنٹ کی سیٹنگز",
+    preferences: "ترجیحات",
+    language: "زبان (اردو / انگریزی)",
     notifications: "نوٹیفیکیشنز",
     privacy: "پراائیویسی پالیسی",
     about: "میڈ ویریفائی اے آئی کے بارے میں",
-    logout: "لاگ آؤٹ",
-    changePhoto: "تصویر تبدیل کرنے کے لیے ٹیپ کریں",
+    logout: "سائن آؤٹ",
+    changePhoto: "تصویر تبدیل کریں",
     photoSourceTitle: "پروفائل تصویر",
-    photoSourceMsg: "اپنی پروفائل تصویر اپ ڈیٹ کرنے کے لیے ذریعہ منتخب کریں",
+    photoSourceMsg: "تصویر اپ ڈیٹ کرنے کے لیے ذریعہ منتخب کریں",
     camera: "کیمرہ",
     gallery: "گیلری",
-    cancel: "منسوخ کریں",
+    removePhoto: "تصویر ہٹائیں",
+    cancel: "منسوخ",
+    editProfile: "پروفائل ایڈٹ کریں",
+    save: "محفوظ کریں",
+    editTitle: "پروفائل میں ترمیم کریں",
+    nameLabel: "पूرا نام",
+    emailLabel: "ای میل ایڈریس",
+    phoneLabel: "فون نمبر",
   },
 };
 
@@ -62,10 +80,14 @@ export default function ProfileScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
-  // Real User Data States
   const [userName, setUserName] = useState('Dr. Ahmed Khan');
   const [userEmail, setUserEmail] = useState('ahmed.khan@medverify.ai');
   const [userPhone, setUserPhone] = useState('+92 300 1234567');
+
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [tempName, setTempName] = useState(userName);
+  const [tempEmail, setTempEmail] = useState(userEmail);
+  const [tempPhone, setTempPhone] = useState(userPhone);
 
   const t = isUrdu ? translations.ur : translations.en;
 
@@ -81,9 +103,9 @@ export default function ProfileScreen() {
       const savedImage = await AsyncStorage.getItem('profileImage');
       const savedLang = await AsyncStorage.getItem('appLanguage');
 
-      if (savedName) setUserName(savedName);
-      if (savedEmail) setUserEmail(savedEmail);
-      if (savedPhone) setUserPhone(savedPhone);
+      if (savedName) { setUserName(savedName); setTempName(savedName); }
+      if (savedEmail) { setUserEmail(savedEmail); setTempEmail(savedEmail); }
+      if (savedPhone) { setUserPhone(savedPhone); setTempPhone(savedPhone); }
       if (savedImage) setProfileImage(savedImage);
       if (savedLang === 'ur') setIsUrdu(true);
     } catch (error) {
@@ -91,13 +113,31 @@ export default function ProfileScreen() {
     }
   };
 
-  // Function to handle Image selection (Camera or Gallery)
+  const handleSaveProfile = async () => {
+    try {
+      await AsyncStorage.setItem('userName', tempName);
+      await AsyncStorage.setItem('userEmail', tempEmail);
+      await AsyncStorage.setItem('userPhone', tempPhone);
+      setUserName(tempName);
+      setUserEmail(tempEmail);
+      setUserPhone(tempPhone);
+      setIsEditModalVisible(false);
+      Alert.alert(isUrdu ? "کامیابی" : "Success", isUrdu ? "پروفائل کامیابی سے اپ ڈیٹ ہو گئی ہے" : "Profile updated successfully!");
+    } catch (error) {
+      console.log('Error saving profile:', error);
+    }
+  };
+
   const handleImagePickerOptions = () => {
     Alert.alert(
       t.photoSourceTitle,
       t.photoSourceMsg,
       [
         { text: t.cancel, style: 'cancel' },
+        ...(profileImage ? [{ text: t.removePhoto, style: 'destructive' as const, onPress: async () => {
+            setProfileImage(null);
+            await AsyncStorage.removeItem('profileImage');
+          }}] : []),
         { text: t.gallery, onPress: () => pickImage('gallery') },
         { text: t.camera, onPress: () => pickImage('camera') },
       ]
@@ -116,7 +156,7 @@ export default function ProfileScreen() {
       if (!permissionResult.granted) {
         Alert.alert(
           isUrdu ? "اجازت درکار ہے" : "Permission Required",
-          isUrdu ? "کیمرے یا گیلری تک رسائی کی اجازت ضروری ہے!" : "Permission to access camera or gallery is required!"
+          isUrdu ? "کیمرے یا گیلری تک رسائی کی اجازت ضروری ہے!" : "Permission access is required!"
         );
         return;
       }
@@ -149,19 +189,15 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     Alert.alert(
-      isUrdu ? "لاگ آؤٹ" : "Log Out",
-      isUrdu ? "کیا آپ واقعی اکاؤنٹ سے باہر نکلنا چاہتے ہیں؟" : "Are you sure you want to log out?",
+      isUrdu ? "لاگ آؤٹ" : "Sign Out",
+      isUrdu ? "کیا آپ واقعی اکاؤنٹ سے باہر نکلना چاہتے ہیں؟" : "Are you sure you want to sign out?",
       [
         { text: isUrdu ? "نہیں" : "Cancel", style: "cancel" },
         { 
-          text: isUrdu ? "ہاں" : "Logout", 
+          text: isUrdu ? "ہاں" : "Sign Out", 
           onPress: async () => {
             try {
-              // Clear authentication tokens and session data
               await AsyncStorage.removeItem('userToken');
-              await AsyncStorage.removeItem('userName');
-              await AsyncStorage.removeItem('userEmail');
-              await AsyncStorage.removeItem('userPhone');
             } catch (e) {
               console.log('Logout error:', e);
             }
@@ -180,87 +216,163 @@ export default function ProfileScreen() {
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingTop: Math.max(insets.top, 20), paddingBottom: 130 }
+            { paddingTop: Math.max(insets.top, 16), paddingBottom: 130 }
           ]}
           showsVerticalScrollIndicator={false}
         >
-          {/* Header */}
+          {/* Header Section */}
           <View style={styles.headerContainer}>
-            <View>
-              <Text style={styles.headerTitle}>{t.title}</Text>
-              <Text style={styles.headerSubtitle}>{t.subtitle}</Text>
-            </View>
+            <Text style={styles.headerTitle}>{t.title}</Text>
+            <Text style={styles.headerSubtitle}>{t.subtitle}</Text>
           </View>
 
-          {/* Profile Card with Real Camera & Gallery Support */}
-          <View style={styles.profileCard}>
-            <TouchableOpacity onPress={handleImagePickerOptions} style={styles.avatarContainer} activeOpacity={0.8}>
-              {profileImage ? (
-                <Image source={{ uri: profileImage }} style={styles.avatarImage} />
-              ) : (
-                <Text style={styles.avatarText}>👨‍⚕️</Text>
-              )}
-              <View style={styles.editBadge}>
-                <Text style={styles.editBadgeText}>📷</Text>
+          {/* Professional Hero Profile Card */}
+          <View style={styles.profileHeroCard}>
+            <View style={styles.heroTopRow}>
+              <TouchableOpacity onPress={handleImagePickerOptions} style={styles.avatarContainer} activeOpacity={0.8}>
+                {profileImage ? (
+                  <Image source={{ uri: profileImage }} style={styles.avatarImage} />
+                ) : (
+                  <Text style={styles.avatarText}>👨‍⚕️</Text>
+                )}
+                <View style={styles.editBadge}>
+                  <Text style={styles.editBadgeText}>📷</Text>
+                </View>
+              </TouchableOpacity>
+
+              <View style={styles.heroInfoContainer}>
+                <Text style={styles.userName} numberOfLines={1}>{userName}</Text>
+                <Text style={styles.userEmail} numberOfLines={1}>{userEmail}</Text>
+                <Text style={styles.userPhone}>{userPhone}</Text>
               </View>
-            </TouchableOpacity>
-            
-            <Text style={styles.userName}>{userName}</Text>
-            <Text style={styles.userEmail}>{userEmail}</Text>
-            <Text style={styles.userPhone}>{userPhone}</Text>
-            
-            <Text style={styles.photoHintText}>{t.changePhoto}</Text>
+            </View>
 
-            <View style={styles.badgeContainer}>
-              <Text style={styles.badgeText}>{t.role}</Text>
+            <View style={styles.heroDivider} />
+
+            <View style={styles.heroBottomRow}>
+              <View style={styles.badgeContainer}>
+                <Text style={styles.badgeText}>🛡️ {t.role}</Text>
+              </View>
+
+              <TouchableOpacity style={styles.editProfileBtn} onPress={() => setIsEditModalVisible(true)}>
+                <Text style={styles.editProfileBtnText}>✏️ {t.editProfile}</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
-          {/* Settings Section */}
-          <Text style={styles.sectionTitle}>{t.settings}</Text>
+          {/* Preferences Section */}
+          <Text style={styles.sectionTitle}>{t.preferences}</Text>
 
-          {/* Language Toggle */}
-          <View style={styles.settingItem}>
-            <Text style={styles.settingText}>🌐 {t.language}</Text>
-            <Switch
-              value={isUrdu}
-              onValueChange={async (val) => {
-                setIsUrdu(val);
-                await AsyncStorage.setItem('appLanguage', val ? 'ur' : 'en');
-              }}
-              trackColor={{ false: '#334155', true: '#2563eb' }}
-              thumbColor={isUrdu ? '#ffffff' : '#cbd5e1'}
-            />
+          <View style={styles.cardGroup}>
+            <View style={styles.settingItem}>
+              <View style={styles.settingLabelRow}>
+                <Text style={styles.settingIcon}>🌐</Text>
+                <Text style={styles.settingText}>{t.language}</Text>
+              </View>
+              <Switch
+                value={isUrdu}
+                onValueChange={async (val) => {
+                  setIsUrdu(val);
+                  await AsyncStorage.setItem('appLanguage', val ? 'ur' : 'en');
+                }}
+                trackColor={{ false: '#334155', true: '#2563eb' }}
+                thumbColor={isUrdu ? '#ffffff' : '#cbd5e1'}
+              />
+            </View>
+
+            <View style={[styles.settingItem, { borderBottomWidth: 0 }]}>
+              <View style={styles.settingLabelRow}>
+                <Text style={styles.settingIcon}>🔔</Text>
+                <Text style={styles.settingText}>{t.notifications}</Text>
+              </View>
+              <Switch
+                value={notificationsEnabled}
+                onValueChange={(val) => setNotificationsEnabled(val)}
+                trackColor={{ false: '#334155', true: '#2563eb' }}
+                thumbColor={notificationsEnabled ? '#ffffff' : '#cbd5e1'}
+              />
+            </View>
           </View>
 
-          {/* Notifications Toggle */}
-          <View style={styles.settingItem}>
-            <Text style={styles.settingText}>🔔 {t.notifications}</Text>
-            <Switch
-              value={notificationsEnabled}
-              onValueChange={(val) => setNotificationsEnabled(val)}
-              trackColor={{ false: '#334155', true: '#2563eb' }}
-              thumbColor={notificationsEnabled ? '#ffffff' : '#cbd5e1'}
-            />
+          {/* About & Legal Section */}
+          <Text style={styles.sectionTitle}>{t.accountSettings}</Text>
+
+          <View style={styles.cardGroup}>
+            <TouchableOpacity style={styles.optionButton} onPress={() => Alert.alert(t.privacy, "MedVerify AI ensures complete data security & DRAP compliance standards.")}>
+              <View style={styles.settingLabelRow}>
+                <Text style={styles.settingIcon}>🔒</Text>
+                <Text style={styles.optionButtonText}>{t.privacy}</Text>
+              </View>
+              <Text style={styles.arrowText}>›</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.optionButton, { borderBottomWidth: 0 }]} onPress={() => Alert.alert(t.about, "MedVerify AI v1.0.0\nProfessional Pharmaceutical Tracking & Verification System.")}>
+              <View style={styles.settingLabelRow}>
+                <Text style={styles.settingIcon}>ℹ️</Text>
+                <Text style={styles.optionButtonText}>{t.about}</Text>
+              </View>
+              <Text style={styles.arrowText}>›</Text>
+            </TouchableOpacity>
           </View>
 
-          {/* Options Buttons */}
-          <TouchableOpacity style={styles.optionButton} onPress={() => Alert.alert(t.privacy, "MedVerify AI ensures complete data security & DRAP compliance.")}>
-            <Text style={styles.optionButtonText}>🔒 {t.privacy}</Text>
-            <Text style={styles.arrowText}>›</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.optionButton} onPress={() => Alert.alert(t.about, "MedVerify AI v1.0.0\nInstant Authenticity & Safety Scanner for Medicines.")}>
-            <Text style={styles.optionButtonText}>ℹ️ {t.about}</Text>
-            <Text style={styles.arrowText}>›</Text>
-          </TouchableOpacity>
-
-          {/* Logout Button */}
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          {/* Logout Action Button */}
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
             <Text style={styles.logoutButtonText}>🚪 {t.logout}</Text>
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
+
+      {/* Edit Profile Modal */}
+      <Modal
+        visible={isEditModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setIsEditModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>{t.editTitle}</Text>
+
+            <Text style={styles.inputLabel}>{t.nameLabel}</Text>
+            <TextInput
+              style={styles.inputField}
+              value={tempName}
+              onChangeText={setTempName}
+              placeholder="Enter Name"
+              placeholderTextColor="#64748b"
+            />
+
+            <Text style={styles.inputLabel}>{t.emailLabel}</Text>
+            <TextInput
+              style={styles.inputField}
+              value={tempEmail}
+              onChangeText={setTempEmail}
+              placeholder="Enter Email"
+              placeholderTextColor="#64748b"
+              keyboardType="email-address"
+            />
+
+            <Text style={styles.inputLabel}>{t.phoneLabel}</Text>
+            <TextInput
+              style={styles.inputField}
+              value={tempPhone}
+              onChangeText={setTempPhone}
+              placeholder="Enter Phone"
+              placeholderTextColor="#64748b"
+              keyboardType="phone-pad"
+            />
+
+            <View style={styles.modalBtnRow}>
+              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setIsEditModalVisible(false)}>
+                <Text style={styles.modalCancelText}>{t.cancel}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalSaveBtn} onPress={handleSaveProfile}>
+                <Text style={styles.modalSaveText}>{t.save}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -277,32 +389,35 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 26,
+    fontWeight: '700',
     color: '#ffffff',
+    letterSpacing: 0.3,
   },
   headerSubtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#94a3b8',
-    marginTop: 4,
+    marginTop: 2,
   },
-  profileCard: {
-    backgroundColor: 'rgba(30, 41, 59, 0.7)',
+  profileHeroCard: {
+    backgroundColor: 'rgba(30, 41, 59, 0.65)',
     borderRadius: 20,
-    padding: 24,
-    alignItems: 'center',
+    padding: 20,
     borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.3)',
+    borderColor: 'rgba(59, 130, 246, 0.25)',
     marginBottom: 24,
   },
+  heroTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   avatarContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     backgroundColor: 'rgba(59, 130, 246, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
     borderWidth: 2,
     borderColor: '#3b82f6',
     overflow: 'hidden',
@@ -313,82 +428,113 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   avatarText: {
-    fontSize: 36,
+    fontSize: 32,
   },
   editBadge: {
     position: 'absolute',
     bottom: 0,
     right: 0,
     backgroundColor: '#2563eb',
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
     borderColor: '#ffffff',
   },
   editBadgeText: {
-    fontSize: 10,
+    fontSize: 9,
+  },
+  heroInfoContainer: {
+    flex: 1,
+    marginLeft: 16,
   },
   userName: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '700',
     color: '#ffffff',
-    marginBottom: 4,
-    textAlign: 'center',
+    marginBottom: 2,
   },
   userEmail: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#cbd5e1',
     marginBottom: 2,
-    textAlign: 'center',
   },
   userPhone: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#94a3b8',
-    marginBottom: 6,
-    textAlign: 'center',
   },
-  photoHintText: {
-    fontSize: 11,
-    color: '#60a5fa',
-    marginBottom: 12,
-    fontStyle: 'italic',
+  heroDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    marginVertical: 16,
+  },
+  heroBottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   badgeContainer: {
-    backgroundColor: 'rgba(37, 99, 235, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
+    backgroundColor: 'rgba(37, 99, 235, 0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(37, 99, 235, 0.4)',
+    borderColor: 'rgba(37, 99, 235, 0.3)',
   },
   badgeText: {
+    fontSize: 11,
+    color: '#60a5fa',
+    fontWeight: '600',
+  },
+  editProfileBtn: {
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.3)',
+  },
+  editProfileBtnText: {
     fontSize: 12,
     color: '#60a5fa',
     fontWeight: '600',
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#94a3b8',
-    marginBottom: 12,
-    marginTop: 8,
+    marginBottom: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  cardGroup: {
+    backgroundColor: 'rgba(30, 41, 59, 0.45)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+    marginBottom: 20,
+    overflow: 'hidden',
   },
   settingItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'rgba(30, 41, 59, 0.5)',
-    padding: 16,
-    borderRadius: 14,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    padding: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  settingLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  settingIcon: {
+    fontSize: 16,
+    marginRight: 12,
   },
   settingText: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#ffffff',
     fontWeight: '500',
   },
@@ -396,34 +542,99 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'rgba(30, 41, 59, 0.5)',
-    padding: 16,
-    borderRadius: 14,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    padding: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
   },
   optionButtonText: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#ffffff',
     fontWeight: '500',
   },
   arrowText: {
     fontSize: 18,
-    color: '#94a3b8',
+    color: '#64748b',
+    fontWeight: '600',
   },
   logoutButton: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
-    padding: 16,
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    padding: 15,
     borderRadius: 14,
     alignItems: 'center',
-    marginTop: 12,
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderColor: 'rgba(239, 68, 68, 0.25)',
+    marginTop: 4,
   },
   logoutButtonText: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#f87171',
-    fontWeight: 'bold',
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalContainer: {
+    backgroundColor: '#0f172a',
+    borderRadius: 20,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.3)',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#ffffff',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  inputLabel: {
+    fontSize: 12,
+    color: '#94a3b8',
+    marginBottom: 6,
+    fontWeight: '500',
+  },
+  inputField: {
+    backgroundColor: 'rgba(30, 41, 59, 0.8)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 10,
+    padding: 12,
+    color: '#ffffff',
+    fontSize: 14,
+    marginBottom: 14,
+  },
+  modalBtnRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  modalCancelBtn: {
+    flex: 1,
+    backgroundColor: 'rgba(100, 116, 139, 0.2)',
+    padding: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  modalCancelText: {
+    color: '#94a3b8',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  modalSaveBtn: {
+    flex: 1,
+    backgroundColor: '#2563eb',
+    padding: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  modalSaveText: {
+    color: '#ffffff',
+    fontWeight: '600',
+    fontSize: 14,
   },
 });
