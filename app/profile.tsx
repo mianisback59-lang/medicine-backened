@@ -3,7 +3,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
   Image,
   Modal,
   SafeAreaView,
@@ -41,6 +40,10 @@ const translations = {
     nameLabel: "Full Name",
     emailLabel: "Email Address",
     phoneLabel: "Phone Number",
+    logoutTitle: "Sign Out",
+    logoutMsg: "Are you sure you want to sign out?",
+    infoTitle: "Information",
+    ok: "OK",
   },
   ur: {
     title: "پروفائل",
@@ -65,6 +68,10 @@ const translations = {
     nameLabel: "पूرا نام",
     emailLabel: "ای میل ایڈریس",
     phoneLabel: "فون نمبر",
+    logoutTitle: "سائن آؤٹ",
+    logoutMsg: "کیا آپ واقعی اکاؤنٹ سے باہر نکلना چاہتے ہیں؟",
+    infoTitle: "معلومات",
+    ok: "ٹھیک ہے",
   },
 };
 
@@ -82,6 +89,13 @@ export default function ProfileScreen() {
 
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isPhotoModalVisible, setIsPhotoModalVisible] = useState(false);
+  const [isLogoutModalVisible, setIsLogoutModalVisible] = useState(false); // Custom Dark Logout Modal
+  
+  const [infoModalData, setInfoModalData] = useState<{ visible: boolean; title: string; message: string }>({
+    visible: false,
+    title: '',
+    message: '',
+  });
   
   const [tempName, setTempName] = useState(userName);
   const [tempEmail, setTempEmail] = useState(userEmail);
@@ -120,7 +134,11 @@ export default function ProfileScreen() {
       setUserEmail(tempEmail);
       setUserPhone(tempPhone);
       setIsEditModalVisible(false);
-      Alert.alert(isUrdu ? "کامیابی" : "Success", isUrdu ? "پروفائل کامیابی سے اپ ڈیٹ ہو گئی ہے" : "Profile updated successfully!");
+      setInfoModalData({
+        visible: true,
+        title: isUrdu ? "کامیابی" : "Success",
+        message: isUrdu ? "پروفائل کامیابی سے اپ ڈیٹ ہو گئی ہے" : "Profile updated successfully!",
+      });
     } catch (error) {
       console.log('Error saving profile:', error);
     }
@@ -137,10 +155,11 @@ export default function ProfileScreen() {
       }
 
       if (!permissionResult.granted) {
-        Alert.alert(
-          isUrdu ? "اجازت درکار ہے" : "Permission Required",
-          isUrdu ? "کیمرے یا گیلری تک رسائی کی اجازت ضروری ہے!" : "Permission access is required!"
-        );
+        setInfoModalData({
+          visible: true,
+          title: isUrdu ? "اجازت درکار ہے" : "Permission Required",
+          message: isUrdu ? "کیمرے یا گیلری تک رسائی کی اجازت ضروری ہے!" : "Permission access is required!",
+        });
         return;
       }
 
@@ -176,27 +195,16 @@ export default function ProfileScreen() {
     await AsyncStorage.removeItem('profileImage');
   };
 
-  const handleLogout = () => {
-    Alert.alert(
-      isUrdu ? "لاگ آؤٹ" : "Sign Out",
-      isUrdu ? "کیا آپ واقعی اکاؤنٹ سے باہر نکلنا چاہتے ہیں؟" : "Are you sure you want to sign out?",
-      [
-        { text: isUrdu ? "نہیں" : "Cancel", style: "cancel" },
-        { 
-          text: isUrdu ? "ہاں" : "Sign Out", 
-          onPress: async () => {
-            try {
-              await AsyncStorage.removeItem('userToken');
-            } catch (e) {
-              console.log('Logout error:', e);
-            }
-            requestAnimationFrame(() => {
-              router.replace('/auth');
-            });
-          } 
-        }
-      ]
-    );
+  const executeLogout = async () => {
+    setIsLogoutModalVisible(false);
+    try {
+      await AsyncStorage.removeItem('userToken');
+    } catch (e) {
+      console.log('Logout error:', e);
+    }
+    requestAnimationFrame(() => {
+      router.replace('/auth');
+    });
   };
 
   return (
@@ -209,13 +217,13 @@ export default function ProfileScreen() {
           ]}
           showsVerticalScrollIndicator={false}
         >
-          {/* Clean Minimalist Header */}
+          {/* Header */}
           <View style={styles.headerContainer}>
             <Text style={styles.headerTitle}>{t.title}</Text>
             <Text style={styles.headerSubtitle}>{t.subtitle}</Text>
           </View>
 
-          {/* Professional Hero Profile Card */}
+          {/* Profile Card */}
           <View style={styles.profileHeroCard}>
             <View style={styles.heroTopRow}>
               <TouchableOpacity onPress={() => setIsPhotoModalVisible(true)} style={styles.avatarContainer} activeOpacity={0.85}>
@@ -224,8 +232,9 @@ export default function ProfileScreen() {
                 ) : (
                   <Text style={styles.avatarText}>👤</Text>
                 )}
+                {/* Fixed Professional Camera Icon Badge */}
                 <View style={styles.editBadge}>
-                  <Text style={styles.editBadgeText}>⚡</Text>
+                  <Text style={styles.editBadgeText}>📷</Text>
                 </View>
               </TouchableOpacity>
 
@@ -249,7 +258,7 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {/* Preferences Section */}
+          {/* Preferences */}
           <Text style={styles.sectionTitle}>{t.preferences}</Text>
 
           <View style={styles.cardGroup}>
@@ -283,11 +292,19 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {/* Account Settings Section */}
+          {/* Account Settings */}
           <Text style={styles.sectionTitle}>{t.accountSettings}</Text>
 
           <View style={styles.cardGroup}>
-            <TouchableOpacity style={styles.optionButton} onPress={() => Alert.alert(t.privacy, "MedVerify AI ensures complete data security & privacy standards.")} activeOpacity={0.8}>
+            <TouchableOpacity 
+              style={styles.optionButton} 
+              onPress={() => setInfoModalData({
+                visible: true, 
+                title: t.privacy, 
+                message: "MedVerify AI ensures complete data security & privacy standards. Your scanned records and details remain encrypted and secure."
+              })} 
+              activeOpacity={0.8}
+            >
               <View style={styles.settingLabelRow}>
                 <Text style={styles.settingIcon}>🔒</Text>
                 <Text style={styles.optionButtonText}>{t.privacy}</Text>
@@ -295,7 +312,15 @@ export default function ProfileScreen() {
               <Text style={styles.arrowText}>›</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.optionButton, { borderBottomWidth: 0 }]} onPress={() => Alert.alert(t.about, "MedVerify AI v1.0.0\nInstant Medicine Authenticity & Safety Scanner.")} activeOpacity={0.8}>
+            <TouchableOpacity 
+              style={[styles.optionButton, { borderBottomWidth: 0 }]} 
+              onPress={() => setInfoModalData({
+                visible: true, 
+                title: t.about, 
+                message: "MedVerify AI v1.0.0\nInstant Medicine Authenticity & Safety Scanner. Designed to protect users from counterfeit pharmaceutical products."
+              })} 
+              activeOpacity={0.8}
+            >
               <View style={styles.settingLabelRow}>
                 <Text style={styles.settingIcon}>ℹ️</Text>
                 <Text style={styles.optionButtonText}>{t.about}</Text>
@@ -304,8 +329,8 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Logout Action Button */}
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
+          {/* Logout Button */}
+          <TouchableOpacity style={styles.logoutButton} onPress={() => setIsLogoutModalVisible(true)} activeOpacity={0.8}>
             <Text style={styles.logoutButtonText}>🚪 {t.logout}</Text>
           </TouchableOpacity>
         </ScrollView>
@@ -339,6 +364,49 @@ export default function ProfileScreen() {
 
             <TouchableOpacity style={styles.modalCancelBtnFull} onPress={() => setIsPhotoModalVisible(false)} activeOpacity={0.8}>
               <Text style={styles.modalCancelText}>{t.cancel}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Custom Dark Sign Out Modal (Replaces white system alert) */}
+      <Modal
+        visible={isLogoutModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setIsLogoutModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>{t.logoutTitle}</Text>
+            <Text style={styles.modalSubtitleText}>{t.logoutMsg}</Text>
+
+            <View style={styles.modalBtnRow}>
+              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setIsLogoutModalVisible(false)} activeOpacity={0.8}>
+                <Text style={styles.modalCancelText}>{t.cancel}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalSaveBtn, { backgroundColor: '#ef4444' }]} onPress={executeLogout} activeOpacity={0.8}>
+                <Text style={styles.modalSaveText}>{t.logout}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Info / Privacy / About Modal */}
+      <Modal
+        visible={infoModalData.visible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setInfoModalData({ ...infoModalData, visible: false })}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>{infoModalData.title}</Text>
+            <Text style={[styles.modalSubtitleText, { marginVertical: 12, lineHeight: 20 }]}>{infoModalData.message}</Text>
+
+            <TouchableOpacity style={styles.modalSaveBtn} onPress={() => setInfoModalData({ ...infoModalData, visible: false })} activeOpacity={0.8}>
+              <Text style={styles.modalSaveText}>{t.ok}</Text>
             </TouchableOpacity>
           </View>
         </View>
