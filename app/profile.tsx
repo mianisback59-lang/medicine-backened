@@ -1,28 +1,25 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    Image,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Translations for Multilingual Support (English & Urdu)
 const translations = {
   en: {
     title: "User Profile",
     subtitle: "Manage your account & preferences",
     personalInfo: "Personal Information",
-    name: "Dr. Ahmed Khan",
-    email: "ahmed.khan@medverify.ai",
-    phone: "+92 300 1234567",
     role: "Verified Pharmacist / Inspector",
     settings: "Preferences",
     language: "Urdu Language (اردو)",
@@ -31,14 +28,16 @@ const translations = {
     about: "About MedVerify AI",
     logout: "Log Out",
     changePhoto: "Tap to change photo",
+    photoSourceTitle: "Profile Photo",
+    photoSourceMsg: "Choose a source to update your profile picture",
+    camera: "Camera",
+    gallery: "Gallery",
+    cancel: "Cancel",
   },
   ur: {
     title: "یوزر پروفائل",
     subtitle: "اپنا اکاؤنٹ اور ترجیحات مینیج کریں",
     personalInfo: "ذاتی معلومات",
-    name: "ڈاکٹر احمد خان",
-    email: "ahmed.khan@medverify.ai",
-    phone: "+92 300 1234567",
     role: "تصدیق شدہ فارماسسٹ / انسپکٹر",
     settings: "ترجیحات",
     language: "اردو زبان (Urdu)",
@@ -47,6 +46,11 @@ const translations = {
     about: "میڈ ویریفائی اے آئی کے بارے میں",
     logout: "لاگ آؤٹ",
     changePhoto: "تصویر تبدیل کرنے کے لیے ٹیپ کریں",
+    photoSourceTitle: "پروفائل تصویر",
+    photoSourceMsg: "اپنی پروفائل تصویر اپ ڈیٹ کرنے کے لیے ذریعہ منتخب کریں",
+    camera: "کیمرہ",
+    gallery: "گیلری",
+    cancel: "منسوخ کریں",
   },
 };
 
@@ -54,34 +58,92 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   
-  // State for Language, Notifications & Profile Image
   const [isUrdu, setIsUrdu] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
+  // Real User Data States
+  const [userName, setUserName] = useState('Dr. Ahmed Khan');
+  const [userEmail, setUserEmail] = useState('ahmed.khan@medverify.ai');
+  const [userPhone, setUserPhone] = useState('+92 300 1234567');
+
   const t = isUrdu ? translations.ur : translations.en;
 
-  // Function to pick image from gallery
-  const pickImage = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
-    if (!permissionResult.granted) {
-      Alert.alert(
-        isUrdu ? "اجازت درکار ہے" : "Permission Required",
-        isUrdu ? "گیلری تک رسائی کی اجازت ضروری ہے!" : "Permission to access camera roll is required!"
-      );
-      return;
+  useEffect(() => {
+    loadUserData();
+  }, []);
+
+  const loadUserData = async () => {
+    try {
+      const savedName = await AsyncStorage.getItem('userName');
+      const savedEmail = await AsyncStorage.getItem('userEmail');
+      const savedPhone = await AsyncStorage.getItem('userPhone');
+      const savedImage = await AsyncStorage.getItem('profileImage');
+      const savedLang = await AsyncStorage.getItem('appLanguage');
+
+      if (savedName) setUserName(savedName);
+      if (savedEmail) setUserEmail(savedEmail);
+      if (savedPhone) setUserPhone(savedPhone);
+      if (savedImage) setProfileImage(savedImage);
+      if (savedLang === 'ur') setIsUrdu(true);
+    } catch (error) {
+      console.log('Error loading user data:', error);
     }
+  };
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
+  // Function to handle Image selection (Camera or Gallery)
+  const handleImagePickerOptions = () => {
+    Alert.alert(
+      t.photoSourceTitle,
+      t.photoSourceMsg,
+      [
+        { text: t.cancel, style: 'cancel' },
+        { text: t.gallery, onPress: () => pickImage('gallery') },
+        { text: t.camera, onPress: () => pickImage('camera') },
+      ]
+    );
+  };
 
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      setProfileImage(result.assets[0].uri);
+  const pickImage = async (sourceType: 'camera' | 'gallery') => {
+    try {
+      let permissionResult;
+      if (sourceType === 'camera') {
+        permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+      } else {
+        permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      }
+
+      if (!permissionResult.granted) {
+        Alert.alert(
+          isUrdu ? "اجازت درکار ہے" : "Permission Required",
+          isUrdu ? "کیمرے یا گیلری تک رسائی کی اجازت ضروری ہے!" : "Permission to access camera or gallery is required!"
+        );
+        return;
+      }
+
+      let result;
+      if (sourceType === 'camera') {
+        result = await ImagePicker.launchCameraAsync({
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.8,
+        });
+      } else {
+        result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'],
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.8,
+        });
+      }
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const uri = result.assets[0].uri;
+        setProfileImage(uri);
+        await AsyncStorage.setItem('profileImage', uri);
+      }
+    } catch (error) {
+      console.log('Error picking image:', error);
     }
   };
 
@@ -93,7 +155,16 @@ export default function ProfileScreen() {
         { text: isUrdu ? "نہیں" : "Cancel", style: "cancel" },
         { 
           text: isUrdu ? "ہاں" : "Logout", 
-          onPress: () => {
+          onPress: async () => {
+            try {
+              // Clear authentication tokens and session data
+              await AsyncStorage.removeItem('userToken');
+              await AsyncStorage.removeItem('userName');
+              await AsyncStorage.removeItem('userEmail');
+              await AsyncStorage.removeItem('userPhone');
+            } catch (e) {
+              console.log('Logout error:', e);
+            }
             requestAnimationFrame(() => {
               router.replace('/auth');
             });
@@ -109,7 +180,7 @@ export default function ProfileScreen() {
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingTop: Math.max(insets.top, 20), paddingBottom: 90 } // Footer global hone ki wajah se padding kam kar di hai
+            { paddingTop: Math.max(insets.top, 20), paddingBottom: 130 }
           ]}
           showsVerticalScrollIndicator={false}
         >
@@ -121,9 +192,9 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {/* Profile Card with Image Picker */}
+          {/* Profile Card with Real Camera & Gallery Support */}
           <View style={styles.profileCard}>
-            <TouchableOpacity onPress={pickImage} style={styles.avatarContainer}>
+            <TouchableOpacity onPress={handleImagePickerOptions} style={styles.avatarContainer} activeOpacity={0.8}>
               {profileImage ? (
                 <Image source={{ uri: profileImage }} style={styles.avatarImage} />
               ) : (
@@ -134,9 +205,9 @@ export default function ProfileScreen() {
               </View>
             </TouchableOpacity>
             
-            <Text style={styles.userName}>{t.name}</Text>
-            <Text style={styles.userEmail}>{t.email}</Text>
-            <Text style={styles.userPhone}>{t.phone}</Text>
+            <Text style={styles.userName}>{userName}</Text>
+            <Text style={styles.userEmail}>{userEmail}</Text>
+            <Text style={styles.userPhone}>{userPhone}</Text>
             
             <Text style={styles.photoHintText}>{t.changePhoto}</Text>
 
@@ -153,7 +224,10 @@ export default function ProfileScreen() {
             <Text style={styles.settingText}>🌐 {t.language}</Text>
             <Switch
               value={isUrdu}
-              onValueChange={(val) => setIsUrdu(val)}
+              onValueChange={async (val) => {
+                setIsUrdu(val);
+                await AsyncStorage.setItem('appLanguage', val ? 'ur' : 'en');
+              }}
               trackColor={{ false: '#334155', true: '#2563eb' }}
               thumbColor={isUrdu ? '#ffffff' : '#cbd5e1'}
             />
@@ -262,16 +336,19 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#ffffff',
     marginBottom: 4,
+    textAlign: 'center',
   },
   userEmail: {
     fontSize: 14,
     color: '#cbd5e1',
     marginBottom: 2,
+    textAlign: 'center',
   },
   userPhone: {
     fontSize: 14,
     color: '#94a3b8',
     marginBottom: 6,
+    textAlign: 'center',
   },
   photoHintText: {
     fontSize: 11,
