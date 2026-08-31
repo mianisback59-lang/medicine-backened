@@ -497,7 +497,7 @@ export default function Index() {
               {/* Scan Tab */}
               <TouchableOpacity 
                 style={[styles.navItem, styles.activeNavItem]} 
-                activeOpacity={0.85}
+                activeOpacity={0.9}
               >
                 <Text style={styles.navIcon}>🛡️</Text>
                 <Text style={[styles.navText, styles.activeNavText]}>{t.navScan}</Text>
@@ -506,7 +506,7 @@ export default function Index() {
               {/* History Tab */}
               <TouchableOpacity 
                 style={styles.navItem} 
-                activeOpacity={0.85}
+                activeOpacity={0.9}
                 onPress={() => router.replace('/history')}
               >
                 <Text style={styles.navIcon}>🕒</Text>
@@ -516,7 +516,7 @@ export default function Index() {
               {/* Profile Tab */}
               <TouchableOpacity 
                 style={styles.navItem} 
-                activeOpacity={0.85}
+                activeOpacity={0.9}
                 onPress={() => router.replace('/profile')}
               >
                 <Text style={styles.navIcon}>👤</Text>
@@ -691,12 +691,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(17, 24, 39, 0.95)',
     borderRadius: 28,
     borderWidth: 1.5,
-    borderColor: 'rgba(59, 130, 246, 0.6)', // Yeh border glow ko wapas roshan kar dega
+    borderColor: 'rgba(59, 130, 246, 0.6)',
     paddingVertical: 6,
     paddingHorizontal: 6,
     width: '100%',
     justifyContent: 'space-between',
-    shadowColor: '#3B82F6', // Yeh neela glow/shadow dobara le ayega
+    shadowColor: '#3B82F6',
     shadowOpacity: 0.45,
     shadowRadius: 15,
     elevation: 12,
@@ -735,6 +735,6 @@ const styles = StyleSheet.create({
   submitReportBtn: { backgroundColor: '#EF4444', paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
   submitReportText: { color: '#FFF', fontWeight: '800', fontSize: 13 },
   cancelBtn: { paddingVertical: 12, alignItems: 'center', marginTop: 6 },
-  cancelText: { color: '#94A3B8', fontSize: '13' as any, fontWeight: '700' },
+  cancelText: { color: '#94A3B8', fontSize: 13, fontWeight: '700' },
   refCode: { fontSize: 12, fontWeight: '800', color: '#34D399', backgroundColor: 'rgba(52, 211, 153, 0.1)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, marginTop: 12, overflow: 'hidden' },
 });
