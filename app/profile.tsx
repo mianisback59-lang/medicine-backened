@@ -30,9 +30,6 @@ const translations = {
     privacy: "Privacy Policy",
     about: "About MedVerify AI",
     logout: "Log Out",
-    navScan: "Scan",
-    navHistory: "History",
-    navProfile: "Profile",
     changePhoto: "Tap to change photo",
   },
   ur: {
@@ -49,9 +46,6 @@ const translations = {
     privacy: "پراائیویسی پالیسی",
     about: "میڈ ویریفائی اے آئی کے بارے میں",
     logout: "لاگ آؤٹ",
-    navScan: "اسکین",
-    navHistory: "ہسٹری",
-    navProfile: "پروفائل",
     changePhoto: "تصویر تبدیل کرنے کے لیے ٹیپ کریں",
   },
 };
@@ -69,7 +63,6 @@ export default function ProfileScreen() {
 
   // Function to pick image from gallery
   const pickImage = async () => {
-    // Request permission
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
     if (!permissionResult.granted) {
@@ -116,7 +109,7 @@ export default function ProfileScreen() {
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingTop: Math.max(insets.top, 20), paddingBottom: 140 }
+            { paddingTop: Math.max(insets.top, 20), paddingBottom: 90 } // Footer global hone ki wajah se padding kam kar di hai
           ]}
           showsVerticalScrollIndicator={false}
         >
@@ -193,52 +186,6 @@ export default function ProfileScreen() {
             <Text style={styles.logoutButtonText}>🚪 {t.logout}</Text>
           </TouchableOpacity>
         </ScrollView>
-
-        {/* 🌟 GLOWING & PROFESSIONAL FOOTER (Matched with Scan Page) */}
-        <View style={styles.floatingFooterBackground}>
-          <View style={[styles.floatingFooterContainer, { bottom: Math.max(insets.bottom, 16) }]}>
-            <View style={styles.floatingNavBar}>
-              
-              {/* Scan Tab */}
-              <TouchableOpacity 
-                style={styles.navItem} 
-                activeOpacity={1}
-                onPress={() => {
-                  requestAnimationFrame(() => {
-                    router.replace('/');
-                  });
-                }}
-              >
-                <Text style={styles.navIcon}>🛡️</Text>
-                <Text style={styles.navText}>{t.navScan}</Text>
-              </TouchableOpacity>
-
-              {/* History Tab */}
-              <TouchableOpacity 
-                style={styles.navItem} 
-                activeOpacity={1}
-                onPress={() => {
-                  requestAnimationFrame(() => {
-                    router.replace('/history');
-                  });
-                }}
-              >
-                <Text style={styles.navIcon}>🕒</Text>
-                <Text style={styles.navText}>{t.navHistory}</Text>
-              </TouchableOpacity>
-
-              {/* Profile Tab (Active) */}
-              <TouchableOpacity 
-                style={[styles.navItem, styles.activeNavItem]} 
-                activeOpacity={1}
-              >
-                <Text style={styles.navIcon}>👤</Text>
-                <Text style={[styles.navText, styles.activeNavText]}>{t.navProfile}</Text>
-              </TouchableOpacity>
-
-            </View>
-          </View>
-        </View>
       </SafeAreaView>
     </View>
   );
@@ -401,63 +348,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#f87171',
     fontWeight: 'bold',
-  },
-  
-  // 🌟 GLOWING & PROFESSIONAL FOOTER STYLES
-  floatingFooterBackground: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 105,
-    backgroundColor: '#070b19',
-    zIndex: 98,
-  },
-  floatingFooterContainer: {
-    position: 'absolute',
-    left: 20,
-    right: 20,
-    alignItems: 'center',
-    zIndex: 99,
-  },
-  floatingNavBar: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(17, 24, 39, 0.95)',
-    borderRadius: 28,
-    borderWidth: 1.5,
-    borderColor: 'rgba(59, 130, 246, 0.6)',
-    paddingVertical: 6,
-    paddingHorizontal: 6,
-    width: '100%',
-    justifyContent: 'space-between',
-    shadowColor: '#3B82F6',
-    shadowOpacity: 0.45,
-    shadowRadius: 15,
-    elevation: 12,
-  },
-  navItem: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    borderRadius: 20,
-    gap: 6,
-  },
-  activeNavItem: {
-    backgroundColor: 'rgba(37, 99, 235, 0.25)',
-    borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.5)',
-  },
-  navIcon: {
-    fontSize: 16,
-  },
-  navText: {
-    fontSize: 12,
-    color: '#94A3B8',
-    fontWeight: '700',
-  },
-  activeNavText: {
-    color: '#60A5FA',
   },
 });

@@ -64,9 +64,6 @@ const translations = {
     cancel: "Cancel",
     reportSuccess: "Report Submitted!",
     done: "Done",
-    navScan: "Scan",
-    navHistory: "History",
-    navProfile: "Profile",
   },
   ur: {
     appTitle: "میڈ ویریفائی AI",
@@ -90,9 +87,6 @@ const translations = {
     cancel: "منسوخ کریں",
     reportSuccess: "رپورٹ جمع ہو گئی!",
     done: "مکمل",
-    navScan: "سکین",
-    navHistory: "ہسٹری",
-    navProfile: "پروفائل",
   }
 };
 
@@ -112,8 +106,6 @@ export default function Index() {
   const [torch, setTorch] = useState<boolean>(false);
   const [manualCode, setManualCode] = useState<string>('');
 
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
-
   const [isReportModalVisible, setIsReportModalVisible] = useState<boolean>(false);
   const [reportReason, setReportReason] = useState<string>('');
   const [storeInfo, setStoreInfo] = useState<string>('');
@@ -122,17 +114,6 @@ export default function Index() {
 
   useEffect(() => {
     checkUserLogin();
-
-    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-
-    const keyboardShowListener = Keyboard.addListener(showEvent, () => setIsKeyboardVisible(true));
-    const keyboardHideListener = Keyboard.addListener(hideEvent, () => setIsKeyboardVisible(false));
-
-    return () => {
-      keyboardShowListener.remove();
-      keyboardHideListener.remove();
-    };
   }, []);
 
   const checkUserLogin = async () => {
@@ -483,50 +464,6 @@ export default function Index() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {!isKeyboardVisible && (
-        <View style={styles.floatingFooterBackground}>
-          <View style={[styles.floatingFooterContainer, { bottom: Math.max(insets.bottom, 16) }]}>
-            <View style={styles.floatingNavBar}>
-              
-              <TouchableOpacity 
-                style={[styles.navItem, styles.activeNavItem]} 
-                activeOpacity={1}
-              >
-                <Text style={styles.navIcon}>🛡️</Text>
-                <Text style={[styles.navText, styles.activeNavText]}>{t.navScan}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.navItem} 
-                activeOpacity={1}
-                onPress={() => {
-                  requestAnimationFrame(() => {
-                    router.replace('/history');
-                  });
-                }}
-              >
-                <Text style={styles.navIcon}>🕒</Text>
-                <Text style={styles.navText}>{t.navHistory}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.navItem} 
-                activeOpacity={1}
-                onPress={() => {
-                  requestAnimationFrame(() => {
-                    router.replace('/profile');
-                  });
-                }}
-              >
-                <Text style={styles.navIcon}>👤</Text>
-                <Text style={styles.navText}>{t.navProfile}</Text>
-              </TouchableOpacity>
-
-            </View>
-          </View>
-        </View>
-      )}
-
       <Modal visible={isReportModalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
@@ -591,12 +528,12 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
- safeContainer: { flex: 1, backgroundColor: '#0A0F1D' },
+  safeContainer: { flex: 1, backgroundColor: '#0A0F1D' },
   container: { flex: 1 },
   scrollContent: { 
     paddingHorizontal: 20, 
     paddingTop: 16, 
-    paddingBottom: 140 
+    paddingBottom: 90 // Footer global hone ki wajah se padding kam kar di hai
   },
   containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#0A0F1D' },
   permissionText: { fontSize: 16, textAlign: 'center', color: '#94A3B8', marginBottom: 20 },
@@ -667,62 +604,6 @@ const styles = StyleSheet.create({
   resetBtn: { backgroundColor: '#334155', paddingVertical: 14, borderRadius: 14, alignItems: 'center' },
   resetBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.5 },
 
-  floatingFooterBackground: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 105,
-    backgroundColor: '#0A0F1D',
-    zIndex: 98,
-  },
-  floatingFooterContainer: {
-    position: 'absolute',
-    left: 20,
-    right: 20,
-    alignItems: 'center',
-    zIndex: 99,
-  },
-  floatingNavBar: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(17, 24, 39, 0.95)',
-    borderRadius: 28,
-    borderWidth: 1.5,
-    borderColor: 'rgba(59, 130, 246, 0.6)',
-    paddingVertical: 6,
-    paddingHorizontal: 6,
-    width: '100%',
-    justifyContent: 'space-between',
-    shadowColor: '#3B82F6',
-    shadowOpacity: 0.45,
-    shadowRadius: 15,
-    elevation: 12,
-  },
-  navItem: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    borderRadius: 20,
-    gap: 6,
-  },
-  activeNavItem: {
-    backgroundColor: 'rgba(37, 99, 235, 0.25)',
-    borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.5)',
-  },
-  navIcon: {
-    fontSize: 16,
-  },
-  navText: {
-    fontSize: 12,
-    color: '#94A3B8',
-    fontWeight: '700',
-  },
-  activeNavText: {
-    color: '#60A5FA',
-  },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(10, 15, 29, 0.85)', justifyContent: 'center', padding: 20 },
   modalContainer: { backgroundColor: '#111827', borderRadius: 24, padding: 22, borderWidth: 1, borderColor: '#334155', elevation: 10 },
   modalTitle: { fontSize: 18, fontWeight: '900', color: '#FFFFFF' },
