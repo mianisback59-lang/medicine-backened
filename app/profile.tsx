@@ -19,10 +19,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const translations = {
   en: {
-    title: "Account & Profile",
-    subtitle: "Manage your credentials and app preferences",
-    personalInfo: "Personal Information",
-    role: "Verified Pharmacist / Inspector",
+    title: "Profile",
+    subtitle: "Manage your credentials and preferences",
+    role: "Verified Account",
     accountSettings: "Account Settings",
     preferences: "Preferences",
     language: "Language (Urdu / English)",
@@ -30,25 +29,23 @@ const translations = {
     privacy: "Privacy Policy",
     about: "About MedVerify AI",
     logout: "Sign Out",
-    changePhoto: "Change Profile Photo",
     photoSourceTitle: "Profile Picture",
-    photoSourceMsg: "Select an option to update your avatar",
-    camera: "Take Photo",
+    photoSourceMsg: "Choose an option to update your photo",
+    camera: "Take Photo via Camera",
     gallery: "Choose from Gallery",
-    removePhoto: "Remove Photo",
+    removePhoto: "Remove Current Photo",
     cancel: "Cancel",
-    editProfile: "Edit Profile Details",
+    editProfile: "Edit Profile",
     save: "Save Changes",
-    editTitle: "Edit Profile",
+    editTitle: "Edit Profile Details",
     nameLabel: "Full Name",
     emailLabel: "Email Address",
     phoneLabel: "Phone Number",
   },
   ur: {
-    title: "اکاؤنٹ اور پروفائل",
+    title: "پروفائل",
     subtitle: "اپنی معلومات اور ترجیحات کا انتظام کریں",
-    personalInfo: "ذاتی معلومات",
-    role: "تصدیق شدہ فارماسسٹ / انسپکٹر",
+    role: "تصدیق شدہ اکاؤنٹ",
     accountSettings: "اکاؤنٹ کی سیٹنگز",
     preferences: "ترجیحات",
     language: "زبان (اردو / انگریزی)",
@@ -56,12 +53,11 @@ const translations = {
     privacy: "پراائیویسی پالیسی",
     about: "میڈ ویریفائی اے آئی کے بارے میں",
     logout: "سائن آؤٹ",
-    changePhoto: "تصویر تبدیل کریں",
     photoSourceTitle: "پروفائل تصویر",
-    photoSourceMsg: "تصویر اپ ڈیٹ کرنے کے لیے ذریعہ منتخب کریں",
-    camera: "کیمرہ",
-    gallery: "گیلری",
-    removePhoto: "تصویر ہٹائیں",
+    photoSourceMsg: "تصویر اپ ڈیٹ کرنے کے لیے آپشن منتخب کریں",
+    camera: "کیمرے سے تصویر لیں",
+    gallery: "گیلری سے منتخب کریں",
+    removePhoto: "موجودہ تصویر ہٹائیں",
     cancel: "منسوخ",
     editProfile: "پروفائل ایڈٹ کریں",
     save: "محفوظ کریں",
@@ -80,11 +76,13 @@ export default function ProfileScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
-  const [userName, setUserName] = useState('Dr. Ahmed Khan');
-  const [userEmail, setUserEmail] = useState('ahmed.khan@medverify.ai');
+  const [userName, setUserName] = useState('Ahmed Khan');
+  const [userEmail, setUserEmail] = useState('ahmed.khan@gmail.com');
   const [userPhone, setUserPhone] = useState('+92 300 1234567');
 
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [isPhotoModalVisible, setIsPhotoModalVisible] = useState(false);
+  
   const [tempName, setTempName] = useState(userName);
   const [tempEmail, setTempEmail] = useState(userEmail);
   const [tempPhone, setTempPhone] = useState(userPhone);
@@ -128,23 +126,8 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleImagePickerOptions = () => {
-    Alert.alert(
-      t.photoSourceTitle,
-      t.photoSourceMsg,
-      [
-        { text: t.cancel, style: 'cancel' },
-        ...(profileImage ? [{ text: t.removePhoto, style: 'destructive' as const, onPress: async () => {
-            setProfileImage(null);
-            await AsyncStorage.removeItem('profileImage');
-          }}] : []),
-        { text: t.gallery, onPress: () => pickImage('gallery') },
-        { text: t.camera, onPress: () => pickImage('camera') },
-      ]
-    );
-  };
-
   const pickImage = async (sourceType: 'camera' | 'gallery') => {
+    setIsPhotoModalVisible(false);
     try {
       let permissionResult;
       if (sourceType === 'camera') {
@@ -187,10 +170,16 @@ export default function ProfileScreen() {
     }
   };
 
+  const removePhoto = async () => {
+    setIsPhotoModalVisible(false);
+    setProfileImage(null);
+    await AsyncStorage.removeItem('profileImage');
+  };
+
   const handleLogout = () => {
     Alert.alert(
       isUrdu ? "لاگ آؤٹ" : "Sign Out",
-      isUrdu ? "کیا آپ واقعی اکاؤنٹ سے باہر نکلना چاہتے ہیں؟" : "Are you sure you want to sign out?",
+      isUrdu ? "کیا آپ واقعی اکاؤنٹ سے باہر نکلنا چاہتے ہیں؟" : "Are you sure you want to sign out?",
       [
         { text: isUrdu ? "نہیں" : "Cancel", style: "cancel" },
         { 
@@ -220,7 +209,7 @@ export default function ProfileScreen() {
           ]}
           showsVerticalScrollIndicator={false}
         >
-          {/* Header Section */}
+          {/* Clean Minimalist Header */}
           <View style={styles.headerContainer}>
             <Text style={styles.headerTitle}>{t.title}</Text>
             <Text style={styles.headerSubtitle}>{t.subtitle}</Text>
@@ -229,14 +218,14 @@ export default function ProfileScreen() {
           {/* Professional Hero Profile Card */}
           <View style={styles.profileHeroCard}>
             <View style={styles.heroTopRow}>
-              <TouchableOpacity onPress={handleImagePickerOptions} style={styles.avatarContainer} activeOpacity={0.8}>
+              <TouchableOpacity onPress={() => setIsPhotoModalVisible(true)} style={styles.avatarContainer} activeOpacity={0.85}>
                 {profileImage ? (
                   <Image source={{ uri: profileImage }} style={styles.avatarImage} />
                 ) : (
-                  <Text style={styles.avatarText}>👨‍⚕️</Text>
+                  <Text style={styles.avatarText}>👤</Text>
                 )}
                 <View style={styles.editBadge}>
-                  <Text style={styles.editBadgeText}>📷</Text>
+                  <Text style={styles.editBadgeText}>⚡</Text>
                 </View>
               </TouchableOpacity>
 
@@ -251,10 +240,10 @@ export default function ProfileScreen() {
 
             <View style={styles.heroBottomRow}>
               <View style={styles.badgeContainer}>
-                <Text style={styles.badgeText}>🛡️ {t.role}</Text>
+                <Text style={styles.badgeText}>✅ {t.role}</Text>
               </View>
 
-              <TouchableOpacity style={styles.editProfileBtn} onPress={() => setIsEditModalVisible(true)}>
+              <TouchableOpacity style={styles.editProfileBtn} onPress={() => setIsEditModalVisible(true)} activeOpacity={0.8}>
                 <Text style={styles.editProfileBtnText}>✏️ {t.editProfile}</Text>
               </TouchableOpacity>
             </View>
@@ -294,11 +283,11 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {/* About & Legal Section */}
+          {/* Account Settings Section */}
           <Text style={styles.sectionTitle}>{t.accountSettings}</Text>
 
           <View style={styles.cardGroup}>
-            <TouchableOpacity style={styles.optionButton} onPress={() => Alert.alert(t.privacy, "MedVerify AI ensures complete data security & DRAP compliance standards.")}>
+            <TouchableOpacity style={styles.optionButton} onPress={() => Alert.alert(t.privacy, "MedVerify AI ensures complete data security & privacy standards.")} activeOpacity={0.8}>
               <View style={styles.settingLabelRow}>
                 <Text style={styles.settingIcon}>🔒</Text>
                 <Text style={styles.optionButtonText}>{t.privacy}</Text>
@@ -306,7 +295,7 @@ export default function ProfileScreen() {
               <Text style={styles.arrowText}>›</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.optionButton, { borderBottomWidth: 0 }]} onPress={() => Alert.alert(t.about, "MedVerify AI v1.0.0\nProfessional Pharmaceutical Tracking & Verification System.")}>
+            <TouchableOpacity style={[styles.optionButton, { borderBottomWidth: 0 }]} onPress={() => Alert.alert(t.about, "MedVerify AI v1.0.0\nInstant Medicine Authenticity & Safety Scanner.")} activeOpacity={0.8}>
               <View style={styles.settingLabelRow}>
                 <Text style={styles.settingIcon}>ℹ️</Text>
                 <Text style={styles.optionButtonText}>{t.about}</Text>
@@ -321,6 +310,39 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
+
+      {/* Custom Dark Photo Picker Modal */}
+      <Modal
+        visible={isPhotoModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setIsPhotoModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>{t.photoSourceTitle}</Text>
+            <Text style={styles.modalSubtitleText}>{t.photoSourceMsg}</Text>
+
+            <TouchableOpacity style={styles.photoOptionBtn} onPress={() => pickImage('camera')} activeOpacity={0.8}>
+              <Text style={styles.photoOptionText}>📸 {t.camera}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.photoOptionBtn} onPress={() => pickImage('gallery')} activeOpacity={0.8}>
+              <Text style={styles.photoOptionText}>🖼️ {t.gallery}</Text>
+            </TouchableOpacity>
+
+            {profileImage && (
+              <TouchableOpacity style={[styles.photoOptionBtn, { borderColor: 'rgba(239, 68, 68, 0.4)', backgroundColor: 'rgba(239, 68, 68, 0.1)' }]} onPress={removePhoto} activeOpacity={0.8}>
+                <Text style={[styles.photoOptionText, { color: '#f87171' }]}>🗑️ {t.removePhoto}</Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity style={styles.modalCancelBtnFull} onPress={() => setIsPhotoModalVisible(false)} activeOpacity={0.8}>
+              <Text style={styles.modalCancelText}>{t.cancel}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* Edit Profile Modal */}
       <Modal
@@ -363,10 +385,10 @@ export default function ProfileScreen() {
             />
 
             <View style={styles.modalBtnRow}>
-              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setIsEditModalVisible(false)}>
+              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setIsEditModalVisible(false)} activeOpacity={0.8}>
                 <Text style={styles.modalCancelText}>{t.cancel}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.modalSaveBtn} onPress={handleSaveProfile}>
+              <TouchableOpacity style={styles.modalSaveBtn} onPress={handleSaveProfile} activeOpacity={0.8}>
                 <Text style={styles.modalSaveText}>{t.save}</Text>
               </TouchableOpacity>
             </View>
@@ -383,29 +405,31 @@ const styles = StyleSheet.create({
     backgroundColor: '#070b19',
   },
   scrollContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
   headerContainer: {
     marginBottom: 20,
+    paddingHorizontal: 2,
   },
   headerTitle: {
-    fontSize: 26,
-    fontWeight: '700',
+    fontSize: 28,
+    fontWeight: '800',
     color: '#ffffff',
-    letterSpacing: 0.3,
+    letterSpacing: 0.5,
   },
   headerSubtitle: {
     fontSize: 13,
     color: '#94a3b8',
-    marginTop: 2,
+    marginTop: 4,
+    letterSpacing: 0.2,
   },
   profileHeroCard: {
     backgroundColor: 'rgba(30, 41, 59, 0.65)',
     borderRadius: 20,
-    padding: 20,
+    padding: 16,
     borderWidth: 1,
     borderColor: 'rgba(59, 130, 246, 0.25)',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   heroTopRow: {
     flexDirection: 'row',
@@ -418,7 +442,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(59, 130, 246, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
+    borderWidth: 2.5,
     borderColor: '#3b82f6',
     overflow: 'hidden',
     position: 'relative',
@@ -435,40 +459,46 @@ const styles = StyleSheet.create({
     bottom: 0,
     right: 0,
     backgroundColor: '#2563eb',
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#ffffff',
+    borderWidth: 2,
+    borderColor: '#0f172a',
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+    elevation: 4,
   },
   editBadgeText: {
-    fontSize: 9,
+    fontSize: 10,
   },
   heroInfoContainer: {
     flex: 1,
-    marginLeft: 16,
+    marginLeft: 14,
   },
   userName: {
     fontSize: 18,
     fontWeight: '700',
     color: '#ffffff',
-    marginBottom: 2,
+    marginBottom: 3,
+    letterSpacing: 0.2,
   },
   userEmail: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#cbd5e1',
     marginBottom: 2,
   },
   userPhone: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#94a3b8',
   },
   heroDivider: {
     height: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    marginVertical: 16,
+    marginVertical: 14,
   },
   heroBottomRow: {
     flexDirection: 'row',
@@ -482,6 +512,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: 'rgba(37, 99, 235, 0.3)',
+    flexShrink: 1,
+    marginRight: 8,
   },
   badgeText: {
     fontSize: 11,
@@ -491,21 +523,21 @@ const styles = StyleSheet.create({
   editProfileBtn: {
     backgroundColor: 'rgba(59, 130, 246, 0.15)',
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 7,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: 'rgba(59, 130, 246, 0.3)',
   },
   editProfileBtnText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#60a5fa',
     fontWeight: '600',
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#94a3b8',
-    marginBottom: 10,
+    marginBottom: 8,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -514,7 +546,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.05)',
-    marginBottom: 20,
+    marginBottom: 16,
     overflow: 'hidden',
   },
   settingItem: {
@@ -530,8 +562,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   settingIcon: {
-    fontSize: 16,
-    marginRight: 12,
+    fontSize: 15,
+    marginRight: 10,
   },
   settingText: {
     fontSize: 14,
@@ -558,7 +590,7 @@ const styles = StyleSheet.create({
   },
   logoutButton: {
     backgroundColor: 'rgba(239, 68, 68, 0.12)',
-    padding: 15,
+    padding: 14,
     borderRadius: 14,
     alignItems: 'center',
     borderWidth: 1,
@@ -572,14 +604,14 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
     justifyContent: 'center',
     padding: 20,
   },
   modalContainer: {
     backgroundColor: '#0f172a',
     borderRadius: 20,
-    padding: 24,
+    padding: 22,
     borderWidth: 1,
     borderColor: 'rgba(59, 130, 246, 0.3)',
   },
@@ -587,13 +619,40 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: '#ffffff',
-    marginBottom: 16,
+    marginBottom: 6,
     textAlign: 'center',
+  },
+  modalSubtitleText: {
+    fontSize: 12,
+    color: '#94a3b8',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  photoOptionBtn: {
+    backgroundColor: 'rgba(30, 41, 59, 0.8)',
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.3)',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  photoOptionText: {
+    fontSize: 14,
+    color: '#60a5fa',
+    fontWeight: '600',
+  },
+  modalCancelBtnFull: {
+    backgroundColor: 'rgba(100, 116, 139, 0.2)',
+    padding: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 6,
   },
   inputLabel: {
     fontSize: 12,
     color: '#94a3b8',
-    marginBottom: 6,
+    marginBottom: 4,
     fontWeight: '500',
   },
   inputField: {
@@ -604,12 +663,12 @@ const styles = StyleSheet.create({
     padding: 12,
     color: '#ffffff',
     fontSize: 14,
-    marginBottom: 14,
+    marginBottom: 12,
   },
   modalBtnRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 10,
+    marginTop: 8,
   },
   modalCancelBtn: {
     flex: 1,
