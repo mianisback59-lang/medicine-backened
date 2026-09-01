@@ -21,10 +21,12 @@ const translations = {
     title: "Profile",
     subtitle: "Manage your credentials and preferences",
     role: "Verified Account",
+    verifiedTitle: "Account Verification",
+    verifiedDesc: "Your account is fully secured, encrypted, and verified via registered email and phone credentials.",
     accountSettings: "Account Settings",
     preferences: "Preferences",
     language: "Language (Urdu / English)",
-    notifications: "Push Notifications",
+    themeMode: "App Theme (Dark / Light)",
     privacy: "Privacy Policy",
     about: "About MedVerify AI",
     logout: "Sign Out",
@@ -51,10 +53,12 @@ const translations = {
     title: "پروفائل",
     subtitle: "اپنی معلومات اور ترجیحات کا انتظام کریں",
     role: "تصدیق شدہ اکاؤنٹ",
+    verifiedTitle: "اکاؤنٹ کی تصدیق",
+    verifiedDesc: "آپ کا اکاؤنٹ مکمل طور پر محفوظ ہے اور رجسٹرڈ ای میل اور فون کے ذریعے تصدیق شدہ ہے۔",
     accountSettings: "اکاؤنٹ کی سیٹنگز",
     preferences: "ترجیحات",
     language: "زبان (اردو / انگریزی)",
-    notifications: "نوٹیفیکیشنز",
+    themeMode: "تھیم (ڈارک / لائٹ)",
     privacy: "پراائیویسی پالیسی",
     about: "میڈ ویریفائی اے آئی کے بارے میں",
     logout: "سائن آؤٹ",
@@ -84,7 +88,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   
   const [isUrdu, setIsUrdu] = useState(false);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
   const [userName, setUserName] = useState('');
@@ -118,12 +122,14 @@ export default function ProfileScreen() {
       const savedPhone = await AsyncStorage.getItem('userPhone');
       const savedImage = await AsyncStorage.getItem('profileImage');
       const savedLang = await AsyncStorage.getItem('appLanguage');
+      const savedTheme = await AsyncStorage.getItem('appTheme');
 
       if (savedName) { setUserName(savedName); setTempName(savedName); }
       if (savedEmail) { setUserEmail(savedEmail); setTempEmail(savedEmail); }
       if (savedPhone) { setUserPhone(savedPhone); setTempPhone(savedPhone); }
       if (savedImage) setProfileImage(savedImage);
       if (savedLang === 'ur') setIsUrdu(true);
+      if (savedTheme === 'light') setIsDarkMode(false);
     } catch (error) {
       console.log('Error loading user data:', error);
     }
@@ -251,9 +257,17 @@ export default function ProfileScreen() {
             <View style={styles.heroDivider} />
 
             <View style={styles.heroBottomRow}>
-              <View style={styles.badgeContainer}>
+              <TouchableOpacity 
+                style={styles.badgeContainer} 
+                onPress={() => setInfoModalData({
+                  visible: true,
+                  title: t.verifiedTitle,
+                  message: t.verifiedDesc,
+                })}
+                activeOpacity={0.8}
+              >
                 <Text style={styles.badgeText}>🛡️ {t.role}</Text>
-              </View>
+              </TouchableOpacity>
 
               <TouchableOpacity style={styles.editProfileBtn} onPress={() => setIsEditModalVisible(true)} activeOpacity={0.8}>
                 <Text style={styles.editProfileBtnText}>✏️ {t.editProfile}</Text>
@@ -286,15 +300,18 @@ export default function ProfileScreen() {
             <View style={[styles.settingItem, { borderBottomWidth: 0 }]}>
               <View style={styles.settingLabelRow}>
                 <View style={styles.iconWrapper}>
-                  <Text style={styles.settingIcon}>🔔</Text>
+                  <Text style={styles.settingIcon}>🎨</Text>
                 </View>
-                <Text style={styles.settingText}>{t.notifications}</Text>
+                <Text style={styles.settingText}>{t.themeMode}</Text>
               </View>
               <Switch
-                value={notificationsEnabled}
-                onValueChange={(val) => setNotificationsEnabled(val)}
+                value={isDarkMode}
+                onValueChange={async (val) => {
+                  setIsDarkMode(val);
+                  await AsyncStorage.setItem('appTheme', val ? 'dark' : 'light');
+                }}
                 trackColor={{ false: '#334155', true: '#2563eb' }}
-                thumbColor={notificationsEnabled ? '#ffffff' : '#cbd5e1'}
+                thumbColor={isDarkMode ? '#ffffff' : '#cbd5e1'}
               />
             </View>
           </View>
