@@ -79,7 +79,7 @@ const translations = {
     footerText: "سرکاری دواؤں کی تصدیق کا نظام",
     serverStatus: "اے آئی انجن فعال ہے",
     resetTitle: "پاس ورڈ ری سیٹ",
-    resetConfirm: "پاس ورڈ ری سیٹ کی ای میل اس ایڈریس پر بھیجی جائے گی:\n\n",
+    resetConfirm: "پاس ورڈ ری سیٹ کی ای میل اس ایڈریس پر بھیجی جائے گی۔\n\n",
     enterEmailNotice: "براہ کرم پہلے ای میل والے خانے میں اپنا ای میل درج کریں۔",
     resetModalTitle: "پاس ورڈ ری سیٹ کریں",
     resetModalSub: "ای میل پر بھیجا گیا 6 ہندسوں کا کوڈ اور نیا پاس ورڈ درج کریں۔",
@@ -256,6 +256,15 @@ export default function AuthScreen() {
         await AsyncStorage.setItem('userToken', data.token || email);
         await AsyncStorage.setItem('appLanguage', lang);
         await AsyncStorage.setItem('hasAccount', 'true'); // Isse next time system sign-in tab show karega
+        
+        // Profile ke liye naye user ka data save kiya ja raha hai
+        await AsyncStorage.setItem('userEmail', email.trim().toLowerCase());
+        if (!isLogin && fullName.trim()) {
+          await AsyncStorage.setItem('userName', fullName.trim());
+        } else if (data.name) {
+          await AsyncStorage.setItem('userName', data.name);
+        }
+
         router.replace('/'); 
       } else {
         Alert.alert('Failed', data.message || 'Authentication failed.');

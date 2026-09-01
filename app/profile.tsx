@@ -83,9 +83,10 @@ export default function ProfileScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
-  const [userName, setUserName] = useState('Ahmed Khan');
-  const [userEmail, setUserEmail] = useState('ahmed.khan@gmail.com');
-  const [userPhone, setUserPhone] = useState('+92 300 1234567');
+  // Dummy values ki jagah khali strings rakhi gayi hain taake data AsyncStorage se load ho
+  const [userName, setUserName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [userPhone, setUserPhone] = useState('');
 
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isPhotoModalVisible, setIsPhotoModalVisible] = useState(false);
@@ -97,9 +98,9 @@ export default function ProfileScreen() {
     message: '',
   });
   
-  const [tempName, setTempName] = useState(userName);
-  const [tempEmail, setTempEmail] = useState(userEmail);
-  const [tempPhone, setTempPhone] = useState(userPhone);
+  const [tempName, setTempName] = useState('');
+  const [tempEmail, setTempEmail] = useState('');
+  const [tempPhone, setTempPhone] = useState('');
 
   const t = isUrdu ? translations.ur : translations.en;
 
@@ -238,9 +239,9 @@ export default function ProfileScreen() {
               </TouchableOpacity>
 
               <View style={styles.heroInfoContainer}>
-                <Text style={styles.userName} numberOfLines={1}>{userName}</Text>
-                <Text style={styles.userEmail} numberOfLines={1}>{userEmail}</Text>
-                <Text style={styles.userPhone}>{userPhone}</Text>
+                <Text style={styles.userName} numberOfLines={1}>{userName || (isUrdu ? 'نام درج نہیں ہے' : 'No Name Set')}</Text>
+                <Text style={styles.userEmail} numberOfLines={1}>{userEmail || (isUrdu ? 'ای میل درج نہیں ہے' : 'No Email Set')}</Text>
+                {userPhone ? <Text style={styles.userPhone}>{userPhone}</Text> : null}
               </View>
             </View>
 
@@ -392,7 +393,7 @@ export default function ProfileScreen() {
         </View>
       </Modal>
 
-      {/* Info / Privacy / About Modal with Fixed Visible Button Text */}
+      {/* Info / Privacy / About Modal */}
       <Modal
         visible={infoModalData.visible}
         animationType="fade"
