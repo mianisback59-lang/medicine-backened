@@ -26,9 +26,10 @@ const translations = {
     accountSettings: "Account Settings",
     preferences: "Preferences",
     language: "Language (Urdu / English)",
-    themeMode: "App Theme (Dark / Light)",
+    pushNotifications: "Push Notifications",
     privacy: "Privacy Policy",
     about: "About MedVerify AI",
+    deleteAccount: "Delete Account",
     logout: "Sign Out",
     photoSourceTitle: "Profile Picture",
     photoSourceMsg: "Choose an option to update your photo",
@@ -44,6 +45,9 @@ const translations = {
     phoneLabel: "Phone Number",
     logoutTitle: "Sign Out",
     logoutMsg: "Are you sure you want to sign out?",
+    deleteTitle: "Delete Account",
+    deleteMsg: "Are you sure you want to delete your account? All your saved scans, profile details, and history will be permanently erased. You will need to create a new account to use the app again.",
+    deleteConfirmBtn: "Delete Forever",
     infoTitle: "Information",
     ok: "OK",
     privacyDesc: "MedVerify AI ensures complete data security & privacy standards. Your scanned records and details remain encrypted and secure.",
@@ -58,9 +62,10 @@ const translations = {
     accountSettings: "اکاؤنٹ کی سیٹنگز",
     preferences: "ترجیحات",
     language: "زبان (اردو / انگریزی)",
-    themeMode: "تھیم (ڈارک / لائٹ)",
+    pushNotifications: "پش نوٹیفیکیشنز",
     privacy: "پراائیویسی پالیسی",
     about: "میڈ ویریفائی اے آئی کے بارے میں",
+    deleteAccount: "اکاؤنٹ ڈیلیٹ کریں",
     logout: "سائن آؤٹ",
     photoSourceTitle: "پروفائل تصویر",
     photoSourceMsg: "تصویر اپ ڈیٹ کرنے کے لیے آپشن منتخب کریں",
@@ -76,6 +81,9 @@ const translations = {
     phoneLabel: "فون نمبر",
     logoutTitle: "سائن آؤٹ",
     logoutMsg: "کیا آپ واقعی اکاؤنٹ سے باہر نکلنا چاہتے ہیں؟",
+    deleteTitle: "اکاؤنٹ حذف کریں",
+    deleteMsg: "کیا آپ واقعی اپنا اکاؤنٹ حذف کرنا چاہتے ہیں؟ آپ کا تمام ڈیٹا، اسکین ہسٹری اور پروفائل ہمیشہ کے لیے ختم ہو جائے گا۔ دوبارہ استعمال کے لیے آپ کو نیا اکاؤنٹ بنانا ہوگا۔",
+    deleteConfirmBtn: "ہمیشہ کے لیے ڈیلیٹ کریں",
     infoTitle: "معلومات",
     ok: "ٹھیک ہے",
     privacyDesc: "میڈ ویریفائی اے آئی آپ کے ڈیٹا کی مکمل سیکیورٹی اور پرائیویسی کو یقینی بناتا ہے۔ آپ کے تمام ریکارڈز اور معلومات مکمل طور پر محفوظ ہیں۔",
@@ -88,7 +96,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   
   const [isUrdu, setIsUrdu] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(true);
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
   const [userName, setUserName] = useState('');
@@ -98,6 +106,7 @@ export default function ProfileScreen() {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isPhotoModalVisible, setIsPhotoModalVisible] = useState(false);
   const [isLogoutModalVisible, setIsLogoutModalVisible] = useState(false);
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   
   const [infoModalData, setInfoModalData] = useState<{ visible: boolean; title: string; message: string }>({
     visible: false,
@@ -122,14 +131,14 @@ export default function ProfileScreen() {
       const savedPhone = await AsyncStorage.getItem('userPhone');
       const savedImage = await AsyncStorage.getItem('profileImage');
       const savedLang = await AsyncStorage.getItem('appLanguage');
-      const savedTheme = await AsyncStorage.getItem('appTheme');
+      const savedNotif = await AsyncStorage.getItem('pushNotifications');
 
       if (savedName) { setUserName(savedName); setTempName(savedName); }
       if (savedEmail) { setUserEmail(savedEmail); setTempEmail(savedEmail); }
       if (savedPhone) { setUserPhone(savedPhone); setTempPhone(savedPhone); }
       if (savedImage) setProfileImage(savedImage);
       if (savedLang === 'ur') setIsUrdu(true);
-      if (savedTheme === 'light') setIsDarkMode(false);
+      if (savedNotif === 'false') setIsNotificationsEnabled(false);
     } catch (error) {
       console.log('Error loading user data:', error);
     }
@@ -211,6 +220,19 @@ export default function ProfileScreen() {
       await AsyncStorage.removeItem('userToken');
     } catch (e) {
       console.log('Logout error:', e);
+    }
+    requestAnimationFrame(() => {
+      router.replace('/auth');
+    });
+  };
+
+  const executeDeleteAccount = async () => {
+    setIsDeleteModalVisible(false);
+    try {
+      // Completely wipes out all local data forcing a fresh registration / create account
+      await AsyncStorage.clear();
+    } catch (e) {
+      console.log('Delete account error:', e);
     }
     requestAnimationFrame(() => {
       router.replace('/auth');
@@ -300,18 +322,18 @@ export default function ProfileScreen() {
             <View style={[styles.settingItem, { borderBottomWidth: 0 }]}>
               <View style={styles.settingLabelRow}>
                 <View style={styles.iconWrapper}>
-                  <Text style={styles.settingIcon}>🎨</Text>
+                  <Text style={styles.settingIcon}>🔔</Text>
                 </View>
-                <Text style={styles.settingText}>{t.themeMode}</Text>
+                <Text style={styles.settingText}>{t.pushNotifications}</Text>
               </View>
               <Switch
-                value={isDarkMode}
+                value={isNotificationsEnabled}
                 onValueChange={async (val) => {
-                  setIsDarkMode(val);
-                  await AsyncStorage.setItem('appTheme', val ? 'dark' : 'light');
+                  setIsNotificationsEnabled(val);
+                  await AsyncStorage.setItem('pushNotifications', val ? 'true' : 'false');
                 }}
                 trackColor={{ false: '#334155', true: '#2563eb' }}
-                thumbColor={isDarkMode ? '#ffffff' : '#cbd5e1'}
+                thumbColor={isNotificationsEnabled ? '#ffffff' : '#cbd5e1'}
               />
             </View>
           </View>
@@ -339,7 +361,7 @@ export default function ProfileScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity 
-              style={[styles.optionButton, { borderBottomWidth: 0 }]} 
+              style={styles.optionButton} 
               onPress={() => setInfoModalData({
                 visible: true, 
                 title: t.about, 
@@ -352,6 +374,20 @@ export default function ProfileScreen() {
                   <Text style={styles.settingIcon}>ℹ️</Text>
                 </View>
                 <Text style={styles.optionButtonText}>{t.about}</Text>
+              </View>
+              <Text style={styles.arrowText}>›</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.optionButton, { borderBottomWidth: 0 }]} 
+              onPress={() => setIsDeleteModalVisible(true)} 
+              activeOpacity={0.8}
+            >
+              <View style={styles.settingLabelRow}>
+                <View style={[styles.iconWrapper, { backgroundColor: 'rgba(239, 68, 68, 0.15)' }]}>
+                  <Text style={styles.settingIcon}>⚠️</Text>
+                </View>
+                <Text style={[styles.optionButtonText, { color: '#f87171' }]}>{t.deleteAccount}</Text>
               </View>
               <Text style={styles.arrowText}>›</Text>
             </TouchableOpacity>
@@ -421,6 +457,30 @@ export default function ProfileScreen() {
         </View>
       </Modal>
 
+      {/* Custom Dark Delete Account Modal */}
+      <Modal
+        visible={isDeleteModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setIsDeleteModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={[styles.modalTitle, { color: '#f87171' }]}>{t.deleteTitle}</Text>
+            <Text style={styles.modalSubtitleText}>{t.deleteMsg}</Text>
+
+            <View style={styles.modalBtnRow}>
+              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setIsDeleteModalVisible(false)} activeOpacity={0.8}>
+                <Text style={styles.modalCancelText}>{t.cancel}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalSaveBtn, { backgroundColor: '#ef4444' }]} onPress={executeDeleteAccount} activeOpacity={0.8}>
+                <Text style={styles.modalSaveText}>{t.deleteConfirmBtn}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Info / Privacy / About Modal */}
       <Modal
         visible={infoModalData.visible}
@@ -464,7 +524,7 @@ export default function ProfileScreen() {
             <TextInput
               style={styles.inputField}
               value={tempEmail}
-              onChangeText={setTempEmail}
+              onChangeText={setUserEmail}
               placeholder="Enter Email"
               placeholderTextColor="#64748b"
               keyboardType="email-address"
@@ -474,7 +534,7 @@ export default function ProfileScreen() {
             <TextInput
               style={styles.inputField}
               value={tempPhone}
-              onChangeText={setTempPhone}
+              onChangeText={setUserPhone}
               placeholder="Enter Phone"
               placeholderTextColor="#64748b"
               keyboardType="phone-pad"

@@ -161,7 +161,6 @@ export default function AuthScreen() {
   const [lang, setLang] = useState<'en' | 'ur'>('en');
   const t = translations[lang];
 
-  // Default value set to FALSE -> Iska matlab by default Create Account show hoga
   const [isLogin, setIsLogin] = useState<boolean>(false);
   
   const [fullName, setFullName] = useState<string>('');
@@ -190,9 +189,6 @@ export default function AuthScreen() {
         return;
       }
 
-      // ONLY CHANGE IN CODE:
-      // Agar pehle account ban chuka ho tu tabhi Sign In section show hoga.
-      // Warna default create account par rahega.
       const hasAccount = await AsyncStorage.getItem('hasAccount');
       if (hasAccount === 'true') {
         setIsLogin(true);
@@ -255,9 +251,8 @@ export default function AuthScreen() {
       if (response.ok) {
         await AsyncStorage.setItem('userToken', data.token || email);
         await AsyncStorage.setItem('appLanguage', lang);
-        await AsyncStorage.setItem('hasAccount', 'true'); // Isse next time system sign-in tab show karega
+        await AsyncStorage.setItem('hasAccount', 'true');
         
-        // Profile ke liye naye user ka data save kiya ja raha hai
         await AsyncStorage.setItem('userEmail', email.trim().toLowerCase());
         if (!isLogin && fullName.trim()) {
           await AsyncStorage.setItem('userName', fullName.trim());
