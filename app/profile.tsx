@@ -44,35 +44,39 @@ const translations = {
     logoutMsg: "Are you sure you want to sign out?",
     infoTitle: "Information",
     ok: "OK",
+    privacyDesc: "MedVerify AI ensures complete data security & privacy standards. Your scanned records and details remain encrypted and secure.",
+    aboutDesc: "MedVerify AI v1.0.0\nInstant Medicine Authenticity & Safety Scanner. Designed to protect users from counterfeit pharmaceutical products.",
   },
   ur: {
-      title: "پروفائل",
-      subtitle: "اپنی معلومات اور ترجیحات کا انتظام کریں",
-      role: "تصدیق شدہ اکاؤنٹ",
-      accountSettings: "اکاؤنٹ کی سیٹنگز",
-      preferences: "ترجیحات",
-      language: "زبان (اردو / انگریزی)",
-      notifications: "نوٹیفیکیشنز",
-      privacy: "پراائیویسی پالیسی",
-      about: "میڈ ویریفائی اے آئی کے بارے میں",
-      logout: "سائن آؤٹ",
-      photoSourceTitle: "پروفائل تصویر",
-      photoSourceMsg: "تصویر اپ ڈیٹ کرنے کے لیے آپشن منتخب کریں",
-      camera: "کیمرے سے تصویر لیں",
-      gallery: "گیلری سے منتخب کریں",
-      removePhoto: "موجودہ تصویر ہٹائیں",
-      cancel: "منسوخ",
-      editProfile: "پروفائل ایڈٹ کریں",
-      save: "محفوظ کریں",
-      editTitle: "پروفائل میں ترمیم کریں",
-      nameLabel: "پورا نام",
-      emailLabel: "ای میل ایڈریس",
-      phoneLabel: "فون نمبر",
-      logoutTitle: "سائن آؤٹ",
-      logoutMsg: "کیا آپ واقعی اکاؤنٹ سے باہر نکلنا چاہتے ہیں؟",
-      infoTitle: "معلومات",
-      ok: "ٹھیک ہے",
-    }, 
+    title: "پروفائل",
+    subtitle: "اپنی معلومات اور ترجیحات کا انتظام کریں",
+    role: "تصدیق شدہ اکاؤنٹ",
+    accountSettings: "اکاؤنٹ کی سیٹنگز",
+    preferences: "ترجیحات",
+    language: "زبان (اردو / انگریزی)",
+    notifications: "نوٹیفیکیشنز",
+    privacy: "پراائیویسی پالیسی",
+    about: "میڈ ویریفائی اے آئی کے بارے میں",
+    logout: "سائن آؤٹ",
+    photoSourceTitle: "پروفائل تصویر",
+    photoSourceMsg: "تصویر اپ ڈیٹ کرنے کے لیے آپشن منتخب کریں",
+    camera: "کیمرے سے تصویر لیں",
+    gallery: "گیلری سے منتخب کریں",
+    removePhoto: "موجودہ تصویر ہٹائیں",
+    cancel: "منسوخ",
+    editProfile: "پروفائل ایڈٹ کریں",
+    save: "محفوظ کریں",
+    editTitle: "پروفائل میں ترمیم کریں",
+    nameLabel: "پورا نام",
+    emailLabel: "ای میل ایڈریس",
+    phoneLabel: "فون نمبر",
+    logoutTitle: "سائن آؤٹ",
+    logoutMsg: "کیا آپ واقعی اکاؤنٹ سے باہر نکلنا چاہتے ہیں؟",
+    infoTitle: "معلومات",
+    ok: "ٹھیک ہے",
+    privacyDesc: "میڈ ویریفائی اے آئی آپ کے ڈیٹا کی مکمل سیکیورٹی اور پرائیویسی کو یقینی بناتا ہے۔ آپ کے تمام ریکارڈز اور معلومات مکمل طور پر محفوظ ہیں۔",
+    aboutDesc: "میڈ ویریفائی اے آئی v1.0.0\nجعلی ادویات سے بچاؤ اور ان کی اصلیت کی فوری جانچ کے لیے تیار کردہ جدید اسکینر۔",
+  }, 
 };
 
 export default function ProfileScreen() {
@@ -304,7 +308,7 @@ export default function ProfileScreen() {
               onPress={() => setInfoModalData({
                 visible: true, 
                 title: t.privacy, 
-                message: "MedVerify AI ensures complete data security & privacy standards. Your scanned records and details remain encrypted and secure."
+                message: t.privacyDesc
               })} 
               activeOpacity={0.8}
             >
@@ -322,7 +326,7 @@ export default function ProfileScreen() {
               onPress={() => setInfoModalData({
                 visible: true, 
                 title: t.about, 
-                message: "MedVerify AI v1.0.0\nInstant Medicine Authenticity & Safety Scanner. Designed to protect users from counterfeit pharmaceutical products."
+                message: t.aboutDesc
               })} 
               activeOpacity={0.8}
             >
