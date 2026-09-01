@@ -71,7 +71,7 @@ const translations = {
     photoSourceMsg: "تصویر اپ ڈیٹ کرنے کے لیے آپشن منتخب کریں",
     camera: "کیمرے سے تصویر لیں",
     gallery: "گیلری سے منتخب کریں",
-    removePhoto: "موجودہ تصویر ہٹائیں",
+    removePhoto: "موجودہ تصویر ہٹائیں۔",
     cancel: "منسوخ",
     editProfile: "پروفائل ایڈٹ کریں",
     save: "محفوظ کریں",
@@ -226,10 +226,24 @@ export default function ProfileScreen() {
     });
   };
 
+  // ----------------------------------------------------
+  // UPDATED: Backend se record delete karne ke baad local clear hoga
+  // ----------------------------------------------------
   const executeDeleteAccount = async () => {
     setIsDeleteModalVisible(false);
     try {
-      // Completely wipes out all local data forcing a fresh registration / create account
+      const emailToDelete = userEmail || (await AsyncStorage.getItem('userEmail'));
+
+      if (emailToDelete) {
+        // Backend database se user permanently delete karna
+        await fetch('https://medicine-backened.vercel.app/api/delete-account', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: emailToDelete.trim().toLowerCase() }),
+        });
+      }
+
+      // Local session aur data saara clear karna
       await AsyncStorage.clear();
     } catch (e) {
       console.log('Delete account error:', e);

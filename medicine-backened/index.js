@@ -130,6 +130,33 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+// Delete Account Endpoint (Added newly so email can be reused)
+app.delete('/api/delete-account', async (req, res) => {
+  try {
+    await connectToDatabase();
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email is required.' });
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const deletedUser = await User.findOneAndDelete({ email: cleanEmail });
+
+    if (!deletedUser) {
+      return res.status(404).json({ success: false, message: 'User not found in database.' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Account deleted successfully from database.'
+    });
+  } catch (error) {
+    console.error("Delete Account Error:", error);
+    return res.status(500).json({ success: false, message: 'Server error while deleting account.' });
+  }
+});
+
 // Forgot Password Endpoint (Updated to use Resend API)
 app.post('/api/forgot-password', async (req, res) => {
   try {
