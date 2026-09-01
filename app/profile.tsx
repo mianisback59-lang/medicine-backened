@@ -83,7 +83,6 @@ export default function ProfileScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
-  // Dummy values ki jagah khali strings rakhi gayi hain taake data AsyncStorage se load ho
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [userPhone, setUserPhone] = useState('');
@@ -249,7 +248,7 @@ export default function ProfileScreen() {
 
             <View style={styles.heroBottomRow}>
               <View style={styles.badgeContainer}>
-                <Text style={styles.badgeText}>✅ {t.role}</Text>
+                <Text style={styles.badgeText}>🛡️ {t.role}</Text>
               </View>
 
               <TouchableOpacity style={styles.editProfileBtn} onPress={() => setIsEditModalVisible(true)} activeOpacity={0.8}>
@@ -264,7 +263,9 @@ export default function ProfileScreen() {
           <View style={styles.cardGroup}>
             <View style={styles.settingItem}>
               <View style={styles.settingLabelRow}>
-                <Text style={styles.settingIcon}>🌐</Text>
+                <View style={styles.iconWrapper}>
+                  <Text style={styles.settingIcon}>🌐</Text>
+                </View>
                 <Text style={styles.settingText}>{t.language}</Text>
               </View>
               <Switch
@@ -280,7 +281,9 @@ export default function ProfileScreen() {
 
             <View style={[styles.settingItem, { borderBottomWidth: 0 }]}>
               <View style={styles.settingLabelRow}>
-                <Text style={styles.settingIcon}>🔔</Text>
+                <View style={styles.iconWrapper}>
+                  <Text style={styles.settingIcon}>🔔</Text>
+                </View>
                 <Text style={styles.settingText}>{t.notifications}</Text>
               </View>
               <Switch
@@ -306,7 +309,9 @@ export default function ProfileScreen() {
               activeOpacity={0.8}
             >
               <View style={styles.settingLabelRow}>
-                <Text style={styles.settingIcon}>🔒</Text>
+                <View style={styles.iconWrapper}>
+                  <Text style={styles.settingIcon}>🔒</Text>
+                </View>
                 <Text style={styles.optionButtonText}>{t.privacy}</Text>
               </View>
               <Text style={styles.arrowText}>›</Text>
@@ -322,7 +327,9 @@ export default function ProfileScreen() {
               activeOpacity={0.8}
             >
               <View style={styles.settingLabelRow}>
-                <Text style={styles.settingIcon}>ℹ️</Text>
+                <View style={styles.iconWrapper}>
+                  <Text style={styles.settingIcon}>ℹ️</Text>
+                </View>
                 <Text style={styles.optionButtonText}>{t.about}</Text>
               </View>
               <Text style={styles.arrowText}>›</Text>
@@ -498,6 +505,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(59, 130, 246, 0.25)',
     marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
   heroTopRow: {
     flexDirection: 'row',
@@ -575,8 +587,8 @@ const styles = StyleSheet.create({
   },
   badgeContainer: {
     backgroundColor: 'rgba(37, 99, 235, 0.15)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: 'rgba(37, 99, 235, 0.3)',
@@ -590,7 +602,7 @@ const styles = StyleSheet.create({
   },
   editProfileBtn: {
     backgroundColor: 'rgba(59, 130, 246, 0.15)',
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 8,
     borderWidth: 1,
@@ -629,9 +641,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  settingIcon: {
-    fontSize: 15,
+  iconWrapper: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 10,
+  },
+  settingIcon: {
+    fontSize: 14,
   },
   settingText: {
     fontSize: 14,
