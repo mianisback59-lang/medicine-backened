@@ -69,7 +69,7 @@ const translations = {
     emailLabel: "ای میل ایڈریس",
     phoneLabel: "فون نمبر",
     logoutTitle: "سائن آؤٹ",
-    logoutMsg: "کیا آپ واقعی اکاؤنٹ سے باہر نکلना چاہتے ہیں؟",
+    logoutMsg: "کیا آپ واقعی اکاؤنٹ سے باہر نکلنا چاہتے ہیں؟",
     infoTitle: "معلومات",
     ok: "ٹھیک ہے",
   },
@@ -89,7 +89,7 @@ export default function ProfileScreen() {
 
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isPhotoModalVisible, setIsPhotoModalVisible] = useState(false);
-  const [isLogoutModalVisible, setIsLogoutModalVisible] = useState(false); // Custom Dark Logout Modal
+  const [isLogoutModalVisible, setIsLogoutModalVisible] = useState(false);
   
   const [infoModalData, setInfoModalData] = useState<{ visible: boolean; title: string; message: string }>({
     visible: false,
@@ -232,7 +232,6 @@ export default function ProfileScreen() {
                 ) : (
                   <Text style={styles.avatarText}>👤</Text>
                 )}
-                {/* Fixed Professional Camera Icon Badge */}
                 <View style={styles.editBadge}>
                   <Text style={styles.editBadgeText}>📷</Text>
                 </View>
@@ -369,7 +368,7 @@ export default function ProfileScreen() {
         </View>
       </Modal>
 
-      {/* Custom Dark Sign Out Modal (Replaces white system alert) */}
+      {/* Custom Dark Sign Out Modal */}
       <Modal
         visible={isLogoutModalVisible}
         animationType="fade"
@@ -393,7 +392,7 @@ export default function ProfileScreen() {
         </View>
       </Modal>
 
-      {/* Info / Privacy / About Modal */}
+      {/* Info / Privacy / About Modal with Fixed Visible Button Text */}
       <Modal
         visible={infoModalData.visible}
         animationType="fade"
@@ -405,8 +404,8 @@ export default function ProfileScreen() {
             <Text style={styles.modalTitle}>{infoModalData.title}</Text>
             <Text style={[styles.modalSubtitleText, { marginVertical: 12, lineHeight: 20 }]}>{infoModalData.message}</Text>
 
-            <TouchableOpacity style={styles.modalSaveBtn} onPress={() => setInfoModalData({ ...infoModalData, visible: false })} activeOpacity={0.8}>
-              <Text style={styles.modalSaveText}>{t.ok}</Text>
+            <TouchableOpacity style={styles.infoOkButton} onPress={() => setInfoModalData({ ...infoModalData, visible: false })} activeOpacity={0.8}>
+              <Text style={styles.infoOkButtonText}>{t.ok}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -762,6 +761,18 @@ const styles = StyleSheet.create({
   modalSaveText: {
     color: '#ffffff',
     fontWeight: '600',
+    fontSize: 14,
+  },
+  infoOkButton: {
+    backgroundColor: '#2563eb',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  infoOkButtonText: {
+    color: '#ffffff',
+    fontWeight: '700',
     fontSize: 14,
   },
 });
