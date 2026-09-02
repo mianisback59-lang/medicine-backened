@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 interface ScanRecord {
   id: string;
   medicineName: string;
-  status: 'Authentic' | 'Counterfeit' | 'Suspicious';
+  status: 'Authentic' | 'Unverified' | 'Suspicious';
   date: string;
   details: string;
   batchNumber?: string;
@@ -27,7 +27,6 @@ export default function HistoryScreen() {
   const [selectedItem, setSelectedItem] = useState<ScanRecord | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  // Screen jab bhi focus mein aaye, latest history load ho jaye
   useFocusEffect(
     useCallback(() => {
       loadHistory();
@@ -38,7 +37,13 @@ export default function HistoryScreen() {
     try {
       const savedHistory = await AsyncStorage.getItem('scanHistory');
       if (savedHistory) {
-        setHistoryList(JSON.parse(savedHistory));
+        const parsed = JSON.parse(savedHistory);
+        // Purane 'Counterfeit' status ko 'Unverified' mein safe mapping dene ke liye
+        const updated = parsed.map((item: any) => ({
+          ...item,
+          status: item.status === 'Counterfeit' ? 'Unverified' : item.status
+        }));
+        setHistoryList(updated);
       } else {
         setHistoryList([]);
       }
@@ -60,7 +65,7 @@ export default function HistoryScreen() {
     switch (status) {
       case 'Authentic':
         return { bg: 'rgba(16, 185, 129, 0.15)', border: 'rgba(16, 185, 129, 0.4)', text: '#34d399', icon: '✅' };
-      case 'Counterfeit':
+      case 'Unverified':
         return { bg: 'rgba(239, 68, 68, 0.15)', border: 'rgba(239, 68, 68, 0.4)', text: '#f87171', icon: '❌' };
       default:
         return { bg: 'rgba(245, 158, 11, 0.15)', border: 'rgba(245, 158, 11, 0.4)', text: '#fbbf24', icon: '⚠️' };
@@ -106,13 +111,13 @@ export default function HistoryScreen() {
         <View style={[styles.contentContainer, { paddingTop: Math.max(insets.top, 16) }]}>
           {/* Header */}
           <View style={styles.headerRow}>
-            <View>
+            <View style={{ flex: 1, marginRight: 10 }}>
               <Text style={styles.headerTitle}>Scan History</Text>
-              <Text style={styles.headerSubtitle}>Track and review your previous medicine scans</Text>
+              <Text style={styles.headerSubtitle}>Review your previous medicine verifications safely</Text>
             </View>
             {historyList.length > 0 && (
               <TouchableOpacity style={styles.clearBtn} onPress={clearHistory} activeOpacity={0.8}>
-                <Text style={styles.clearBtnText}>🗑️ Clear</Text>
+                <Text style={styles.clearBtnText}>Clear History</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -210,29 +215,29 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '800',
     color: '#ffffff',
     letterSpacing: 0.5,
   },
   headerSubtitle: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#94a3b8',
     marginTop: 4,
-    letterSpacing: 0.2,
+    letterSpacing: 0.3,
   },
   clearBtn: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingVertical: 8,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: 'rgba(239, 68, 68, 0.3)',
   },
   clearBtnText: {
     fontSize: 12,
     color: '#f87171',
-    fontWeight: '600',
+    fontWeight: '700',
   },
   card: {
     backgroundColor: 'rgba(30, 41, 59, 0.65)',
@@ -263,13 +268,13 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   medicineName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: '#ffffff',
     flex: 1,
   },
   statusBadge: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
     borderWidth: 1,
