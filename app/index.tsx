@@ -153,6 +153,32 @@ export default function Index() {
     }
   };
 
+  // Scan result ko AsyncStorage mein save karne ka function
+  const saveScanToHistory = async (medicineName: string, status: string, details: string, batchNo: string) => {
+    try {
+      let mappedStatus: 'Authentic' | 'Counterfeit' | 'Suspicious' = 'Suspicious';
+      if (status === 'AUTHENTIC') mappedStatus = 'Authentic';
+      else if (status === 'FAKE' || status === 'EXPIRED') mappedStatus = 'Counterfeit';
+
+      const newRecord = {
+        id: Date.now().toString(),
+        medicineName: medicineName || 'Unknown Medicine',
+        status: mappedStatus,
+        date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        details: details || 'No additional details provided.',
+        batchNumber: batchNo,
+      };
+
+      const existingHistory = await AsyncStorage.getItem('scanHistory');
+      const historyArray = existingHistory ? JSON.parse(existingHistory) : [];
+      const updatedHistory = [newRecord, ...historyArray];
+      
+      await AsyncStorage.setItem('scanHistory', JSON.stringify(updatedHistory));
+    } catch (error) {
+      console.log('Error saving scan history:', error);
+    }
+  };
+
   useEffect(() => {
     if (result) {
       const timer = setTimeout(() => {
@@ -230,17 +256,24 @@ export default function Index() {
       const isOk = response.ok && apiResponse.success === true;
 
       if (!isOk || !apiResponse.data || apiResponse.status === 'FAKE') {
+        const fakeMsg = lang === 'ur' ? 'یہ بیچ نمبر سرکاری ریکارڈ میں نہیں ملا۔' : (apiResponse?.message || 'This batch number was not found in the official registry.');
+        
         setResult({
           status: 'FAKE',
           title: lang === 'ur' ? '🚨 جعلی / غیر مصدقہ پروڈکٹ' : (apiResponse.title || '🚨 UNVERIFIED / COUNTERFEIT'),
           color: '#EF4444',
           batch: searchTarget,
-          msg: lang === 'ur' ? 'یہ بیچ نمبر سرکاری ریکارڈ میں نہیں ملا۔' : (apiResponse?.message || 'This batch number was not found in the official registry.'),
+          msg: fakeMsg,
         });
         playVoiceAlert('FAKE');
+
+        // History mein save karein
+        await saveScanToHistory('Unverified Medicine', 'FAKE', fakeMsg, searchTarget);
+
       } else {
         const rawStatus = apiResponse.status || 'AUTHENTIC';
         const statusColor = rawStatus === 'AUTHENTIC' ? '#10B981' : rawStatus === 'EXPIRED' ? '#F59E0B' : '#EF4444';
+        const successMsg = lang === 'ur' ? 'محفوظ اور اصل پروڈکٹ ہے۔' : (apiResponse.message || 'Guaranteed original product and safe for consumption.');
 
         setResult({
           status: rawStatus as any,
@@ -250,20 +283,34 @@ export default function Index() {
           color: statusColor,
           data: apiResponse.data,
           batch: apiResponse.data.batch_number || searchTarget,
-          msg: lang === 'ur' ? 'محفوظ اور اصل پروڈکٹ ہے۔' : (apiResponse.message || 'Guaranteed original product and safe for consumption.'),
+          msg: successMsg,
         });
         playVoiceAlert(rawStatus);
+
+        // History mein save karein
+        await saveScanToHistory(
+          apiResponse.data.medicine_name || 'Medicine', 
+          rawStatus, 
+          successMsg, 
+          apiResponse.data.batch_number || searchTarget
+        );
       }
 
     } catch (error: any) {
+      const errorMsg = lang === 'ur' ? 'بیچ کی تصدیق کرنے میں ناکامی یا کوڈ ڈیٹا بیس میں رجسٹرڈ نہیں۔' : 'Unable to verify batch or code not registered in database.';
+      
       setResult({
         status: 'FAKE',
         title: lang === 'ur' ? '🚨 جعلی / غیر مصدقہ پروڈکٹ' : '🚨 UNVERIFIED / COUNTERFEIT',
         color: '#EF4444',
         batch: searchTarget,
-        msg: lang === 'ur' ? 'بیچ کی تصدیق کرنے میں ناکامی یا کوڈ ڈیٹا بیس میں رجسٹرڈ نہیں۔' : 'Unable to verify batch or code not registered in database.',
+        msg: errorMsg,
       });
       playVoiceAlert('FAKE');
+
+      // History mein save karein
+      await saveScanToHistory('Unverified Medicine', 'FAKE', errorMsg, searchTarget);
+
     } finally {
       setIsProcessing(false);
     }
@@ -533,7 +580,7 @@ const styles = StyleSheet.create({
   scrollContent: { 
     paddingHorizontal: 20, 
     paddingTop: 16, 
-    paddingBottom: 150 // Footer global hone ki wajah se padding kam kar di hai
+    paddingBottom: 150 
   },
   containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#0A0F1D' },
   permissionText: { fontSize: 16, textAlign: 'center', color: '#94A3B8', marginBottom: 20 },
