@@ -46,6 +46,7 @@ const translations = {
     batchNo: 'Batch No:',
     expiryDate: 'Expiry Date:',
     verificationDetails: 'Verification Details:',
+    deleteRecord: 'Delete',
     close: 'Close',
     unverifiedMedicine: 'Unverified Medicine',
     authenticMedicine: 'Authentic Medicine',
@@ -73,6 +74,7 @@ const translations = {
     batchNo: 'بیچ نمبر:',
     expiryDate: 'معطلی کی تاریخ (Expiry):',
     verificationDetails: 'تصدیقی تفصیلات:',
+    deleteRecord: 'ختم کریں',
     close: 'بند کریں',
     unverifiedMedicine: 'غیر تصدیق شدہ دوائی',
     authenticMedicine: 'اصل دوائی',
@@ -129,6 +131,18 @@ export default function HistoryScreen() {
     }
   };
 
+  const deleteSpecificRecord = async (id: string) => {
+    try {
+      const updatedList = historyList.filter((item) => item.id !== id);
+      setHistoryList(updatedList);
+      await AsyncStorage.setItem('scanHistory', JSON.stringify(updatedList));
+      setIsModalVisible(false);
+      setSelectedItem(null);
+    } catch (error) {
+      console.log('Error deleting record:', error);
+    }
+  };
+
   const getStatusStyle = (status: string) => {
     switch (status) {
       case 'Authentic':
@@ -152,10 +166,15 @@ export default function HistoryScreen() {
   };
 
   const getLocalizedDetails = (details: string) => {
-    if (details.includes('batch number was not found')) {
+    if (details.includes('batch number was not found') || details.includes('یہ بیچ نمبر سرکاری رجسٹر')) {
       return t.batchNotFound;
     }
-    if (details.includes('Guaranteed original product') || details.includes('تصدیق شدہ اصل پروڈکٹ')) {
+    if (
+      details.includes('Guaranteed original product') || 
+      details.includes('تصدیق شدہ اصل پروڈکٹ') || 
+      details.includes('محفوظ اور اصل پروڈکٹ') || 
+      details.includes('safe for consumption')
+    ) {
       return t.originalProductDetails;
     }
     return details;
@@ -210,7 +229,7 @@ export default function HistoryScreen() {
 
         <View style={styles.cardDivider} />
 
-        {/* Card Footer: Picture 3 ke mutabiq arrangement */}
+        {/* Card Footer */}
         <View style={[styles.cardFooter, isUrdu && { flexDirection: 'row-reverse' }]}>
           <Text style={styles.dateText}>📅 {item.date}</Text>
           <Text style={styles.viewDetailsText}>{t.viewDetails}</Text>
@@ -355,10 +374,18 @@ export default function HistoryScreen() {
               </View>
             )}
 
-            {/* Close Button Only */}
+            {/* Delete & Close Buttons */}
             <View style={styles.modalActionRow}>
               <TouchableOpacity
-                style={styles.closeModalBtnFull}
+                style={styles.deleteRecordBtn}
+                onPress={() => selectedItem && deleteSpecificRecord(selectedItem.id)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.deleteRecordBtnText}>{t.deleteRecord}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.closeModalBtn}
                 onPress={() => setIsModalVisible(false)}
                 activeOpacity={0.8}
               >
@@ -590,8 +617,23 @@ const styles = StyleSheet.create({
   },
   modalActionRow: {
     flexDirection: 'row',
+    gap: 10,
   },
-  closeModalBtnFull: {
+  deleteRecordBtn: {
+    flex: 1,
+    backgroundColor: 'rgba(239, 68, 68, 0.25)',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#ef4444',
+  },
+  deleteRecordBtnText: {
+    color: '#f87171',
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  closeModalBtn: {
     flex: 1,
     backgroundColor: '#2563eb',
     paddingVertical: 12,
