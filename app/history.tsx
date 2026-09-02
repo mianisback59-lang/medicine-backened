@@ -55,7 +55,7 @@ const translations = {
   },
   ur: {
     scanHistory: 'اسکین ہسٹری',
-    clearAll: 'ختم کریں',
+    clearAll: '"سب ختم کریں"',
     searchPlaceholder: 'دوائی یا بیچ تلاش کریں...',
     all: 'سب',
     authentic: 'اصل',
@@ -266,31 +266,61 @@ export default function HistoryScreen() {
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
-              {/* Perfectly balanced filter scroll for both English and Urdu without cutting text */}
-              <ScrollView 
-                horizontal 
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={[styles.pillContainer, isUrdu ? { flexDirection: 'row-reverse', paddingRight: 4 } : { paddingLeft: 4 }]}
-              >
-                {filterButtons.map((filter) => (
-                  <TouchableOpacity
-                    key={filter.key}
-                    style={[
-                      styles.pill,
-                      selectedFilter === filter.key && styles.pillActive
-                    ]}
-                    onPress={() => setSelectedFilter(filter.key)}
-                    activeOpacity={0.8}
+              
+              {/* Separate Scroll handling for English and Urdu to prevent text cutting */}
+              {isUrdu ? (
+                <View style={styles.urduScrollWrapper}>
+                  <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.urduPillContainer}
                   >
-                    <Text style={[
-                      styles.pillText,
-                      selectedFilter === filter.key && styles.pillTextActive
-                    ]}>
-                      {filter.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+                    {filterButtons.map((filter) => (
+                      <TouchableOpacity
+                        key={filter.key}
+                        style={[
+                          styles.pill,
+                          selectedFilter === filter.key && styles.pillActive
+                        ]}
+                        onPress={() => setSelectedFilter(filter.key)}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={[
+                          styles.pillText,
+                          selectedFilter === filter.key && styles.pillTextActive
+                        ]}>
+                          {filter.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              ) : (
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.pillContainer}
+                >
+                  {filterButtons.map((filter) => (
+                    <TouchableOpacity
+                      key={filter.key}
+                      style={[
+                        styles.pill,
+                        selectedFilter === filter.key && styles.pillActive
+                      ]}
+                      onPress={() => setSelectedFilter(filter.key)}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={[
+                        styles.pillText,
+                        selectedFilter === filter.key && styles.pillTextActive
+                      ]}>
+                        {filter.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              )}
             </View>
           )}
 
@@ -447,6 +477,16 @@ const styles = StyleSheet.create({
   pillContainer: {
     gap: 8,
     paddingBottom: 4,
+    paddingLeft: 2,
+  },
+  urduScrollWrapper: {
+    transform: [{ scaleX: -1 }],
+  },
+  urduPillContainer: {
+    gap: 8,
+    paddingBottom: 4,
+    paddingRight: 2,
+    transform: [{ scaleX: -1 }],
   },
   pill: {
     paddingHorizontal: 14,
