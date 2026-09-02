@@ -51,12 +51,25 @@ export default function HistoryScreen() {
     }
   };
 
-  const clearHistory = async () => {
+  const clearAllHistory = async () => {
     try {
       await AsyncStorage.removeItem('scanHistory');
       setHistoryList([]);
     } catch (error) {
       console.log('Error clearing history:', error);
+    }
+  };
+
+  // Kisi aik specific record ko delete karne ka function
+  const deleteSpecificRecord = async (id: string) => {
+    try {
+      const updatedList = historyList.filter((item) => item.id !== id);
+      setHistoryList(updatedList);
+      await AsyncStorage.setItem('scanHistory', JSON.stringify(updatedList));
+      setIsModalVisible(false);
+      setSelectedItem(null);
+    } catch (error) {
+      console.log('Error deleting record:', error);
     }
   };
 
@@ -107,14 +120,16 @@ export default function HistoryScreen() {
   return (
     <View style={styles.container}>
       <SafeAreaView style={{ flex: 1 }}>
-        {/* Yahan paddingTop ko status bar ke mutabiq mazeed behtar aur spacious kar diya hai */}
         <View style={[styles.contentContainer, { paddingTop: Math.max(insets.top + 10, 20) }]}>
-          {/* Header */}
+          {/* Header - Clean & Professional Layout */}
           <View style={styles.headerRow}>
-            <Text style={styles.headerTitle}>Scan History</Text>
+            <View>
+              <Text style={styles.headerTitle}>Scan History</Text>
+              <Text style={styles.headerSubtitle}>Manage and review your verifications</Text>
+            </View>
             {historyList.length > 0 && (
-              <TouchableOpacity style={styles.clearBtn} onPress={clearHistory} activeOpacity={0.8}>
-                <Text style={styles.clearBtnText}>Clear History</Text>
+              <TouchableOpacity style={styles.clearBtn} onPress={clearAllHistory} activeOpacity={0.8}>
+                <Text style={styles.clearBtnText}>Clear All</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -138,7 +153,7 @@ export default function HistoryScreen() {
         </View>
       </SafeAreaView>
 
-      {/* Detail Modal */}
+      {/* Detail Modal with Specific Delete Option */}
       <Modal
         visible={isModalVisible}
         animationType="fade"
@@ -182,13 +197,23 @@ export default function HistoryScreen() {
               </View>
             )}
 
-            <TouchableOpacity
-              style={styles.closeModalBtn}
-              onPress={() => setIsModalVisible(false)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.closeModalBtnText}>Close</Text>
-            </TouchableOpacity>
+            <View style={styles.modalActionRow}>
+              <TouchableOpacity
+                style={styles.deleteRecordBtn}
+                onPress={() => selectedItem && deleteSpecificRecord(selectedItem.id)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.deleteRecordBtnText}>Delete Record</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.closeModalBtn}
+                onPress={() => setIsModalVisible(false)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.closeModalBtnText}>Close</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -208,7 +233,7 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     marginBottom: 16,
   },
   headerTitle: {
@@ -217,11 +242,16 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     letterSpacing: 0.5,
   },
+  headerSubtitle: {
+    fontSize: 12,
+    color: '#94a3b8',
+    marginTop: 2,
+  },
   clearBtn: {
     backgroundColor: 'rgba(239, 68, 68, 0.12)',
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: 'rgba(239, 68, 68, 0.3)',
   },
@@ -370,7 +400,26 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.05)',
   },
+  modalActionRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  deleteRecordBtn: {
+    flex: 1,
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+  },
+  deleteRecordBtnText: {
+    color: '#f87171',
+    fontWeight: '700',
+    fontSize: 13,
+  },
   closeModalBtn: {
+    flex: 1,
     backgroundColor: '#2563eb',
     paddingVertical: 12,
     borderRadius: 10,
@@ -379,6 +428,6 @@ const styles = StyleSheet.create({
   closeModalBtnText: {
     color: '#ffffff',
     fontWeight: '700',
-    fontSize: 14,
+    fontSize: 13,
   },
 });
