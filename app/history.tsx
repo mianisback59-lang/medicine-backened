@@ -16,14 +16,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 interface ScanRecord {
   id: string;
   medicineName: string;
-  status: 'Authentic' | 'Unverified' | 'Suspicious';
+  status: 'Authentic' | 'Unverified' | 'Suspicious' | 'Expired';
   date: string;
   details: string;
   batchNumber?: string;
   expiryDate?: string;
 }
 
-// Translations Object with 'as const' to make properties strictly typed
 const translations = {
   en: {
     scanHistory: 'Scan History',
@@ -33,6 +32,7 @@ const translations = {
     authentic: 'Authentic',
     unverified: 'Unverified',
     suspicious: 'Suspicious',
+    expired: 'Expired',
     noScansYet: 'No Scans Yet',
     noScansSubtitle: 'Your scanned medicines will appear here automatically once you verify them.',
     noResults: 'No Results Found',
@@ -53,14 +53,15 @@ const translations = {
     clearAll: 'سب صاف کریں',
     searchPlaceholder: 'دوائی یا بیچ تلاش کریں...',
     all: 'سب',
-    authentic: 'اصل (Authentic)',
+    authentic: 'اصل',
     unverified: 'غیر تصدیق شدہ',
     suspicious: 'مشکوک',
+    expired: 'معطیل / ایکسپائرڈ',
     noScansYet: 'کوئی اسکین موجود نہیں',
     noScansSubtitle: 'آپ کی اسکین کردہ دوائیاں تصدیق کے بعد یہاں خود بخود ظاہر ہوں گی۔',
     noResults: 'کوئی نتیجہ نہیں ملا',
     noResultsSubtitle: 'آپ کی تلاش یا فلٹر کے مطابق کوئی اسکین نہیں ملا۔',
-    viewDetails: 'تفصیلات دیکھیں ›',
+    viewDetails: '‹ تفصیلات دیکھیں',
     scanReport: 'اسکین رپورٹ',
     medicine: 'دوائی:',
     status: 'حیثیت:',
@@ -80,7 +81,6 @@ export default function HistoryScreen() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentLang, setCurrentLang] = useState<'en' | 'ur'>('en');
   
-  // Advanced States for Search and Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<string>('All');
 
@@ -140,14 +140,16 @@ export default function HistoryScreen() {
         return { bg: 'rgba(16, 185, 129, 0.15)', border: 'rgba(16, 185, 129, 0.4)', text: '#34d399', icon: '✅' };
       case 'Unverified':
         return { bg: 'rgba(239, 68, 68, 0.15)', border: 'rgba(239, 68, 68, 0.4)', text: '#f87171', icon: '❌' };
+      case 'Expired':
+        return { bg: 'rgba(239, 68, 68, 0.2)', border: 'rgba(239, 68, 68, 0.5)', text: '#ef4444', icon: '⌛' };
       default:
         return { bg: 'rgba(245, 158, 11, 0.15)', border: 'rgba(245, 158, 11, 0.4)', text: '#fbbf24', icon: '⚠️' };
     }
   };
 
   const t = translations[currentLang];
+  const isUrdu = currentLang === 'ur';
 
-  // Filtering Logic for Search & Status Pills
   const filteredList = historyList.filter((item) => {
     const matchesSearch = 
       item.medicineName.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -160,11 +162,11 @@ export default function HistoryScreen() {
   const renderItem = ({ item }: { item: ScanRecord }) => {
     const statusStyle = getStatusStyle(item.status);
     
-    // Type-safe status label resolution mapping
-    const statusLabels: Record<'Authentic' | 'Unverified' | 'Suspicious', string> = {
+    const statusLabels: Record<'Authentic' | 'Unverified' | 'Suspicious' | 'Expired', string> = {
       Authentic: t.authentic,
       Unverified: t.unverified,
       Suspicious: t.suspicious,
+      Expired: t.expired,
     };
     const statusLabel = statusLabels[item.status] || item.status;
 
@@ -177,10 +179,10 @@ export default function HistoryScreen() {
           setIsModalVisible(true);
         }}
       >
-        <View style={styles.cardHeader}>
-          <View style={styles.titleRow}>
+        <View style={[styles.cardHeader, isUrdu && { flexDirection: 'row-reverse' }]}>
+          <View style={[styles.titleRow, isUrdu && { flexDirection: 'row-reverse', marginRight: 0, marginLeft: 8 }]}>
             <Text style={styles.medicineIcon}>💊</Text>
-            <Text style={styles.medicineName} numberOfLines={1}>{item.medicineName}</Text>
+            <Text style={[styles.medicineName, isUrdu && { textAlign: 'right' }]} numberOfLines={1}>{item.medicineName}</Text>
           </View>
           <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg, borderColor: statusStyle.border }]}>
             <Text style={[styles.statusText, { color: statusStyle.text }]}>
@@ -191,7 +193,7 @@ export default function HistoryScreen() {
 
         <View style={styles.cardDivider} />
 
-        <View style={styles.cardFooter}>
+        <View style={[styles.cardFooter, isUrdu && { flexDirection: 'row-reverse' }]}>
           <Text style={styles.dateText}>📅 {item.date}</Text>
           <Text style={styles.viewDetailsText}>{t.viewDetails}</Text>
         </View>
@@ -199,12 +201,29 @@ export default function HistoryScreen() {
     );
   };
 
+  // Correct ordering for filters in Urdu (Right-to-Left: All on the right side)
+  const filterButtons = isUrdu 
+    ? [
+        { key: 'All', label: t.all },
+        { key: 'Authentic', label: t.authentic },
+        { key: 'Unverified', label: t.unverified },
+        { key: 'Suspicious', label: t.suspicious },
+        { key: 'Expired', label: t.expired },
+      ]
+    : [
+        { key: 'All', label: t.all },
+        { key: 'Authentic', label: t.authentic },
+        { key: 'Unverified', label: t.unverified },
+        { key: 'Suspicious', label: t.suspicious },
+        { key: 'Expired', label: t.expired },
+      ];
+
   return (
     <View style={styles.container}>
       <SafeAreaView style={{ flex: 1 }}>
         <View style={[styles.contentContainer, { paddingTop: Math.max(insets.top + 10, 20) }]}>
           {/* Header - Title & Clear Button */}
-          <View style={styles.headerRow}>
+          <View style={[styles.headerRow, isUrdu && { flexDirection: 'row-reverse' }]}>
             <Text style={styles.headerTitle}>{t.scanHistory}</Text>
             {historyList.length > 0 && (
               <TouchableOpacity style={styles.clearBtn} onPress={clearAllHistory} activeOpacity={0.8}>
@@ -213,23 +232,18 @@ export default function HistoryScreen() {
             )}
           </View>
 
-          {/* Search Bar & Filter Pills (Only show if history is not empty) */}
+          {/* Search Bar & Filter Pills */}
           {historyList.length > 0 && (
             <View style={styles.filterSection}>
               <TextInput
-                style={styles.searchBar}
+                style={[styles.searchBar, isUrdu && { textAlign: 'right' }]}
                 placeholder={t.searchPlaceholder}
                 placeholderTextColor="#64748b"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
-              <View style={styles.pillContainer}>
-                {[
-                  { key: 'All', label: t.all },
-                  { key: 'Authentic', label: t.authentic },
-                  { key: 'Unverified', label: t.unverified },
-                  { key: 'Suspicious', label: t.suspicious },
-                ].map((filter) => (
+              <View style={[styles.pillContainer, isUrdu && { flexDirection: 'row-reverse' }]}>
+                {filterButtons.map((filter) => (
                   <TouchableOpacity
                     key={filter.key}
                     style={[
@@ -256,13 +270,13 @@ export default function HistoryScreen() {
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyIcon}>📦</Text>
               <Text style={styles.emptyTitle}>{t.noScansYet}</Text>
-              <Text style={styles.emptySubtitle}>{t.noScansSubtitle}</Text>
+              <Text style={[styles.emptySubtitle, isUrdu && { textAlign: 'center' }]}>{t.noScansSubtitle}</Text>
             </View>
           ) : filteredList.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyIcon}>🔍</Text>
               <Text style={styles.emptyTitle}>{t.noResults}</Text>
-              <Text style={styles.emptySubtitle}>{t.noResultsSubtitle}</Text>
+              <Text style={[styles.emptySubtitle, isUrdu && { textAlign: 'center' }]}>{t.noResultsSubtitle}</Text>
             </View>
           ) : (
             <FlatList
@@ -289,40 +303,40 @@ export default function HistoryScreen() {
 
             {selectedItem && (
               <View style={styles.modalBody}>
-                <View style={styles.modalRow}>
+                <View style={[styles.modalRow, isUrdu && { flexDirection: 'row-reverse' }]}>
                   <Text style={styles.modalLabel}>{t.medicine}</Text>
-                  <Text style={styles.modalValue}>{selectedItem.medicineName}</Text>
+                  <Text style={[styles.modalValue, isUrdu ? { textAlign: 'left', marginRight: 10, marginLeft: 0 } : { textAlign: 'right', marginLeft: 10 }]}>{selectedItem.medicineName}</Text>
                 </View>
 
-                <View style={styles.modalRow}>
+                <View style={[styles.modalRow, isUrdu && { flexDirection: 'row-reverse' }]}>
                   <Text style={styles.modalLabel}>{t.status}</Text>
-                  <Text style={[styles.modalValue, { color: getStatusStyle(selectedItem.status).text }]}>
-                    {selectedItem.status === 'Authentic' ? t.authentic : selectedItem.status === 'Unverified' ? t.unverified : t.suspicious}
+                  <Text style={[styles.modalValue, { color: getStatusStyle(selectedItem.status).text }, isUrdu ? { textAlign: 'left' } : { textAlign: 'right' }]}>
+                    {selectedItem.status === 'Authentic' ? t.authentic : selectedItem.status === 'Unverified' ? t.unverified : selectedItem.status === 'Expired' ? t.expired : t.suspicious}
                   </Text>
                 </View>
 
-                <View style={styles.modalRow}>
+                <View style={[styles.modalRow, isUrdu && { flexDirection: 'row-reverse' }]}>
                   <Text style={styles.modalLabel}>{t.dateTime}</Text>
-                  <Text style={styles.modalValue}>{selectedItem.date}</Text>
+                  <Text style={[styles.modalValue, isUrdu ? { textAlign: 'left' } : { textAlign: 'right' }]}>{selectedItem.date}</Text>
                 </View>
 
                 {selectedItem.batchNumber && (
-                  <View style={styles.modalRow}>
+                  <View style={[styles.modalRow, isUrdu && { flexDirection: 'row-reverse' }]}>
                     <Text style={styles.modalLabel}>{t.batchNo}</Text>
-                    <Text style={styles.modalValue}>{selectedItem.batchNumber}</Text>
+                    <Text style={[styles.modalValue, isUrdu ? { textAlign: 'left' } : { textAlign: 'right' }]}>{selectedItem.batchNumber}</Text>
                   </View>
                 )}
 
                 {selectedItem.expiryDate && (
-                  <View style={styles.modalRow}>
+                  <View style={[styles.modalRow, isUrdu && { flexDirection: 'row-reverse' }]}>
                     <Text style={styles.modalLabel}>{t.expiryDate}</Text>
-                    <Text style={[styles.modalValue, { color: '#f87171' }]}>{selectedItem.expiryDate}</Text>
+                    <Text style={[styles.modalValue, { color: '#f87171' }, isUrdu ? { textAlign: 'left' } : { textAlign: 'right' }]}>{selectedItem.expiryDate}</Text>
                   </View>
                 )}
 
                 <View style={{ marginTop: 12 }}>
-                  <Text style={styles.modalLabel}>{t.verificationDetails}</Text>
-                  <Text style={styles.detailBoxText}>{selectedItem.details}</Text>
+                  <Text style={[styles.modalLabel, isUrdu && { textAlign: 'right' }]}>{t.verificationDetails}</Text>
+                  <Text style={[styles.detailBoxText, isUrdu && { textAlign: 'right' }]}>{selectedItem.details}</Text>
                 </View>
               </View>
             )}
@@ -403,6 +417,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     marginBottom: 6,
+    flexWrap: 'wrap',
   },
   pill: {
     paddingHorizontal: 12,
@@ -570,12 +585,12 @@ const styles = StyleSheet.create({
   },
   deleteRecordBtn: {
     flex: 1,
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    backgroundColor: 'rgba(239, 68, 68, 0.25)',
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.4)',
+    borderWidth: 1.5,
+    borderColor: '#ef4444',
   },
   deleteRecordBtnText: {
     color: '#f87171',
