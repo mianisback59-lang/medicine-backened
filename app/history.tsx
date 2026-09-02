@@ -46,6 +46,7 @@ const translations = {
     batchNo: 'Batch No:',
     expiryDate: 'Expiry Date:',
     verificationDetails: 'Verification Details:',
+    deleteRecord: 'Delete',
     close: 'Close',
     unverifiedMedicine: 'Unverified Medicine',
     authenticMedicine: 'Authentic Medicine',
@@ -54,7 +55,7 @@ const translations = {
   },
   ur: {
     scanHistory: 'اسکین ہسٹری',
-    clearAll: 'سب ختم کریں', // Asaan lafz
+    clearAll: 'سب صاف کریں',
     searchPlaceholder: 'دوائی یا بیچ تلاش کریں...',
     all: 'سب',
     authentic: 'اصل',
@@ -73,6 +74,7 @@ const translations = {
     batchNo: 'بیچ نمبر:',
     expiryDate: 'معطلی کی تاریخ (Expiry):',
     verificationDetails: 'تصدیقی تفصیلات:',
+    deleteRecord: 'ختم کریں',
     close: 'بند کریں',
     unverifiedMedicine: 'غیر تصدیق شدہ دوائی',
     authenticMedicine: 'اصل دوائی',
@@ -129,6 +131,18 @@ export default function HistoryScreen() {
     }
   };
 
+  const deleteSpecificRecord = async (id: string) => {
+    try {
+      const updatedList = historyList.filter((item) => item.id !== id);
+      setHistoryList(updatedList);
+      await AsyncStorage.setItem('scanHistory', JSON.stringify(updatedList));
+      setIsModalVisible(false);
+      setSelectedItem(null);
+    } catch (error) {
+      console.log('Error deleting record:', error);
+    }
+  };
+
   const getStatusStyle = (status: string) => {
     switch (status) {
       case 'Authentic':
@@ -145,10 +159,11 @@ export default function HistoryScreen() {
   const t = translations[currentLang];
   const isUrdu = currentLang === 'ur';
 
+  // Helper to translate dynamic names/details based on language
   const getLocalizedMedicineName = (name: string) => {
     if (name === 'Unverified Medicine') return t.unverifiedMedicine;
     if (name === 'Authentic Medicine') return t.authenticMedicine;
-    return name;
+    return name; // Specific brand names like 'Quinodex Ear/D 5ml' will remain as brand names
   };
 
   const getLocalizedDetails = (details: string) => {
@@ -194,6 +209,7 @@ export default function HistoryScreen() {
         }}
       >
         <View style={styles.cardHeader}>
+          {/* Removed extra margin/spacing between icon and name */}
           <View style={[styles.titleRow, isUrdu && { flexDirection: 'row-reverse' }]}>
             <Text style={styles.medicineIcon}>💊</Text>
             <Text style={[styles.medicineName, isUrdu && { textAlign: 'right' }]} numberOfLines={1}>
@@ -229,6 +245,7 @@ export default function HistoryScreen() {
     <View style={styles.container}>
       <SafeAreaView style={{ flex: 1 }}>
         <View style={[styles.contentContainer, { paddingTop: Math.max(insets.top + 10, 20) }]}>
+          {/* Header - Title & Clear Button */}
           <View style={styles.headerRow}>
             <Text style={styles.headerTitle}>{t.scanHistory}</Text>
             {historyList.length > 0 && (
@@ -238,6 +255,7 @@ export default function HistoryScreen() {
             )}
           </View>
 
+          {/* Search Bar & Horizontal Scrollable Filter Pills */}
           {historyList.length > 0 && (
             <View style={styles.filterSection}>
               <TextInput
@@ -274,6 +292,7 @@ export default function HistoryScreen() {
             </View>
           )}
 
+          {/* List or Empty State */}
           {historyList.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyIcon}>📦</Text>
@@ -353,10 +372,17 @@ export default function HistoryScreen() {
               </View>
             )}
 
-            {/* Close Button Only */}
             <View style={styles.modalActionRow}>
               <TouchableOpacity
-                style={styles.closeModalBtnFull}
+                style={styles.deleteRecordBtn}
+                onPress={() => selectedItem && deleteSpecificRecord(selectedItem.id)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.deleteRecordBtnText}>{t.deleteRecord}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.closeModalBtn}
                 onPress={() => setIsModalVisible(false)}
                 activeOpacity={0.8}
               >
@@ -468,7 +494,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
     marginRight: 8,
-    gap: 6,
+    gap: 6, // Tightened gap between capsule icon and name
   },
   medicineIcon: {
     fontSize: 18,
@@ -588,8 +614,23 @@ const styles = StyleSheet.create({
   },
   modalActionRow: {
     flexDirection: 'row',
+    gap: 10,
   },
-  closeModalBtnFull: {
+  deleteRecordBtn: {
+    flex: 1,
+    backgroundColor: 'rgba(239, 68, 68, 0.25)',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#ef4444',
+  },
+  deleteRecordBtnText: {
+    color: '#f87171',
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  closeModalBtn: {
     flex: 1,
     backgroundColor: '#2563eb',
     paddingVertical: 12,
