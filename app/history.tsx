@@ -55,7 +55,7 @@ const translations = {
   },
   ur: {
     scanHistory: 'اسکین ہسٹری',
-    clearAll: '"سب ختم کریں"',
+    clearAll: 'سب ختم کریں',
     searchPlaceholder: 'دوائی یا بیچ تلاش کریں...',
     all: 'سب',
     authentic: 'اصل',
@@ -74,7 +74,7 @@ const translations = {
     batchNo: 'بیچ نمبر:',
     expiryDate: 'معطلی کی تاریخ (Expiry):',
     verificationDetails: 'تصدیقی تفصیلات:',
-    deleteRecord:'ختم کریں',
+    deleteRecord: 'ختم کریں',
     close: 'بند کریں',
     unverifiedMedicine: 'غیر تصدیق شدہ دوائی',
     authenticMedicine: 'اصل دوائی',
@@ -267,60 +267,36 @@ export default function HistoryScreen() {
                 onChangeText={setSearchQuery}
               />
               
-              {/* Separate Scroll handling for English and Urdu to prevent text cutting */}
-              {isUrdu ? (
-                <View style={styles.urduScrollWrapper}>
-                  <ScrollView 
-                    horizontal 
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.urduPillContainer}
+              {/* Urdu mein poori ScrollView ko flip kar diya hai taake 'سب' right par ho aur text seedha rahe */}
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={[
+                  styles.pillContainer, 
+                  isUrdu && { flexDirection: 'row-reverse' }
+                ]}
+                style={isUrdu && { transform: [{ scaleX: -1 }] }}
+              >
+                {filterButtons.map((filter) => (
+                  <TouchableOpacity
+                    key={filter.key}
+                    style={[
+                      styles.pill,
+                      selectedFilter === filter.key && styles.pillActive,
+                      isUrdu && { transform: [{ scaleX: -1 }] }
+                    ]}
+                    onPress={() => setSelectedFilter(filter.key)}
+                    activeOpacity={0.8}
                   >
-                    {filterButtons.map((filter) => (
-                      <TouchableOpacity
-                        key={filter.key}
-                        style={[
-                          styles.pill,
-                          selectedFilter === filter.key && styles.pillActive
-                        ]}
-                        onPress={() => setSelectedFilter(filter.key)}
-                        activeOpacity={0.8}
-                      >
-                        <Text style={[
-                          styles.pillText,
-                          selectedFilter === filter.key && styles.pillTextActive
-                        ]}>
-                          {filter.label}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
-              ) : (
-                <ScrollView 
-                  horizontal 
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.pillContainer}
-                >
-                  {filterButtons.map((filter) => (
-                    <TouchableOpacity
-                      key={filter.key}
-                      style={[
-                        styles.pill,
-                        selectedFilter === filter.key && styles.pillActive
-                      ]}
-                      onPress={() => setSelectedFilter(filter.key)}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={[
-                        styles.pillText,
-                        selectedFilter === filter.key && styles.pillTextActive
-                      ]}>
-                        {filter.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              )}
+                    <Text style={[
+                      styles.pillText,
+                      selectedFilter === filter.key && styles.pillTextActive
+                    ]}>
+                      {filter.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             </View>
           )}
 
@@ -477,16 +453,7 @@ const styles = StyleSheet.create({
   pillContainer: {
     gap: 8,
     paddingBottom: 4,
-    paddingLeft: 2,
-  },
-  urduScrollWrapper: {
-    transform: [{ scaleX: -1 }],
-  },
-  urduPillContainer: {
-    gap: 8,
-    paddingBottom: 4,
-    paddingRight: 2,
-    transform: [{ scaleX: -1 }],
+    paddingHorizontal: 2,
   },
   pill: {
     paddingHorizontal: 14,
