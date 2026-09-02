@@ -20,13 +20,65 @@ interface ScanRecord {
   date: string;
   details: string;
   batchNumber?: string;
+  expiryDate?: string;
 }
+
+// Translations Object with 'as const' to make properties strictly typed
+const translations = {
+  en: {
+    scanHistory: 'Scan History',
+    clearAll: 'Clear All',
+    searchPlaceholder: 'Search medicine or batch...',
+    all: 'All',
+    authentic: 'Authentic',
+    unverified: 'Unverified',
+    suspicious: 'Suspicious',
+    noScansYet: 'No Scans Yet',
+    noScansSubtitle: 'Your scanned medicines will appear here automatically once you verify them.',
+    noResults: 'No Results Found',
+    noResultsSubtitle: 'No matching scans found for your search or filter criteria.',
+    viewDetails: 'View Details ›',
+    scanReport: 'Scan Report',
+    medicine: 'Medicine:',
+    status: 'Status:',
+    dateTime: 'Date & Time:',
+    batchNo: 'Batch No:',
+    expiryDate: 'Expiry Date:',
+    verificationDetails: 'Verification Details:',
+    deleteRecord: 'Delete Record',
+    close: 'Close',
+  },
+  ur: {
+    scanHistory: 'اسکین ہسٹری',
+    clearAll: 'سب صاف کریں',
+    searchPlaceholder: 'دوائی یا بیچ تلاش کریں...',
+    all: 'سب',
+    authentic: 'اصل (Authentic)',
+    unverified: 'غیر تصدیق شدہ',
+    suspicious: 'مشکوک',
+    noScansYet: 'کوئی اسکین موجود نہیں',
+    noScansSubtitle: 'آپ کی اسکین کردہ دوائیاں تصدیق کے بعد یہاں خود بخود ظاہر ہوں گی۔',
+    noResults: 'کوئی نتیجہ نہیں ملا',
+    noResultsSubtitle: 'آپ کی تلاش یا فلٹر کے مطابق کوئی اسکین نہیں ملا۔',
+    viewDetails: 'تفصیلات دیکھیں ›',
+    scanReport: 'اسکین رپورٹ',
+    medicine: 'دوائی:',
+    status: 'حیثیت:',
+    dateTime: 'تاریخ اور وقت:',
+    batchNo: 'بیچ نمبر:',
+    expiryDate: 'معطلی کی تاریخ (Expiry):',
+    verificationDetails: 'تصدیقی تفصیلات:',
+    deleteRecord: 'ریکارڈ حذف کریں',
+    close: 'بند کریں',
+  },
+} as const;
 
 export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
   const [historyList, setHistoryList] = useState<ScanRecord[]>([]);
   const [selectedItem, setSelectedItem] = useState<ScanRecord | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [currentLang, setCurrentLang] = useState<'en' | 'ur'>('en');
   
   // Advanced States for Search and Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -34,12 +86,17 @@ export default function HistoryScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      loadHistory();
+      loadHistoryAndLanguage();
     }, [])
   );
 
-  const loadHistory = async () => {
+  const loadHistoryAndLanguage = async () => {
     try {
+      const savedLang = await AsyncStorage.getItem('appLanguage');
+      if (savedLang === 'ur' || savedLang === 'en') {
+        setCurrentLang(savedLang);
+      }
+
       const savedHistory = await AsyncStorage.getItem('scanHistory');
       if (savedHistory) {
         const parsed = JSON.parse(savedHistory);
@@ -52,7 +109,7 @@ export default function HistoryScreen() {
         setHistoryList([]);
       }
     } catch (error) {
-      console.log('Error loading history:', error);
+      console.log('Error loading data:', error);
     }
   };
 
@@ -88,6 +145,8 @@ export default function HistoryScreen() {
     }
   };
 
+  const t = translations[currentLang];
+
   // Filtering Logic for Search & Status Pills
   const filteredList = historyList.filter((item) => {
     const matchesSearch = 
@@ -100,6 +159,15 @@ export default function HistoryScreen() {
 
   const renderItem = ({ item }: { item: ScanRecord }) => {
     const statusStyle = getStatusStyle(item.status);
+    
+    // Type-safe status label resolution mapping
+    const statusLabels: Record<'Authentic' | 'Unverified' | 'Suspicious', string> = {
+      Authentic: t.authentic,
+      Unverified: t.unverified,
+      Suspicious: t.suspicious,
+    };
+    const statusLabel = statusLabels[item.status] || item.status;
+
     return (
       <TouchableOpacity
         style={styles.card}
@@ -116,7 +184,7 @@ export default function HistoryScreen() {
           </View>
           <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg, borderColor: statusStyle.border }]}>
             <Text style={[styles.statusText, { color: statusStyle.text }]}>
-              {statusStyle.icon} {item.status}
+              {statusStyle.icon} {statusLabel}
             </Text>
           </View>
         </View>
@@ -125,7 +193,7 @@ export default function HistoryScreen() {
 
         <View style={styles.cardFooter}>
           <Text style={styles.dateText}>📅 {item.date}</Text>
-          <Text style={styles.viewDetailsText}>View Details ›</Text>
+          <Text style={styles.viewDetailsText}>{t.viewDetails}</Text>
         </View>
       </TouchableOpacity>
     );
@@ -137,10 +205,10 @@ export default function HistoryScreen() {
         <View style={[styles.contentContainer, { paddingTop: Math.max(insets.top + 10, 20) }]}>
           {/* Header - Title & Clear Button */}
           <View style={styles.headerRow}>
-            <Text style={styles.headerTitle}>Scan History</Text>
+            <Text style={styles.headerTitle}>{t.scanHistory}</Text>
             {historyList.length > 0 && (
               <TouchableOpacity style={styles.clearBtn} onPress={clearAllHistory} activeOpacity={0.8}>
-                <Text style={styles.clearBtnText}>Clear All</Text>
+                <Text style={styles.clearBtnText}>{t.clearAll}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -150,27 +218,32 @@ export default function HistoryScreen() {
             <View style={styles.filterSection}>
               <TextInput
                 style={styles.searchBar}
-                placeholder="Search medicine or batch..."
+                placeholder={t.searchPlaceholder}
                 placeholderTextColor="#64748b"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
               <View style={styles.pillContainer}>
-                {['All', 'Authentic', 'Unverified', 'Suspicious'].map((filter) => (
+                {[
+                  { key: 'All', label: t.all },
+                  { key: 'Authentic', label: t.authentic },
+                  { key: 'Unverified', label: t.unverified },
+                  { key: 'Suspicious', label: t.suspicious },
+                ].map((filter) => (
                   <TouchableOpacity
-                    key={filter}
+                    key={filter.key}
                     style={[
                       styles.pill,
-                      selectedFilter === filter && styles.pillActive
+                      selectedFilter === filter.key && styles.pillActive
                     ]}
-                    onPress={() => setSelectedFilter(filter)}
+                    onPress={() => setSelectedFilter(filter.key)}
                     activeOpacity={0.8}
                   >
                     <Text style={[
                       styles.pillText,
-                      selectedFilter === filter && styles.pillTextActive
+                      selectedFilter === filter.key && styles.pillTextActive
                     ]}>
-                      {filter}
+                      {filter.label}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -182,14 +255,14 @@ export default function HistoryScreen() {
           {historyList.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyIcon}>📦</Text>
-              <Text style={styles.emptyTitle}>No Scans Yet</Text>
-              <Text style={styles.emptySubtitle}>Your scanned medicines will appear here automatically once you verify them.</Text>
+              <Text style={styles.emptyTitle}>{t.noScansYet}</Text>
+              <Text style={styles.emptySubtitle}>{t.noScansSubtitle}</Text>
             </View>
           ) : filteredList.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyIcon}>🔍</Text>
-              <Text style={styles.emptyTitle}>No Results Found</Text>
-              <Text style={styles.emptySubtitle}>No matching scans found for your search or filter criteria.</Text>
+              <Text style={styles.emptyTitle}>{t.noResults}</Text>
+              <Text style={styles.emptySubtitle}>{t.noResultsSubtitle}</Text>
             </View>
           ) : (
             <FlatList
@@ -212,36 +285,43 @@ export default function HistoryScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Scan Report</Text>
+            <Text style={styles.modalTitle}>{t.scanReport}</Text>
 
             {selectedItem && (
               <View style={styles.modalBody}>
                 <View style={styles.modalRow}>
-                  <Text style={styles.modalLabel}>Medicine:</Text>
+                  <Text style={styles.modalLabel}>{t.medicine}</Text>
                   <Text style={styles.modalValue}>{selectedItem.medicineName}</Text>
                 </View>
 
                 <View style={styles.modalRow}>
-                  <Text style={styles.modalLabel}>Status:</Text>
+                  <Text style={styles.modalLabel}>{t.status}</Text>
                   <Text style={[styles.modalValue, { color: getStatusStyle(selectedItem.status).text }]}>
-                    {selectedItem.status}
+                    {selectedItem.status === 'Authentic' ? t.authentic : selectedItem.status === 'Unverified' ? t.unverified : t.suspicious}
                   </Text>
                 </View>
 
                 <View style={styles.modalRow}>
-                  <Text style={styles.modalLabel}>Date & Time:</Text>
+                  <Text style={styles.modalLabel}>{t.dateTime}</Text>
                   <Text style={styles.modalValue}>{selectedItem.date}</Text>
                 </View>
 
                 {selectedItem.batchNumber && (
                   <View style={styles.modalRow}>
-                    <Text style={styles.modalLabel}>Batch No:</Text>
+                    <Text style={styles.modalLabel}>{t.batchNo}</Text>
                     <Text style={styles.modalValue}>{selectedItem.batchNumber}</Text>
                   </View>
                 )}
 
+                {selectedItem.expiryDate && (
+                  <View style={styles.modalRow}>
+                    <Text style={styles.modalLabel}>{t.expiryDate}</Text>
+                    <Text style={[styles.modalValue, { color: '#f87171' }]}>{selectedItem.expiryDate}</Text>
+                  </View>
+                )}
+
                 <View style={{ marginTop: 12 }}>
-                  <Text style={styles.modalLabel}>Verification Details:</Text>
+                  <Text style={styles.modalLabel}>{t.verificationDetails}</Text>
                   <Text style={styles.detailBoxText}>{selectedItem.details}</Text>
                 </View>
               </View>
@@ -253,7 +333,7 @@ export default function HistoryScreen() {
                 onPress={() => selectedItem && deleteSpecificRecord(selectedItem.id)}
                 activeOpacity={0.8}
               >
-                <Text style={styles.deleteRecordBtnText}>Delete Record</Text>
+                <Text style={styles.deleteRecordBtnText}>{t.deleteRecord}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -261,7 +341,7 @@ export default function HistoryScreen() {
                 onPress={() => setIsModalVisible(false)}
                 activeOpacity={0.8}
               >
-                <Text style={styles.closeModalBtnText}>Close</Text>
+                <Text style={styles.closeModalBtnText}>{t.close}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -495,7 +575,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderColor: 'rgba(239, 68, 68, 0.4)',
   },
   deleteRecordBtnText: {
     color: '#f87171',
