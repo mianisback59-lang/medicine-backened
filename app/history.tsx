@@ -74,7 +74,7 @@ const translations = {
     batchNo: 'بیچ نمبر:',
     expiryDate: 'معطلی کی تاریخ (Expiry):',
     verificationDetails: 'تصدیقی تفصیلات:',
-    deleteRecord: 'ختم کریں',
+    deleteRecord:'ختم کریں',
     close: 'بند کریں',
     unverifiedMedicine: 'غیر تصدیق شدہ دوائی',
     authenticMedicine: 'اصل دوائی',
@@ -236,13 +236,16 @@ export default function HistoryScreen() {
     );
   };
 
-  const filterButtons = [
+  const baseFilterButtons = [
     { key: 'All', label: t.all },
     { key: 'Authentic', label: t.authentic },
     { key: 'Unverified', label: t.unverified },
     { key: 'Suspicious', label: t.suspicious },
     { key: 'Expired', label: t.expired },
   ];
+
+  // Urdu mein array ko reverse kar diya hai taake 'سب' aakhir mein ho aur right side par poora nazar aaye
+  const filterButtons = isUrdu ? [...baseFilterButtons].reverse() : baseFilterButtons;
 
   return (
     <View style={styles.container}>
@@ -267,7 +270,6 @@ export default function HistoryScreen() {
                 onChangeText={setSearchQuery}
               />
               
-              {/* Urdu mein poori ScrollView ko flip kar diya hai taake 'سب' right par ho aur text seedha rahe */}
               <ScrollView 
                 horizontal 
                 showsHorizontalScrollIndicator={false}
@@ -275,7 +277,6 @@ export default function HistoryScreen() {
                   styles.pillContainer, 
                   isUrdu && { flexDirection: 'row-reverse' }
                 ]}
-                style={isUrdu && { transform: [{ scaleX: -1 }] }}
               >
                 {filterButtons.map((filter) => (
                   <TouchableOpacity
@@ -283,7 +284,6 @@ export default function HistoryScreen() {
                     style={[
                       styles.pill,
                       selectedFilter === filter.key && styles.pillActive,
-                      isUrdu && { transform: [{ scaleX: -1 }] }
                     ]}
                     onPress={() => setSelectedFilter(filter.key)}
                     activeOpacity={0.8}
