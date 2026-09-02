@@ -60,7 +60,6 @@ export default function HistoryScreen() {
     }
   };
 
-  // Kisi aik specific record ko delete karne ka function
   const deleteSpecificRecord = async (id: string) => {
     try {
       const updatedList = historyList.filter((item) => item.id !== id);
@@ -121,12 +120,9 @@ export default function HistoryScreen() {
     <View style={styles.container}>
       <SafeAreaView style={{ flex: 1 }}>
         <View style={[styles.contentContainer, { paddingTop: Math.max(insets.top + 10, 20) }]}>
-          {/* Header - Clean & Professional Layout */}
+          {/* Header - Title & Clear Button in one aligned row */}
           <View style={styles.headerRow}>
-            <View>
-              <Text style={styles.headerTitle}>Scan History</Text>
-              <Text style={styles.headerSubtitle}>Manage and review your verifications</Text>
-            </View>
+            <Text style={styles.headerTitle}>Scan History</Text>
             {historyList.length > 0 && (
               <TouchableOpacity style={styles.clearBtn} onPress={clearAllHistory} activeOpacity={0.8}>
                 <Text style={styles.clearBtnText}>Clear All</Text>
@@ -153,7 +149,7 @@ export default function HistoryScreen() {
         </View>
       </SafeAreaView>
 
-      {/* Detail Modal with Specific Delete Option */}
+      {/* Detail Modal */}
       <Modal
         visible={isModalVisible}
         animationType="fade"
@@ -233,7 +229,7 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     marginBottom: 16,
   },
   headerTitle: {
@@ -241,11 +237,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#ffffff',
     letterSpacing: 0.5,
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    color: '#94a3b8',
-    marginTop: 2,
   },
   clearBtn: {
     backgroundColor: 'rgba(239, 68, 68, 0.12)',
