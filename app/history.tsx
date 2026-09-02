@@ -7,6 +7,7 @@ import {
     SafeAreaView,
     StyleSheet,
     Text,
+    TextInput,
     TouchableOpacity,
     View,
 } from 'react-native';
@@ -26,6 +27,10 @@ export default function HistoryScreen() {
   const [historyList, setHistoryList] = useState<ScanRecord[]>([]);
   const [selectedItem, setSelectedItem] = useState<ScanRecord | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  
+  // Advanced States for Search and Filters
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedFilter, setSelectedFilter] = useState<string>('All');
 
   useFocusEffect(
     useCallback(() => {
@@ -83,6 +88,16 @@ export default function HistoryScreen() {
     }
   };
 
+  // Filtering Logic for Search & Status Pills
+  const filteredList = historyList.filter((item) => {
+    const matchesSearch = 
+      item.medicineName.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      (item.batchNumber && item.batchNumber.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    if (selectedFilter === 'All') return matchesSearch;
+    return matchesSearch && item.status === selectedFilter;
+  });
+
   const renderItem = ({ item }: { item: ScanRecord }) => {
     const statusStyle = getStatusStyle(item.status);
     return (
@@ -120,7 +135,7 @@ export default function HistoryScreen() {
     <View style={styles.container}>
       <SafeAreaView style={{ flex: 1 }}>
         <View style={[styles.contentContainer, { paddingTop: Math.max(insets.top + 10, 20) }]}>
-          {/* Header - Title & Clear Button in one aligned row */}
+          {/* Header - Title & Clear Button */}
           <View style={styles.headerRow}>
             <Text style={styles.headerTitle}>Scan History</Text>
             {historyList.length > 0 && (
@@ -130,6 +145,39 @@ export default function HistoryScreen() {
             )}
           </View>
 
+          {/* Search Bar & Filter Pills (Only show if history is not empty) */}
+          {historyList.length > 0 && (
+            <View style={styles.filterSection}>
+              <TextInput
+                style={styles.searchBar}
+                placeholder="Search medicine or batch..."
+                placeholderTextColor="#64748b"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+              <View style={styles.pillContainer}>
+                {['All', 'Authentic', 'Unverified', 'Suspicious'].map((filter) => (
+                  <TouchableOpacity
+                    key={filter}
+                    style={[
+                      styles.pill,
+                      selectedFilter === filter && styles.pillActive
+                    ]}
+                    onPress={() => setSelectedFilter(filter)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[
+                      styles.pillText,
+                      selectedFilter === filter && styles.pillTextActive
+                    ]}>
+                      {filter}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
+
           {/* List or Empty State */}
           {historyList.length === 0 ? (
             <View style={styles.emptyContainer}>
@@ -137,12 +185,18 @@ export default function HistoryScreen() {
               <Text style={styles.emptyTitle}>No Scans Yet</Text>
               <Text style={styles.emptySubtitle}>Your scanned medicines will appear here automatically once you verify them.</Text>
             </View>
+          ) : filteredList.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyIcon}>🔍</Text>
+              <Text style={styles.emptyTitle}>No Results Found</Text>
+              <Text style={styles.emptySubtitle}>No matching scans found for your search or filter criteria.</Text>
+            </View>
           ) : (
             <FlatList
-              data={historyList}
+              data={filteredList}
               keyExtractor={(item) => item.id}
               renderItem={renderItem}
-              contentContainerStyle={{ paddingBottom: 20, paddingTop: 10 }}
+              contentContainerStyle={{ paddingBottom: 20, paddingTop: 6 }}
               showsVerticalScrollIndicator={false}
             />
           )}
@@ -230,7 +284,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   headerTitle: {
     fontSize: 26,
@@ -239,17 +293,56 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   clearBtn: {
-    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    backgroundColor: 'rgba(255, 75, 75, 0.12)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderColor: 'rgba(255, 75, 75, 0.35)',
   },
   clearBtnText: {
     fontSize: 12,
-    color: '#f87171',
+    color: '#ff6b6b',
     fontWeight: '700',
+  },
+  filterSection: {
+    marginBottom: 10,
+  },
+  searchBar: {
+    backgroundColor: 'rgba(30, 41, 59, 0.65)',
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.2)',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    color: '#ffffff',
+    fontSize: 14,
+    marginBottom: 10,
+  },
+  pillContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 6,
+  },
+  pill: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: 'rgba(30, 41, 59, 0.5)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  pillActive: {
+    backgroundColor: '#2563eb',
+    borderColor: '#3b82f6',
+  },
+  pillText: {
+    fontSize: 12,
+    color: '#94a3b8',
+    fontWeight: '600',
+  },
+  pillTextActive: {
+    color: '#ffffff',
   },
   card: {
     backgroundColor: 'rgba(30, 41, 59, 0.65)',
