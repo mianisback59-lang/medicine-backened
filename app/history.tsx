@@ -38,7 +38,6 @@ export default function HistoryScreen() {
       const savedHistory = await AsyncStorage.getItem('scanHistory');
       if (savedHistory) {
         const parsed = JSON.parse(savedHistory);
-        // Purane 'Counterfeit' status ko 'Unverified' mein safe mapping dene ke liye
         const updated = parsed.map((item: any) => ({
           ...item,
           status: item.status === 'Counterfeit' ? 'Unverified' : item.status
@@ -108,13 +107,11 @@ export default function HistoryScreen() {
   return (
     <View style={styles.container}>
       <SafeAreaView style={{ flex: 1 }}>
-        <View style={[styles.contentContainer, { paddingTop: Math.max(insets.top, 16) }]}>
+        {/* Yahan paddingTop ko status bar ke mutabiq mazeed behtar aur spacious kar diya hai */}
+        <View style={[styles.contentContainer, { paddingTop: Math.max(insets.top + 10, 20) }]}>
           {/* Header */}
           <View style={styles.headerRow}>
-            <View style={{ flex: 1, marginRight: 10 }}>
-              <Text style={styles.headerTitle}>Scan History</Text>
-              <Text style={styles.headerSubtitle}>Review your previous medicine verifications safely</Text>
-            </View>
+            <Text style={styles.headerTitle}>Scan History</Text>
             {historyList.length > 0 && (
               <TouchableOpacity style={styles.clearBtn} onPress={clearHistory} activeOpacity={0.8}>
                 <Text style={styles.clearBtnText}>Clear History</Text>
@@ -219,12 +216,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#ffffff',
     letterSpacing: 0.5,
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    color: '#94a3b8',
-    marginTop: 4,
-    letterSpacing: 0.3,
   },
   clearBtn: {
     backgroundColor: 'rgba(239, 68, 68, 0.12)',
