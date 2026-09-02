@@ -66,7 +66,7 @@ const translations = {
     noScansSubtitle: 'آپ کی اسکین کردہ دوائیاں تصدیق کے بعد یہاں خود بخود ظاہر ہوں گی۔',
     noResults: 'کوئی نتیجہ نہیں ملا',
     noResultsSubtitle: 'آپ کی تلاش یا فلٹر کے مطابق کوئی اسکین نہیں ملا۔',
-    viewDetails: 'تفصیلات دیکھیں ›',
+    viewDetails: 'تفصیلات دیکھیں ‹',
     scanReport: 'اسکین رپورٹ',
     medicine: 'دوائی:',
     status: 'حیثیت:',
@@ -212,10 +212,10 @@ export default function HistoryScreen() {
           setIsModalVisible(true);
         }}
       >
-        <View style={styles.cardHeader}>
-          <View style={styles.titleRow}>
+        <View style={[styles.cardHeader, isUrdu && { flexDirection: 'row-reverse' }]}>
+          <View style={[styles.titleRow, isUrdu && { flexDirection: 'row-reverse' }]}>
             <Text style={styles.medicineIcon}>💊</Text>
-            <Text style={styles.medicineName} numberOfLines={1}>
+            <Text style={[styles.medicineName, isUrdu && { textAlign: 'right' }]} numberOfLines={1}>
               {displayName}
             </Text>
           </View>
@@ -228,9 +228,9 @@ export default function HistoryScreen() {
 
         <View style={styles.cardDivider} />
 
-        <View style={styles.cardFooter}>
-          <Text style={styles.dateText}>📅 {item.date}</Text>
-          <Text style={styles.viewDetailsText}>{t.viewDetails}</Text>
+        <View style={[styles.cardFooter, isUrdu && { flexDirection: 'row-reverse' }]}>
+          <Text style={[styles.dateText, isUrdu && { textAlign: 'right' }]}>📅 {item.date}</Text>
+          <Text style={[styles.viewDetailsText, isUrdu && { textAlign: 'left' }]}>{t.viewDetails}</Text>
         </View>
       </TouchableOpacity>
     );
@@ -244,7 +244,6 @@ export default function HistoryScreen() {
     { key: 'Expired', label: t.expired },
   ];
 
-  // Urdu mein array ko reverse kar diya hai taake 'سب' aakhir mein ho aur right side par poora nazar aaye
   const filterButtons = isUrdu ? [...baseFilterButtons].reverse() : baseFilterButtons;
 
   return (
@@ -252,7 +251,7 @@ export default function HistoryScreen() {
       <SafeAreaView style={{ flex: 1 }}>
         <View style={[styles.contentContainer, { paddingTop: Math.max(insets.top + 10, 20) }]}>
           <View style={[styles.headerRow, isUrdu && { flexDirection: 'row-reverse' }]}>
-            <Text style={styles.headerTitle}>{t.scanHistory}</Text>
+            <Text style={[styles.headerTitle, isUrdu && { textAlign: 'right' }]}>{t.scanHistory}</Text>
             {historyList.length > 0 && (
               <TouchableOpacity style={styles.clearBtn} onPress={clearAllHistory} activeOpacity={0.8}>
                 <Text style={styles.clearBtnText}>{t.clearAll}</Text>
@@ -303,14 +302,14 @@ export default function HistoryScreen() {
           {historyList.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyIcon}>📦</Text>
-              <Text style={styles.emptyTitle}>{t.noScansYet}</Text>
-              <Text style={styles.emptySubtitle}>{t.noScansSubtitle}</Text>
+              <Text style={[styles.emptyTitle, isUrdu && { textAlign: 'right' }]}>{t.noScansYet}</Text>
+              <Text style={[styles.emptySubtitle, isUrdu && { textAlign: 'right' }]}>{t.noScansSubtitle}</Text>
             </View>
           ) : filteredList.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyIcon}>🔍</Text>
-              <Text style={styles.emptyTitle}>{t.noResults}</Text>
-              <Text style={styles.emptySubtitle}>{t.noResultsSubtitle}</Text>
+              <Text style={[styles.emptyTitle, isUrdu && { textAlign: 'right' }]}>{t.noResults}</Text>
+              <Text style={[styles.emptySubtitle, isUrdu && { textAlign: 'right' }]}>{t.noResultsSubtitle}</Text>
             </View>
           ) : (
             <FlatList
@@ -332,53 +331,53 @@ export default function HistoryScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>{t.scanReport}</Text>
+            <Text style={[styles.modalTitle, isUrdu && { textAlign: 'right' }]}>{t.scanReport}</Text>
 
             {selectedItem && (
               <View style={styles.modalBody}>
                 <View style={[styles.modalRow, isUrdu && { flexDirection: 'row-reverse' }]}>
                   <Text style={[styles.modalLabel, isUrdu && { textAlign: 'right' }]}>{t.medicine}</Text>
-                  <Text style={[styles.modalValue, isUrdu && { textAlign: 'left', marginRight: 10, marginLeft: 0 }]}>
+                  <Text style={[styles.modalValue, isUrdu && { textAlign: 'right', marginRight: 10, marginLeft: 0 }]}>
                     {getLocalizedMedicineName(selectedItem.medicineName)}
                   </Text>
                 </View>
 
                 <View style={[styles.modalRow, isUrdu && { flexDirection: 'row-reverse' }]}>
                   <Text style={[styles.modalLabel, isUrdu && { textAlign: 'right' }]}>{t.status}</Text>
-                  <Text style={[styles.modalValue, { color: getStatusStyle(selectedItem.status).text }, isUrdu && { textAlign: 'left', marginRight: 10, marginLeft: 0 }]}>
+                  <Text style={[styles.modalValue, { color: getStatusStyle(selectedItem.status).text }, isUrdu && { textAlign: 'right', marginRight: 10, marginLeft: 0 }]}>
                     {selectedItem.status === 'Authentic' ? t.authentic : selectedItem.status === 'Unverified' ? t.unverified : selectedItem.status === 'Expired' ? t.expired : t.suspicious}
                   </Text>
                 </View>
 
                 <View style={[styles.modalRow, isUrdu && { flexDirection: 'row-reverse' }]}>
                   <Text style={[styles.modalLabel, isUrdu && { textAlign: 'right' }]}>{t.dateTime}</Text>
-                  <Text style={[styles.modalValue, isUrdu && { textAlign: 'left', marginRight: 10, marginLeft: 0 }]}>{selectedItem.date}</Text>
+                  <Text style={[styles.modalValue, isUrdu && { textAlign: 'right', marginRight: 10, marginLeft: 0 }]}>{selectedItem.date}</Text>
                 </View>
 
                 {selectedItem.batchNumber && (
                   <View style={[styles.modalRow, isUrdu && { flexDirection: 'row-reverse' }]}>
                     <Text style={[styles.modalLabel, isUrdu && { textAlign: 'right' }]}>{t.batchNo}</Text>
-                    <Text style={[styles.modalValue, isUrdu && { textAlign: 'left', marginRight: 10, marginLeft: 0 }]}>{selectedItem.batchNumber}</Text>
+                    <Text style={[styles.modalValue, isUrdu && { textAlign: 'right', marginRight: 10, marginLeft: 0 }]}>{selectedItem.batchNumber}</Text>
                   </View>
                 )}
 
                 {selectedItem.expiryDate && (
                   <View style={[styles.modalRow, isUrdu && { flexDirection: 'row-reverse' }]}>
                     <Text style={[styles.modalLabel, isUrdu && { textAlign: 'right' }]}>{t.expiryDate}</Text>
-                    <Text style={[styles.modalValue, { color: '#f87171' }, isUrdu && { textAlign: 'left', marginRight: 10, marginLeft: 0 }]}>{selectedItem.expiryDate}</Text>
+                    <Text style={[styles.modalValue, { color: '#f87171' }, isUrdu && { textAlign: 'right', marginRight: 10, marginLeft: 0 }]}>{selectedItem.expiryDate}</Text>
                   </View>
                 )}
 
                 <View style={{ marginTop: 12 }}>
                   <Text style={[styles.modalLabel, isUrdu && { textAlign: 'right' }]}>{t.verificationDetails}</Text>
-                  <Text style={[styles.detailBoxText, isUrdu && { textAlign: 'left' }]}>
+                  <Text style={[styles.detailBoxText, isUrdu && { textAlign: 'right' }]}>
                     {getLocalizedDetails(selectedItem.details)}
                   </Text>
                 </View>
               </View>
             )}
 
-            <View style={styles.modalActionRow}>
+            <View style={[styles.modalActionRow, isUrdu && { flexDirection: 'row-reverse' }]}>
               <TouchableOpacity
                 style={styles.deleteRecordBtn}
                 onPress={() => selectedItem && deleteSpecificRecord(selectedItem.id)}
