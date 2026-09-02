@@ -55,7 +55,7 @@ const translations = {
   },
   ur: {
     scanHistory: 'اسکین ہسٹری',
-    clearAll: 'سب صاف کریں',
+    clearAll: 'ختم کریں',
     searchPlaceholder: 'دوائی یا بیچ تلاش کریں...',
     all: 'سب',
     authentic: 'اصل',
@@ -212,7 +212,6 @@ export default function HistoryScreen() {
           setIsModalVisible(true);
         }}
       >
-        {/* Bahar wala Card Header - Left to Right (LTR) */}
         <View style={styles.cardHeader}>
           <View style={styles.titleRow}>
             <Text style={styles.medicineIcon}>💊</Text>
@@ -229,7 +228,6 @@ export default function HistoryScreen() {
 
         <View style={styles.cardDivider} />
 
-        {/* Bahar wala Card Footer - Left to Right (LTR) */}
         <View style={styles.cardFooter}>
           <Text style={styles.dateText}>📅 {item.date}</Text>
           <Text style={styles.viewDetailsText}>{t.viewDetails}</Text>
@@ -268,11 +266,11 @@ export default function HistoryScreen() {
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
-              {/* Fixed Filter Scroll: Removed scaleX inversion so all filter buttons are fully visible */}
+              {/* Perfectly balanced filter scroll for both English and Urdu without cutting text */}
               <ScrollView 
                 horizontal 
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={[styles.pillContainer, isUrdu && { flexDirection: 'row-reverse' }]}
+                contentContainerStyle={[styles.pillContainer, isUrdu ? { flexDirection: 'row-reverse', paddingRight: 4 } : { paddingLeft: 4 }]}
               >
                 {filterButtons.map((filter) => (
                   <TouchableOpacity
@@ -320,7 +318,6 @@ export default function HistoryScreen() {
         </View>
       </SafeAreaView>
 
-      {/* Under wali Information Modal (Right to Left / RTL when Urdu is active) */}
       <Modal
         visible={isModalVisible}
         animationType="fade"
@@ -375,7 +372,6 @@ export default function HistoryScreen() {
               </View>
             )}
 
-            {/* Delete & Close Buttons */}
             <View style={styles.modalActionRow}>
               <TouchableOpacity
                 style={styles.deleteRecordBtn}
