@@ -48,6 +48,9 @@ const translations = {
     verificationDetails: 'Verification Details:',
     deleteRecord: 'Delete Record',
     close: 'Close',
+    unverifiedMedicine: 'Unverified Medicine',
+    authenticMedicine: 'Authentic Medicine',
+    batchNotFound: 'This batch number was not found in the official registry.',
   },
   ur: {
     scanHistory: 'اسکین ہسٹری',
@@ -72,6 +75,9 @@ const translations = {
     verificationDetails: 'تصدیقی تفصیلات:',
     deleteRecord: 'ریکارڈ حذف کریں',
     close: 'بند کریں',
+    unverifiedMedicine: 'غیر تصدیق شدہ دوائی',
+    authenticMedicine: 'اصل دوائی',
+    batchNotFound: 'یہ بیچ نمبر سرکاری رجسٹر میں نہیں پایا گیا۔',
   },
 } as const;
 
@@ -151,8 +157,28 @@ export default function HistoryScreen() {
   const t = translations[currentLang];
   const isUrdu = currentLang === 'ur';
 
+  // Helper to translate dynamic generic names instantly based on current language
+  const getLocalizedMedicineName = (name: string) => {
+    if (name === 'Unverified Medicine' || name === 'غیر تصدیق شدہ دوائی') {
+      return t.unverifiedMedicine;
+    }
+    if (name === 'Authentic Medicine' || name === 'اصل دوائی') {
+      return t.authenticMedicine;
+    }
+    return name;
+  };
+
+  const getLocalizedDetails = (details: string) => {
+    if (details.includes('batch number was not found') || details.includes('بیچ نمبر سرکاری رجسٹر')) {
+      return t.batchNotFound;
+    }
+    return details;
+  };
+
   const filteredList = historyList.filter((item) => {
+    const localizedName = getLocalizedMedicineName(item.medicineName);
     const matchesSearch = 
+      localizedName.toLowerCase().includes(searchQuery.toLowerCase()) || 
       item.medicineName.toLowerCase().includes(searchQuery.toLowerCase()) || 
       (item.batchNumber && item.batchNumber.toLowerCase().includes(searchQuery.toLowerCase()));
     
@@ -170,6 +196,7 @@ export default function HistoryScreen() {
       Expired: t.expired,
     };
     const statusLabel = statusLabels[item.status] || item.status;
+    const displayName = getLocalizedMedicineName(item.medicineName);
 
     return (
       <TouchableOpacity
@@ -183,7 +210,7 @@ export default function HistoryScreen() {
         <View style={styles.cardHeader}>
           <View style={styles.titleRow}>
             <Text style={styles.medicineIcon}>💊</Text>
-            <Text style={styles.medicineName} numberOfLines={1}>{item.medicineName}</Text>
+            <Text style={[styles.medicineName, isUrdu && { textAlign: 'right' }]} numberOfLines={1}>{displayName}</Text>
           </View>
           <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg, borderColor: statusStyle.border }]}>
             <Text style={[styles.statusText, { color: statusStyle.text }]}>
@@ -299,40 +326,44 @@ export default function HistoryScreen() {
 
             {selectedItem && (
               <View style={styles.modalBody}>
-                <View style={styles.modalRow}>
-                  <Text style={styles.modalLabel}>{t.medicine}</Text>
-                  <Text style={styles.modalValue}>{selectedItem.medicineName}</Text>
+                <View style={[styles.modalRow, isUrdu && { flexDirection: 'row-reverse' }]}>
+                  <Text style={[styles.modalLabel, isUrdu && { textAlign: 'right' }]}>{t.medicine}</Text>
+                  <Text style={[styles.modalValue, isUrdu && { textAlign: 'left' }]}>
+                    {getLocalizedMedicineName(selectedItem.medicineName)}
+                  </Text>
                 </View>
 
-                <View style={styles.modalRow}>
-                  <Text style={styles.modalLabel}>{t.status}</Text>
-                  <Text style={[styles.modalValue, { color: getStatusStyle(selectedItem.status).text }]}>
+                <View style={[styles.modalRow, isUrdu && { flexDirection: 'row-reverse' }]}>
+                  <Text style={[styles.modalLabel, isUrdu && { textAlign: 'right' }]}>{t.status}</Text>
+                  <Text style={[styles.modalValue, { color: getStatusStyle(selectedItem.status).text }, isUrdu && { textAlign: 'left' }]}>
                     {selectedItem.status === 'Authentic' ? t.authentic : selectedItem.status === 'Unverified' ? t.unverified : selectedItem.status === 'Expired' ? t.expired : t.suspicious}
                   </Text>
                 </View>
 
-                <View style={styles.modalRow}>
-                  <Text style={styles.modalLabel}>{t.dateTime}</Text>
-                  <Text style={styles.modalValue}>{selectedItem.date}</Text>
+                <View style={[styles.modalRow, isUrdu && { flexDirection: 'row-reverse' }]}>
+                  <Text style={[styles.modalLabel, isUrdu && { textAlign: 'right' }]}>{t.dateTime}</Text>
+                  <Text style={[styles.modalValue, isUrdu && { textAlign: 'left' }]}>{selectedItem.date}</Text>
                 </View>
 
                 {selectedItem.batchNumber && (
-                  <View style={styles.modalRow}>
-                    <Text style={styles.modalLabel}>{t.batchNo}</Text>
-                    <Text style={styles.modalValue}>{selectedItem.batchNumber}</Text>
+                  <View style={[styles.modalRow, isUrdu && { flexDirection: 'row-reverse' }]}>
+                    <Text style={[styles.modalLabel, isUrdu && { textAlign: 'right' }]}>{t.batchNo}</Text>
+                    <Text style={[styles.modalValue, isUrdu && { textAlign: 'left' }]}>{selectedItem.batchNumber}</Text>
                   </View>
                 )}
 
                 {selectedItem.expiryDate && (
-                  <View style={styles.modalRow}>
-                    <Text style={styles.modalLabel}>{t.expiryDate}</Text>
-                    <Text style={[styles.modalValue, { color: '#f87171' }]}>{selectedItem.expiryDate}</Text>
+                  <View style={[styles.modalRow, isUrdu && { flexDirection: 'row-reverse' }]}>
+                    <Text style={[styles.modalLabel, isUrdu && { textAlign: 'right' }]}>{t.expiryDate}</Text>
+                    <Text style={[styles.modalValue, { color: '#f87171' }, isUrdu && { textAlign: 'left' }]}>{selectedItem.expiryDate}</Text>
                   </View>
                 )}
 
                 <View style={{ marginTop: 12 }}>
-                  <Text style={styles.modalLabel}>{t.verificationDetails}</Text>
-                  <Text style={styles.detailBoxText}>{selectedItem.details}</Text>
+                  <Text style={[styles.modalLabel, isUrdu && { textAlign: 'right' }]}>{t.verificationDetails}</Text>
+                  <Text style={[styles.detailBoxText, isUrdu && { textAlign: 'left' }]}>
+                    {getLocalizedDetails(selectedItem.details)}
+                  </Text>
                 </View>
               </View>
             )}
