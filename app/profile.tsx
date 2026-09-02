@@ -53,7 +53,7 @@ const translations = {
     privacyDesc: "MedVerify AI ensures complete data security & privacy standards. Your scanned records and details remain encrypted and secure.",
     aboutDesc: "MedVerify AI v1.0.0\nInstant Medicine Authenticity & Safety Scanner. Designed to protect users from counterfeit pharmaceutical products.",
   },
-ur: {
+  ur: {
     title: "پروفائل",
     subtitle: "اپنی معلومات اور ترجیحات کا انتظام کریں",
     role: "تصدیق شدہ اکاؤنٹ",
@@ -333,7 +333,7 @@ export default function ProfileScreen() {
                 <View style={styles.iconWrapper}>
                   <Text style={styles.settingIcon}>🔔</Text>
                 </View>
-                <Text style={styles.settingText}>{t.pushNotifications}</Text>
+                <Text style={styles.settingText}>{t.pushNotifications || "پش نوٹیفیکیشنز"}</Text>
               </View>
               <Switch
                 value={isNotificationsEnabled}
@@ -815,7 +815,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
-  photoOptionText: {
+    photoOptionText: {
     fontSize: 14,
     color: '#60a5fa',
     fontWeight: '600',
