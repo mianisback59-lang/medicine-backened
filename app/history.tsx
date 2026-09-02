@@ -74,7 +74,7 @@ const translations = {
     batchNo: 'بیچ نمبر:',
     expiryDate: 'معطلی کی تاریخ (Expiry):',
     verificationDetails: 'تصدیقی تفصیلات:',
-    deleteRecord: 'ختم کریں',
+    deleteRecord:'ختم کریں',
     close: 'بند کریں',
     unverifiedMedicine: 'غیر تصدیق شدہ دوائی',
     authenticMedicine: 'اصل دوائی',
@@ -212,11 +212,11 @@ export default function HistoryScreen() {
           setIsModalVisible(true);
         }}
       >
-        {/* Card Header */}
-        <View style={[styles.cardHeader, isUrdu && { flexDirection: 'row-reverse' }]}>
-          <View style={[styles.titleRow, isUrdu && { flexDirection: 'row-reverse', marginRight: 0, marginLeft: 8 }]}>
+        {/* Bahar wala Card Header - Strictly Left to Right (LTR) */}
+        <View style={styles.cardHeader}>
+          <View style={styles.titleRow}>
             <Text style={styles.medicineIcon}>💊</Text>
-            <Text style={[styles.medicineName, isUrdu && { textAlign: 'right' }]} numberOfLines={1}>
+            <Text style={styles.medicineName} numberOfLines={1}>
               {displayName}
             </Text>
           </View>
@@ -229,8 +229,8 @@ export default function HistoryScreen() {
 
         <View style={styles.cardDivider} />
 
-        {/* Card Footer */}
-        <View style={[styles.cardFooter, isUrdu && { flexDirection: 'row-reverse' }]}>
+        {/* Bahar wala Card Footer - Strictly Left to Right (LTR) */}
+        <View style={styles.cardFooter}>
           <Text style={styles.dateText}>📅 {item.date}</Text>
           <Text style={styles.viewDetailsText}>{t.viewDetails}</Text>
         </View>
@@ -268,30 +268,33 @@ export default function HistoryScreen() {
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
-              <ScrollView 
-                horizontal 
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={[styles.pillContainer, isUrdu && { flexDirection: 'row-reverse' }]}
-              >
-                {filterButtons.map((filter) => (
-                  <TouchableOpacity
-                    key={filter.key}
-                    style={[
-                      styles.pill,
-                      selectedFilter === filter.key && styles.pillActive
-                    ]}
-                    onPress={() => setSelectedFilter(filter.key)}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={[
-                      styles.pillText,
-                      selectedFilter === filter.key && styles.pillTextActive
-                    ]}>
-                      {filter.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+              <View style={[isUrdu && { transform: [{ scaleX: -1 }] }]}>
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={[styles.pillContainer, isUrdu && { flexDirection: 'row-reverse' }]}
+                >
+                  {filterButtons.map((filter) => (
+                    <TouchableOpacity
+                      key={filter.key}
+                      style={[
+                        styles.pill,
+                        selectedFilter === filter.key && styles.pillActive,
+                        isUrdu && { transform: [{ scaleX: -1 }] }
+                      ]}
+                      onPress={() => setSelectedFilter(filter.key)}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={[
+                        styles.pillText,
+                        selectedFilter === filter.key && styles.pillTextActive
+                      ]}>
+                        {filter.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
             </View>
           )}
 
@@ -319,7 +322,7 @@ export default function HistoryScreen() {
         </View>
       </SafeAreaView>
 
-      {/* Detail Modal */}
+      {/* Under wali Information Modal (Strictly Right to Left / RTL when Urdu is active) */}
       <Modal
         visible={isModalVisible}
         animationType="fade"
@@ -334,34 +337,34 @@ export default function HistoryScreen() {
               <View style={styles.modalBody}>
                 <View style={[styles.modalRow, isUrdu && { flexDirection: 'row-reverse' }]}>
                   <Text style={[styles.modalLabel, isUrdu && { textAlign: 'right' }]}>{t.medicine}</Text>
-                  <Text style={[styles.modalValue, isUrdu && { textAlign: 'left' }]}>
+                  <Text style={[styles.modalValue, isUrdu && { textAlign: 'left', marginRight: 10, marginLeft: 0 }]}>
                     {getLocalizedMedicineName(selectedItem.medicineName)}
                   </Text>
                 </View>
 
                 <View style={[styles.modalRow, isUrdu && { flexDirection: 'row-reverse' }]}>
                   <Text style={[styles.modalLabel, isUrdu && { textAlign: 'right' }]}>{t.status}</Text>
-                  <Text style={[styles.modalValue, { color: getStatusStyle(selectedItem.status).text }, isUrdu && { textAlign: 'left' }]}>
+                  <Text style={[styles.modalValue, { color: getStatusStyle(selectedItem.status).text }, isUrdu && { textAlign: 'left', marginRight: 10, marginLeft: 0 }]}>
                     {selectedItem.status === 'Authentic' ? t.authentic : selectedItem.status === 'Unverified' ? t.unverified : selectedItem.status === 'Expired' ? t.expired : t.suspicious}
                   </Text>
                 </View>
 
                 <View style={[styles.modalRow, isUrdu && { flexDirection: 'row-reverse' }]}>
                   <Text style={[styles.modalLabel, isUrdu && { textAlign: 'right' }]}>{t.dateTime}</Text>
-                  <Text style={[styles.modalValue, isUrdu && { textAlign: 'left' }]}>{selectedItem.date}</Text>
+                  <Text style={[styles.modalValue, isUrdu && { textAlign: 'left', marginRight: 10, marginLeft: 0 }]}>{selectedItem.date}</Text>
                 </View>
 
                 {selectedItem.batchNumber && (
                   <View style={[styles.modalRow, isUrdu && { flexDirection: 'row-reverse' }]}>
                     <Text style={[styles.modalLabel, isUrdu && { textAlign: 'right' }]}>{t.batchNo}</Text>
-                    <Text style={[styles.modalValue, isUrdu && { textAlign: 'left' }]}>{selectedItem.batchNumber}</Text>
+                    <Text style={[styles.modalValue, isUrdu && { textAlign: 'left', marginRight: 10, marginLeft: 0 }]}>{selectedItem.batchNumber}</Text>
                   </View>
                 )}
 
                 {selectedItem.expiryDate && (
                   <View style={[styles.modalRow, isUrdu && { flexDirection: 'row-reverse' }]}>
                     <Text style={[styles.modalLabel, isUrdu && { textAlign: 'right' }]}>{t.expiryDate}</Text>
-                    <Text style={[styles.modalValue, { color: '#f87171' }, isUrdu && { textAlign: 'left' }]}>{selectedItem.expiryDate}</Text>
+                    <Text style={[styles.modalValue, { color: '#f87171' }, isUrdu && { textAlign: 'left', marginRight: 10, marginLeft: 0 }]}>{selectedItem.expiryDate}</Text>
                   </View>
                 )}
 
