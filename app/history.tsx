@@ -212,7 +212,7 @@ export default function HistoryScreen() {
           setIsModalVisible(true);
         }}
       >
-        {/* Bahar wala Card Header - Strictly Left to Right (LTR) */}
+        {/* Bahar wala Card Header - Left to Right (LTR) */}
         <View style={styles.cardHeader}>
           <View style={styles.titleRow}>
             <Text style={styles.medicineIcon}>💊</Text>
@@ -229,7 +229,7 @@ export default function HistoryScreen() {
 
         <View style={styles.cardDivider} />
 
-        {/* Bahar wala Card Footer - Strictly Left to Right (LTR) */}
+        {/* Bahar wala Card Footer - Left to Right (LTR) */}
         <View style={styles.cardFooter}>
           <Text style={styles.dateText}>📅 {item.date}</Text>
           <Text style={styles.viewDetailsText}>{t.viewDetails}</Text>
@@ -268,33 +268,31 @@ export default function HistoryScreen() {
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
-              <View style={[isUrdu && { transform: [{ scaleX: -1 }] }]}>
-                <ScrollView 
-                  horizontal 
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={[styles.pillContainer, isUrdu && { flexDirection: 'row-reverse' }]}
-                >
-                  {filterButtons.map((filter) => (
-                    <TouchableOpacity
-                      key={filter.key}
-                      style={[
-                        styles.pill,
-                        selectedFilter === filter.key && styles.pillActive,
-                        isUrdu && { transform: [{ scaleX: -1 }] }
-                      ]}
-                      onPress={() => setSelectedFilter(filter.key)}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={[
-                        styles.pillText,
-                        selectedFilter === filter.key && styles.pillTextActive
-                      ]}>
-                        {filter.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
+              {/* Fixed Filter Scroll: Removed scaleX inversion so all filter buttons are fully visible */}
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={[styles.pillContainer, isUrdu && { flexDirection: 'row-reverse' }]}
+              >
+                {filterButtons.map((filter) => (
+                  <TouchableOpacity
+                    key={filter.key}
+                    style={[
+                      styles.pill,
+                      selectedFilter === filter.key && styles.pillActive
+                    ]}
+                    onPress={() => setSelectedFilter(filter.key)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[
+                      styles.pillText,
+                      selectedFilter === filter.key && styles.pillTextActive
+                    ]}>
+                      {filter.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             </View>
           )}
 
@@ -322,7 +320,7 @@ export default function HistoryScreen() {
         </View>
       </SafeAreaView>
 
-      {/* Under wali Information Modal (Strictly Right to Left / RTL when Urdu is active) */}
+      {/* Under wali Information Modal (Right to Left / RTL when Urdu is active) */}
       <Modal
         visible={isModalVisible}
         animationType="fade"
