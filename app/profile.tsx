@@ -226,16 +226,12 @@ export default function ProfileScreen() {
     });
   };
 
-  // ----------------------------------------------------
-  // UPDATED: Backend se record delete karne ke baad local clear hoga
-  // ----------------------------------------------------
   const executeDeleteAccount = async () => {
     setIsDeleteModalVisible(false);
     try {
       const emailToDelete = userEmail || (await AsyncStorage.getItem('userEmail'));
 
       if (emailToDelete) {
-        // Backend database se user permanently delete karna
         await fetch('https://medicine-backened.vercel.app/api/delete-account', {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
@@ -243,7 +239,6 @@ export default function ProfileScreen() {
         });
       }
 
-      // Local session aur data saara clear karna
       await AsyncStorage.clear();
     } catch (e) {
       console.log('Delete account error:', e);
@@ -259,7 +254,7 @@ export default function ProfileScreen() {
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingTop: Math.max(insets.top, 16), paddingBottom: 130 }
+            { paddingTop: Math.max(insets.top, 16) + 8, paddingBottom: 130 }
           ]}
           showsVerticalScrollIndicator={false}
         >
