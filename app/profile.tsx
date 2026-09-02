@@ -53,7 +53,7 @@ const translations = {
     privacyDesc: "MedVerify AI ensures complete data security & privacy standards. Your scanned records and details remain encrypted and secure.",
     aboutDesc: "MedVerify AI v1.0.0\nInstant Medicine Authenticity & Safety Scanner. Designed to protect users from counterfeit pharmaceutical products.",
   },
-  ur: {
+ur: {
     title: "پروفائل",
     subtitle: "اپنی معلومات اور ترجیحات کا انتظام کریں",
     role: "تصدیق شدہ اکاؤنٹ",
@@ -88,7 +88,7 @@ const translations = {
     ok: "ٹھیک ہے",
     privacyDesc: "میڈ ویریفائی اے آئی آپ کے ڈیٹا کی مکمل سیکیورٹی اور پرائیویسی کو یقینی بناتا ہے۔ آپ کے تمام ریکارڈز اور معلومات مکمل طور پر محفوظ ہیں۔",
     aboutDesc: "میڈ ویریفائی اے آئی v1.0.0\nجعلی ادویات سے بچاؤ اور ان کی اصلیت کی فوری جانچ کے لیے تیار کردہ جدید اسکینر۔",
-  }, 
+  },
 };
 
 export default function ProfileScreen() {
