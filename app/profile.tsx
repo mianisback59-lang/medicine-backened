@@ -119,6 +119,7 @@ export default function ProfileScreen() {
   const [tempPhone, setTempPhone] = useState('');
 
   const t = isUrdu ? translations.ur : translations.en;
+  const directionStyle = { writingDirection: isUrdu ? ('rtl' as const) : ('ltr' as const) };
 
   useEffect(() => {
     loadUserData();
@@ -259,12 +260,12 @@ export default function ProfileScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Header */}
-          <View style={styles.headerContainer}>
-            <Text style={styles.headerTitle}>{t.title}</Text>
-            <Text style={styles.headerSubtitle}>{t.subtitle}</Text>
+          <View style={[styles.headerContainer, isUrdu && { alignItems: 'flex-end' }]}>
+            <Text style={[styles.headerTitle, directionStyle]}>{t.title}</Text>
+            <Text style={[styles.headerSubtitle, directionStyle]}>{t.subtitle}</Text>
           </View>
 
-          {/* Profile Card */}
+          {/* Profile Card (Left-to-Right retained as requested) */}
           <View style={styles.profileHeroCard}>
             <View style={styles.heroTopRow}>
               <TouchableOpacity onPress={() => setIsPhotoModalVisible(true)} style={styles.avatarContainer} activeOpacity={0.85}>
@@ -307,15 +308,15 @@ export default function ProfileScreen() {
           </View>
 
           {/* Preferences */}
-          <Text style={styles.sectionTitle}>{t.preferences}</Text>
+          <Text style={[styles.sectionTitle, isUrdu && { textAlign: 'right' }]}>{t.preferences}</Text>
 
           <View style={styles.cardGroup}>
-            <View style={styles.settingItem}>
-              <View style={styles.settingLabelRow}>
-                <View style={styles.iconWrapper}>
+            <View style={[styles.settingItem, isUrdu && styles.settingItemRtl]}>
+              <View style={[styles.settingLabelRow, isUrdu && styles.settingLabelRowRtl]}>
+                <View style={[styles.iconWrapper, isUrdu && styles.iconWrapperRtl]}>
                   <Text style={styles.settingIcon}>🌐</Text>
                 </View>
-                <Text style={styles.settingText}>{t.language}</Text>
+                <Text style={[styles.settingText, directionStyle]}>{t.language}</Text>
               </View>
               <Switch
                 value={isUrdu}
@@ -328,12 +329,12 @@ export default function ProfileScreen() {
               />
             </View>
 
-            <View style={[styles.settingItem, { borderBottomWidth: 0 }]}>
-              <View style={styles.settingLabelRow}>
-                <View style={styles.iconWrapper}>
+            <View style={[styles.settingItem, { borderBottomWidth: 0 }, isUrdu && styles.settingItemRtl]}>
+              <View style={[styles.settingLabelRow, isUrdu && styles.settingLabelRowRtl]}>
+                <View style={[styles.iconWrapper, isUrdu && styles.iconWrapperRtl]}>
                   <Text style={styles.settingIcon}>🔔</Text>
                 </View>
-                <Text style={styles.settingText}>{t.pushNotifications || "پش نوٹیفیکیشنز"}</Text>
+                <Text style={[styles.settingText, directionStyle]}>{t.pushNotifications}</Text>
               </View>
               <Switch
                 value={isNotificationsEnabled}
@@ -348,11 +349,11 @@ export default function ProfileScreen() {
           </View>
 
           {/* Account Settings */}
-          <Text style={styles.sectionTitle}>{t.accountSettings}</Text>
+          <Text style={[styles.sectionTitle, isUrdu && { textAlign: 'right' }]}>{t.accountSettings}</Text>
 
           <View style={styles.cardGroup}>
             <TouchableOpacity 
-              style={styles.optionButton} 
+              style={[styles.optionButton, isUrdu && styles.optionButtonRtl]} 
               onPress={() => setInfoModalData({
                 visible: true, 
                 title: t.privacy, 
@@ -360,17 +361,17 @@ export default function ProfileScreen() {
               })} 
               activeOpacity={0.8}
             >
-              <View style={styles.settingLabelRow}>
-                <View style={styles.iconWrapper}>
+              <View style={[styles.settingLabelRow, isUrdu && styles.settingLabelRowRtl]}>
+                <View style={[styles.iconWrapper, isUrdu && styles.iconWrapperRtl]}>
                   <Text style={styles.settingIcon}>🔒</Text>
                 </View>
-                <Text style={styles.optionButtonText}>{t.privacy}</Text>
+                <Text style={[styles.optionButtonText, directionStyle]}>{t.privacy}</Text>
               </View>
-              <Text style={styles.arrowText}>›</Text>
+              <Text style={[styles.arrowText, isUrdu && { transform: [{ scaleX: -1 }] }]}>›</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
-              style={styles.optionButton} 
+              style={[styles.optionButton, isUrdu && styles.optionButtonRtl]} 
               onPress={() => setInfoModalData({
                 visible: true, 
                 title: t.about, 
@@ -378,33 +379,33 @@ export default function ProfileScreen() {
               })} 
               activeOpacity={0.8}
             >
-              <View style={styles.settingLabelRow}>
-                <View style={styles.iconWrapper}>
+              <View style={[styles.settingLabelRow, isUrdu && styles.settingLabelRowRtl]}>
+                <View style={[styles.iconWrapper, isUrdu && styles.iconWrapperRtl]}>
                   <Text style={styles.settingIcon}>ℹ️</Text>
                 </View>
-                <Text style={styles.optionButtonText}>{t.about}</Text>
+                <Text style={[styles.optionButtonText, directionStyle]}>{t.about}</Text>
               </View>
-              <Text style={styles.arrowText}>›</Text>
+              <Text style={[styles.arrowText, isUrdu && { transform: [{ scaleX: -1 }] }]}>›</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
-              style={[styles.optionButton, { borderBottomWidth: 0 }]} 
+              style={[styles.optionButton, { borderBottomWidth: 0 }, isUrdu && styles.optionButtonRtl]} 
               onPress={() => setIsDeleteModalVisible(true)} 
               activeOpacity={0.8}
             >
-              <View style={styles.settingLabelRow}>
-                <View style={[styles.iconWrapper, { backgroundColor: 'rgba(239, 68, 68, 0.15)' }]}>
+              <View style={[styles.settingLabelRow, isUrdu && styles.settingLabelRowRtl]}>
+                <View style={[styles.iconWrapper, { backgroundColor: 'rgba(239, 68, 68, 0.15)' }, isUrdu && styles.iconWrapperRtl]}>
                   <Text style={styles.settingIcon}>⚠️</Text>
                 </View>
-                <Text style={[styles.optionButtonText, { color: '#f87171' }]}>{t.deleteAccount}</Text>
+                <Text style={[styles.optionButtonText, { color: '#f87171' }, directionStyle]}>{t.deleteAccount}</Text>
               </View>
-              <Text style={styles.arrowText}>›</Text>
+              <Text style={[styles.arrowText, isUrdu && { transform: [{ scaleX: -1 }] }]}>›</Text>
             </TouchableOpacity>
           </View>
 
           {/* Logout Button */}
           <TouchableOpacity style={styles.logoutButton} onPress={() => setIsLogoutModalVisible(true)} activeOpacity={0.8}>
-            <Text style={styles.logoutButtonText}>🚪 {t.logout}</Text>
+            <Text style={[styles.logoutButtonText, directionStyle]}>🚪 {t.logout}</Text>
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
@@ -727,9 +728,15 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.05)',
   },
+  settingItemRtl: {
+    flexDirection: 'row-reverse',
+  },
   settingLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  settingLabelRowRtl: {
+    flexDirection: 'row-reverse',
   },
   iconWrapper: {
     width: 28,
@@ -739,6 +746,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
+  },
+  iconWrapperRtl: {
+    marginRight: 0,
+    marginLeft: 10,
   },
   settingIcon: {
     fontSize: 14,
@@ -755,6 +766,9 @@ const styles = StyleSheet.create({
     padding: 14,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  optionButtonRtl: {
+    flexDirection: 'row-reverse',
   },
   optionButtonText: {
     fontSize: 14,
@@ -815,7 +829,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
-    photoOptionText: {
+  photoOptionText: {
     fontSize: 14,
     color: '#60a5fa',
     fontWeight: '600',
