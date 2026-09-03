@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from 'expo-router';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   FlatList,
   Modal,
@@ -92,12 +92,24 @@ export default function HistoryScreen() {
   
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<string>('All');
+  
+  const scrollViewRef = useRef<ScrollView>(null);
 
   useFocusEffect(
     useCallback(() => {
       loadHistoryAndLanguage();
     }, [])
   );
+
+  // Language ya history change hone par scroll ko foran right end par le jaye ga
+  useEffect(() => {
+    if (currentLang === 'ur') {
+      const timer = setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: false });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [currentLang, historyList.length]);
 
   const loadHistoryAndLanguage = async () => {
     try {
@@ -244,7 +256,6 @@ export default function HistoryScreen() {
     { key: 'Expired', label: t.expired },
   ];
 
-  // Urdu mein row ko reverse kar diya gaya hai taake 'سب' right side se shuru ho
   const filterButtons = isUrdu ? [...baseFilterButtons].reverse() : baseFilterButtons;
 
   return (
@@ -272,11 +283,17 @@ export default function HistoryScreen() {
               />
               
               <ScrollView 
+                ref={scrollViewRef}
                 horizontal 
                 showsHorizontalScrollIndicator={false}
+                onLayout={() => {
+                  if (isUrdu) {
+                    scrollViewRef.current?.scrollToEnd({ animated: false });
+                  }
+                }}
                 contentContainerStyle={[
-                  styles.pillContainer, 
-                  isUrdu && { flexDirection: 'row-reverse', paddingRight: 4, paddingLeft: 16 }
+                  styles.pillContainer,
+                  isUrdu && { justifyContent: 'flex-end', minWidth: '100%' }
                 ]}
               >
                 {filterButtons.map((filter) => (
