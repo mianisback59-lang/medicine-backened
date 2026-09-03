@@ -17,7 +17,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -71,7 +71,7 @@ const translations = {
     langToggle: "English",
     flashOn: "💡 فلیش آن",
     flashOff: "🔦 فلیش آف",
-    placeholder: "بیچ نمبر درج کریں (مثلاً 510902)",
+    placeholder: "بیچ نمبر (مثلاً 510902)",
     verifyBtn: "تصدیق کریں",
     scanPrompt: "کیمرے کو QR یا بارکوڈ کی طرف کریں۔",
     reportMedicine: "دوائی کی شکایت درج کریں",
@@ -383,11 +383,18 @@ export default function Index() {
           showsVerticalScrollIndicator={false}
         >
           
-          {/* Header Container with dynamic direction */}
+          {/* Header Container */}
           <View style={[styles.headerContainer, { flexDirection: isUrdu ? 'row-reverse' : 'row' }]}>
             <View style={[styles.titleArea, { alignItems: isUrdu ? 'flex-end' : 'flex-start' }]}>
               <Text style={[styles.appTitle, { textAlign: isUrdu ? 'right' : 'left' }]}>{t.appTitle}</Text>
-              <Text style={[styles.appSubtitle, { textAlign: isUrdu ? 'right' : 'left' }]}>{t.appSubtitle}</Text>
+              <Text 
+                style={[styles.appSubtitle, { textAlign: isUrdu ? 'right' : 'left' }]} 
+                numberOfLines={1} 
+                adjustsFontSizeToFit={true}
+                minimumFontScale={0.8}
+              >
+                {t.appSubtitle}
+              </Text>
             </View>
 
             <TouchableOpacity 
@@ -428,7 +435,7 @@ export default function Index() {
             </View>
           </View>
 
-          {/* Manual Search Box with dynamic row direction */}
+          {/* Manual Search Box */}
           <View style={[styles.manualSearchBox, { flexDirection: isUrdu ? 'row-reverse' : 'row' }]}>
             <TextInput
               style={[
@@ -589,9 +596,9 @@ const styles = StyleSheet.create({
   permissionText: { fontSize: 16, textAlign: 'center', color: '#94A3B8', marginBottom: 20 },
   
   headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  titleArea: { flex: 1 },
+  titleArea: { flex: 1, marginRight: 10 },
   appTitle: { fontSize: 26, fontWeight: '900', color: '#FFFFFF', letterSpacing: 0.5 },
-  appSubtitle: { fontSize: 12, color: '#94A3B8', marginTop: 2 },
+  appSubtitle: { fontSize: 11.5, color: '#94A3B8', marginTop: 2 },
   
   premiumLangBtn: { 
     flexDirection: 'row', 
@@ -632,7 +639,7 @@ const styles = StyleSheet.create({
   torchBtnText: { color: '#FFF', fontSize: 11, fontWeight: '700' },
   
   manualSearchBox: { flexDirection: 'row', marginTop: 14, marginBottom: 14, gap: 10 },
-  input: { flex: 1, backgroundColor: '#1E293B', borderWidth: 1, borderColor: '#334155', borderRadius: 14, paddingHorizontal: 16, fontSize: 14, color: '#FFFFFF', height: 48 },
+  input: { flex: 1, backgroundColor: '#1E293B', borderWidth: 1, borderColor: '#334155', borderRadius: 14, paddingHorizontal: 14, fontSize: 12, color: '#FFFFFF', height: 48 },
   verifyBtn: { backgroundColor: '#2563EB', justifyContent: 'center', paddingHorizontal: 20, borderRadius: 14, height: 48, shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 },
   verifyBtnText: { color: '#FFF', fontWeight: '800', fontSize: 14 },
   
