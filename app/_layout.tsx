@@ -1,12 +1,48 @@
-import { Stack, usePathname, useRouter } from 'expo-router';
-import React from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Stack, useFocusEffect, usePathname, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const translations = {
+  en: {
+    scan: 'Scan',
+    history: 'History',
+    profile: 'Profile',
+  },
+  ur: {
+    scan: 'اسکین',
+    history: 'ہسٹری',
+    profile: 'پروفائل',
+  },
+} as const;
 
 export default function RootLayout() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
+  const [currentLang, setCurrentLang] = useState<'en' | 'ur'>('en');
+
+  // Har dafa screen focus hone par language check kare ga
+  useFocusEffect(
+    useCallback(() => {
+      checkLanguage();
+    }, [])
+  );
+
+  const checkLanguage = async () => {
+    try {
+      const savedLang = await AsyncStorage.getItem('appLanguage');
+      if (savedLang === 'ur' || savedLang === 'en') {
+        setCurrentLang(savedLang);
+      }
+    } catch (error) {
+      console.log('Error loading language in layout:', error);
+    }
+  };
+
+  const t = translations[currentLang];
+  const isUrdu = currentLang === 'ur';
 
   return (
     <View style={{ flex: 1, backgroundColor: '#0A0F1D' }}>
@@ -23,7 +59,8 @@ export default function RootLayout() {
       
       <View style={styles.floatingFooterBackground}>
         <View style={[styles.floatingFooterContainer, { bottom: Math.max(insets.bottom, 16) }]}>
-          <View style={styles.floatingNavBar}>
+          {/* Urdu hone par row-reverse kar diya hai taake right-to-left layout ban jaye */}
+          <View style={[styles.floatingNavBar, isUrdu && { flexDirection: 'row-reverse' }]}>
             
             <TouchableOpacity 
               style={[styles.navItem, pathname === '/' && styles.activeNavItem]} 
@@ -31,7 +68,7 @@ export default function RootLayout() {
               onPress={() => router.replace('/')}
             >
               <Text style={styles.navIcon}>🛡️</Text>
-              <Text style={[styles.navText, pathname === '/' && styles.activeNavText]}>Scan</Text>
+              <Text style={[styles.navText, pathname === '/' && styles.activeNavText]}>{t.scan}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -40,7 +77,7 @@ export default function RootLayout() {
               onPress={() => router.replace('/history')}
             >
               <Text style={styles.navIcon}>🕒</Text>
-              <Text style={[styles.navText, pathname === '/history' && styles.activeNavText]}>History</Text>
+              <Text style={[styles.navText, pathname === '/history' && styles.activeNavText]}>{t.history}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -49,7 +86,7 @@ export default function RootLayout() {
               onPress={() => router.replace('/profile')}
             >
               <Text style={styles.navIcon}>👤</Text>
-              <Text style={[styles.navText, pathname === '/profile' && styles.activeNavText]}>Profile</Text>
+              <Text style={[styles.navText, pathname === '/profile' && styles.activeNavText]}>{t.profile}</Text>
             </TouchableOpacity>
 
           </View>
