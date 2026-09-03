@@ -17,7 +17,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -153,7 +153,6 @@ export default function Index() {
     }
   };
 
-  // Scan result ko AsyncStorage mein save karne ka function
   const saveScanToHistory = async (medicineName: string, status: string, details: string, batchNo: string) => {
     try {
       let mappedStatus: 'Authentic' | 'Counterfeit' | 'Suspicious' = 'Suspicious';
@@ -267,7 +266,6 @@ export default function Index() {
         });
         playVoiceAlert('FAKE');
 
-        // History mein save karein
         await saveScanToHistory('Unverified Medicine', 'FAKE', fakeMsg, searchTarget);
 
       } else {
@@ -287,7 +285,6 @@ export default function Index() {
         });
         playVoiceAlert(rawStatus);
 
-        // History mein save karein
         await saveScanToHistory(
           apiResponse.data.medicine_name || 'Medicine', 
           rawStatus, 
@@ -308,7 +305,6 @@ export default function Index() {
       });
       playVoiceAlert('FAKE');
 
-      // History mein save karein
       await saveScanToHistory('Unverified Medicine', 'FAKE', errorMsg, searchTarget);
 
     } finally {
@@ -369,6 +365,8 @@ export default function Index() {
     ? Math.max(insets.top, StatusBar.currentHeight || 24) + 16
     : insets.top + 16;
 
+  const isUrdu = lang === 'ur';
+
   return (
     <View style={[styles.safeContainer, { paddingTop: topPadding }]}>
       <StatusBar barStyle="light-content" backgroundColor="#0A0F1D" translucent={true} />
@@ -385,10 +383,11 @@ export default function Index() {
           showsVerticalScrollIndicator={false}
         >
           
-          <View style={styles.headerContainer}>
-            <View style={styles.titleArea}>
-              <Text style={styles.appTitle}>{t.appTitle}</Text>
-              <Text style={styles.appSubtitle}>{t.appSubtitle}</Text>
+          {/* Header Container with dynamic direction */}
+          <View style={[styles.headerContainer, { flexDirection: isUrdu ? 'row-reverse' : 'row' }]}>
+            <View style={[styles.titleArea, { alignItems: isUrdu ? 'flex-end' : 'flex-start' }]}>
+              <Text style={[styles.appTitle, { textAlign: isUrdu ? 'right' : 'left' }]}>{t.appTitle}</Text>
+              <Text style={[styles.appSubtitle, { textAlign: isUrdu ? 'right' : 'left' }]}>{t.appSubtitle}</Text>
             </View>
 
             <TouchableOpacity 
@@ -429,9 +428,13 @@ export default function Index() {
             </View>
           </View>
 
-          <View style={styles.manualSearchBox}>
+          {/* Manual Search Box with dynamic row direction */}
+          <View style={[styles.manualSearchBox, { flexDirection: isUrdu ? 'row-reverse' : 'row' }]}>
             <TextInput
-              style={[styles.input, lang === 'ur' && { textAlign: 'right' }]}
+              style={[
+                styles.input, 
+                { textAlign: isUrdu ? 'right' : 'left' }
+              ]}
               placeholder={t.placeholder}
               placeholderTextColor="#94A3B8"
               value={manualCode}
@@ -453,33 +456,33 @@ export default function Index() {
 
           {result ? (
             <View style={[styles.resultCard, { borderColor: result.color }]}>
-              <View style={[styles.badge, { backgroundColor: result.color }]}>
+              <View style={[styles.badge, { backgroundColor: result.color, alignSelf: isUrdu ? 'flex-end' : 'flex-start' }]}>
                 <Text style={styles.badgeText}>{result.status}</Text>
               </View>
-              <Text style={[styles.resultTitle, { color: result.color }]}>{result.title}</Text>
-              <Text style={styles.resultMsg}>{result.msg}</Text>
+              <Text style={[styles.resultTitle, { color: result.color, textAlign: isUrdu ? 'right' : 'left' }]}>{result.title}</Text>
+              <Text style={[styles.resultMsg, { textAlign: isUrdu ? 'right' : 'left' }]}>{result.msg}</Text>
 
               {result.data && (result.status === 'AUTHENTIC' || result.status === 'EXPIRED') && (
                 <View style={styles.detailsContainer}>
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>{lang === 'ur' ? 'دوائی کا نام' : 'Medicine Name'}</Text>
-                    <Text style={styles.detailValue} numberOfLines={1} ellipsizeMode="tail">{result.data.medicine_name || 'N/A'}</Text>
+                  <View style={[styles.detailRow, { flexDirection: isUrdu ? 'row-reverse' : 'row' }]}>
+                    <Text style={[styles.detailLabel, { textAlign: isUrdu ? 'right' : 'left', marginLeft: isUrdu ? 8 : 0, marginRight: isUrdu ? 0 : 8 }]}>{lang === 'ur' ? 'دوائی کا نام' : 'Medicine Name'}</Text>
+                    <Text style={[styles.detailValue, { textAlign: isUrdu ? 'left' : 'right' }]} numberOfLines={1} ellipsizeMode="tail">{result.data.medicine_name || 'N/A'}</Text>
                   </View>
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>{lang === 'ur' ? 'کمپنی / برانڈ' : 'Brand / Manufacturer'}</Text>
-                    <Text style={styles.detailValue} numberOfLines={1} ellipsizeMode="tail">{result.data.brand_name || 'N/A'}</Text>
+                  <View style={[styles.detailRow, { flexDirection: isUrdu ? 'row-reverse' : 'row' }]}>
+                    <Text style={[styles.detailLabel, { textAlign: isUrdu ? 'right' : 'left', marginLeft: isUrdu ? 8 : 0, marginRight: isUrdu ? 0 : 8 }]}>{lang === 'ur' ? 'کمپنی / برانڈ' : 'Brand / Manufacturer'}</Text>
+                    <Text style={[styles.detailValue, { textAlign: isUrdu ? 'left' : 'right' }]} numberOfLines={1} ellipsizeMode="tail">{result.data.brand_name || 'N/A'}</Text>
                   </View>
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>{lang === 'ur' ? 'بیچ کوڈ' : 'Batch Code'}</Text>
-                    <Text style={styles.detailValue} numberOfLines={1} ellipsizeMode="tail">{result.data.batch_number || activeBatch}</Text>
+                  <View style={[styles.detailRow, { flexDirection: isUrdu ? 'row-reverse' : 'row' }]}>
+                    <Text style={[styles.detailLabel, { textAlign: isUrdu ? 'right' : 'left', marginLeft: isUrdu ? 8 : 0, marginRight: isUrdu ? 0 : 8 }]}>{lang === 'ur' ? 'بیچ کوڈ' : 'Batch Code'}</Text>
+                    <Text style={[styles.detailValue, { textAlign: isUrdu ? 'left' : 'right' }]} numberOfLines={1} ellipsizeMode="tail">{result.data.batch_number || activeBatch}</Text>
                   </View>
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>{lang === 'ur' ? 'تیاری کی تاریخ' : 'Manufacturing Date'}</Text>
-                    <Text style={styles.detailValue} numberOfLines={1} ellipsizeMode="tail">{result.data.manufacturing_date || 'N/A'}</Text>
+                  <View style={[styles.detailRow, { flexDirection: isUrdu ? 'row-reverse' : 'row' }]}>
+                    <Text style={[styles.detailLabel, { textAlign: isUrdu ? 'right' : 'left', marginLeft: isUrdu ? 8 : 0, marginRight: isUrdu ? 0 : 8 }]}>{lang === 'ur' ? 'تیاری کی تاریخ' : 'Manufacturing Date'}</Text>
+                    <Text style={[styles.detailValue, { textAlign: isUrdu ? 'left' : 'right' }]} numberOfLines={1} ellipsizeMode="tail">{result.data.manufacturing_date || 'N/A'}</Text>
                   </View>
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>{lang === 'ur' ? 'تاریخِ میعاد' : 'Expiry Date'}</Text>
-                    <Text style={styles.detailValue} numberOfLines={1} ellipsizeMode="tail">{result.data.expiry_date || 'N/A'}</Text>
+                  <View style={[styles.detailRow, { flexDirection: isUrdu ? 'row-reverse' : 'row' }]}>
+                    <Text style={[styles.detailLabel, { textAlign: isUrdu ? 'right' : 'left', marginLeft: isUrdu ? 8 : 0, marginRight: isUrdu ? 0 : 8 }]}>{lang === 'ur' ? 'تاریخِ میعاد' : 'Expiry Date'}</Text>
+                    <Text style={[styles.detailValue, { textAlign: isUrdu ? 'left' : 'right' }]} numberOfLines={1} ellipsizeMode="tail">{result.data.expiry_date || 'N/A'}</Text>
                   </View>
                 </View>
               )}
@@ -504,7 +507,7 @@ export default function Index() {
           ) : (
             <View style={styles.placeholderBox}>
               <Text style={styles.scannerIconPlaceholder}>📷</Text>
-              <Text style={styles.placeholderText}>{t.scanPrompt}</Text>
+              <Text style={[styles.placeholderText, { textAlign: 'center' }]}>{t.scanPrompt}</Text>
             </View>
           )}
 
@@ -516,23 +519,23 @@ export default function Index() {
           <View style={styles.modalContainer}>
             {!isSubmitted ? (
               <>
-                <Text style={styles.modalTitle}>{t.modalTitle}</Text>
-                <Text style={styles.modalSub}>
+                <Text style={[styles.modalTitle, { textAlign: isUrdu ? 'right' : 'left' }]}>{t.modalTitle}</Text>
+                <Text style={[styles.modalSub, { textAlign: isUrdu ? 'right' : 'left' }]}>
                   {t.reportingBatch} <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text>
                 </Text>
 
-                <Text style={styles.inputLabel}>{t.reasonLabel}</Text>
+                <Text style={[styles.inputLabel, { textAlign: isUrdu ? 'right' : 'left' }]}>{t.reasonLabel}</Text>
                 <TextInput
-                  style={styles.modalInput}
+                  style={[styles.modalInput, { textAlign: isUrdu ? 'right' : 'left' }]}
                   placeholder={t.reasonPlaceholder}
                   placeholderTextColor="#94A3B8"
                   value={reportReason}
                   onChangeText={setReportReason}
                 />
 
-                <Text style={styles.inputLabel}>{t.storeLabel}</Text>
+                <Text style={[styles.inputLabel, { textAlign: isUrdu ? 'right' : 'left' }]}>{t.storeLabel}</Text>
                 <TextInput
-                  style={styles.modalInput}
+                  style={[styles.modalInput, { textAlign: isUrdu ? 'right' : 'left' }]}
                   placeholder={t.storePlaceholder}
                   placeholderTextColor="#94A3B8"
                   value={storeInfo}
@@ -556,7 +559,7 @@ export default function Index() {
             ) : (
               <View style={{ alignItems: 'center', paddingVertical: 10 }}>
                 <Text style={{ fontSize: 40, marginBottom: 10 }}>✅</Text>
-                <Text style={styles.modalTitle}>{t.reportSuccess}</Text>
+                <Text style={[styles.modalTitle, { textAlign: 'center' }]}>{t.reportSuccess}</Text>
                 <Text style={[styles.modalSub, { textAlign: 'center', marginTop: 8 }]}>
                   Batch <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text> has been flagged and sent to Drug Regulatory Authority.
                 </Text>
