@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Stack, useFocusEffect, usePathname, useRouter } from 'expo-router';
-import React, { useCallback, useState } from 'react';
+import { Stack, usePathname, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -23,12 +23,10 @@ export default function RootLayout() {
   const pathname = usePathname();
   const [currentLang, setCurrentLang] = useState<'en' | 'ur'>('en');
 
-  // Har dafa screen focus hone par language check kare ga
-  useFocusEffect(
-    useCallback(() => {
-      checkLanguage();
-    }, [])
-  );
+  // pathname (route) change hone par ya component mount hone par language check kare ga
+  useEffect(() => {
+    checkLanguage();
+  }, [pathname]);
 
   const checkLanguage = async () => {
     try {
