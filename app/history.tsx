@@ -2,15 +2,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
-    FlatList,
-    Modal,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  FlatList,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -244,15 +244,16 @@ export default function HistoryScreen() {
     { key: 'Expired', label: t.expired },
   ];
 
-  // Urdu mein array ko reverse kar diya hai taake 'سب' aakhir mein ho aur right side par poora nazar aaye
+  // Urdu mein row ko reverse kar diya gaya hai taake 'سب' right side se shuru ho
   const filterButtons = isUrdu ? [...baseFilterButtons].reverse() : baseFilterButtons;
 
   return (
     <View style={styles.container}>
       <SafeAreaView style={{ flex: 1 }}>
         <View style={[styles.contentContainer, { paddingTop: Math.max(insets.top + 10, 20) }]}>
-          <View style={styles.headerRow}>
-            <Text style={styles.headerTitle}>{t.scanHistory}</Text>
+          {/* Header Row */}
+          <View style={[styles.headerRow, isUrdu && { flexDirection: 'row-reverse' }]}>
+            <Text style={[styles.headerTitle, isUrdu && { textAlign: 'right' }]}>{t.scanHistory}</Text>
             {historyList.length > 0 && (
               <TouchableOpacity style={styles.clearBtn} onPress={clearAllHistory} activeOpacity={0.8}>
                 <Text style={styles.clearBtnText}>{t.clearAll}</Text>
@@ -275,7 +276,7 @@ export default function HistoryScreen() {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={[
                   styles.pillContainer, 
-                  isUrdu && { flexDirection: 'row-reverse' }
+                  isUrdu && { flexDirection: 'row-reverse', paddingRight: 4, paddingLeft: 16 }
                 ]}
               >
                 {filterButtons.map((filter) => (
