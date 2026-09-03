@@ -62,7 +62,7 @@ const translations = {
     accountSettings: "اکاؤنٹ کی سیٹنگز",
     preferences: "ترجیحات",
     language: "زبان (اردو / انگریزی)",
-    pushNotifications: "پش نوٹیفیکیشنز",
+    pushNotifications: "نوٹیفیکیشنز", 
     privacy: "پراائیویسی پالیسی",
     about: "میڈ ویریفائی اے آئی کے بارے میں",
     deleteAccount: "اکاؤنٹ ڈیلیٹ کریں",
@@ -265,7 +265,7 @@ export default function ProfileScreen() {
             <Text style={[styles.headerSubtitle, directionStyle]}>{t.subtitle}</Text>
           </View>
 
-          {/* Profile Card (Left-to-Right retained as requested) */}
+          {/* Profile Card */}
           <View style={styles.profileHeroCard}>
             <View style={styles.heroTopRow}>
               <TouchableOpacity onPress={() => setIsPhotoModalVisible(true)} style={styles.avatarContainer} activeOpacity={0.85}>
@@ -316,7 +316,7 @@ export default function ProfileScreen() {
                 <View style={[styles.iconWrapper, isUrdu && styles.iconWrapperRtl]}>
                   <Text style={styles.settingIcon}>🌐</Text>
                 </View>
-                <Text style={[styles.settingText, directionStyle]}>{t.language}</Text>
+                <Text style={[styles.settingText, directionStyle]} numberOfLines={1} adjustsFontSizeToFit>{t.language}</Text>
               </View>
               <Switch
                 value={isUrdu}
@@ -330,11 +330,11 @@ export default function ProfileScreen() {
             </View>
 
             <View style={[styles.settingItem, { borderBottomWidth: 0 }, isUrdu && styles.settingItemRtl]}>
-              <View style={[styles.settingLabelRow, isUrdu && styles.settingLabelRowRtl]}>
+              <View style={[styles.settingLabelRow, isUrdu && styles.settingLabelRowRtl, { flex: 1, marginRight: 10 }]}>
                 <View style={[styles.iconWrapper, isUrdu && styles.iconWrapperRtl]}>
                   <Text style={styles.settingIcon}>🔔</Text>
                 </View>
-                <Text style={[styles.settingText, directionStyle]}>{t.pushNotifications}</Text>
+                <Text style={[styles.settingText, directionStyle, { flex: 1 }]} numberOfLines={1}>{t.pushNotifications}</Text>
               </View>
               <Switch
                 value={isNotificationsEnabled}
@@ -410,7 +410,7 @@ export default function ProfileScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      {/* Custom Dark Photo Picker Modal */}
+      {/* Modals */}
       <Modal
         visible={isPhotoModalVisible}
         animationType="fade"
@@ -443,7 +443,6 @@ export default function ProfileScreen() {
         </View>
       </Modal>
 
-      {/* Custom Dark Sign Out Modal */}
       <Modal
         visible={isLogoutModalVisible}
         animationType="fade"
@@ -467,7 +466,6 @@ export default function ProfileScreen() {
         </View>
       </Modal>
 
-      {/* Custom Dark Delete Account Modal */}
       <Modal
         visible={isDeleteModalVisible}
         animationType="fade"
@@ -491,7 +489,6 @@ export default function ProfileScreen() {
         </View>
       </Modal>
 
-      {/* Info / Privacy / About Modal */}
       <Modal
         visible={infoModalData.visible}
         animationType="fade"
@@ -510,7 +507,6 @@ export default function ProfileScreen() {
         </View>
       </Modal>
 
-      {/* Edit Profile Modal */}
       <Modal
         visible={isEditModalVisible}
         animationType="fade"
