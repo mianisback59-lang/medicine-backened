@@ -435,7 +435,7 @@ export default function Index() {
             </View>
           </View>
 
-          {/* Manual Search Box */}
+          {/* Manual Search Box (RTL Handled: Urdu mein button right aur input left hoga) */}
           <View style={[styles.manualSearchBox, { flexDirection: isUrdu ? 'row-reverse' : 'row' }]}>
             <TextInput
               style={[
