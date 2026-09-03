@@ -62,7 +62,7 @@ const translations = {
     accountSettings: "اکاؤنٹ کی سیٹنگز",
     preferences: "ترجیحات",
     language: "زبان (اردو / انگریزی)",
-    pushNotifications: "نوٹیفیکیشنز", 
+    pushNotifications: "نوٹیفیکیشنز",
     privacy: "پراائیویسی پالیسی",
     about: "میڈ ویریفائی اے آئی کے بارے میں",
     deleteAccount: "اکاؤنٹ ڈیلیٹ کریں",
@@ -255,7 +255,7 @@ export default function ProfileScreen() {
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingTop: Math.max(insets.top, 16) + 8, paddingBottom: 130 }
+            { paddingTop: Math.max(insets.top, 16) + 8, paddingBottom: 150 }
           ]}
           showsVerticalScrollIndicator={false}
         >
@@ -316,7 +316,7 @@ export default function ProfileScreen() {
                 <View style={[styles.iconWrapper, isUrdu && styles.iconWrapperRtl]}>
                   <Text style={styles.settingIcon}>🌐</Text>
                 </View>
-                <Text style={[styles.settingText, directionStyle]} numberOfLines={1} adjustsFontSizeToFit>{t.language}</Text>
+                <Text style={[styles.settingText, directionStyle]} numberOfLines={1}>{t.language}</Text>
               </View>
               <Switch
                 value={isUrdu}
@@ -330,11 +330,11 @@ export default function ProfileScreen() {
             </View>
 
             <View style={[styles.settingItem, { borderBottomWidth: 0 }, isUrdu && styles.settingItemRtl]}>
-              <View style={[styles.settingLabelRow, isUrdu && styles.settingLabelRowRtl, { flex: 1, marginRight: 10 }]}>
+              <View style={[styles.settingLabelRow, isUrdu && styles.settingLabelRowRtl]}>
                 <View style={[styles.iconWrapper, isUrdu && styles.iconWrapperRtl]}>
                   <Text style={styles.settingIcon}>🔔</Text>
                 </View>
-                <Text style={[styles.settingText, directionStyle, { flex: 1 }]} numberOfLines={1}>{t.pushNotifications}</Text>
+                <Text style={[styles.settingText, directionStyle]} numberOfLines={1}>{t.pushNotifications}</Text>
               </View>
               <Switch
                 value={isNotificationsEnabled}
@@ -365,7 +365,7 @@ export default function ProfileScreen() {
                 <View style={[styles.iconWrapper, isUrdu && styles.iconWrapperRtl]}>
                   <Text style={styles.settingIcon}>🔒</Text>
                 </View>
-                <Text style={[styles.optionButtonText, directionStyle]}>{t.privacy}</Text>
+                <Text style={[styles.optionButtonText, directionStyle]} numberOfLines={1}>{t.privacy}</Text>
               </View>
               <Text style={[styles.arrowText, isUrdu && { transform: [{ scaleX: -1 }] }]}>›</Text>
             </TouchableOpacity>
@@ -383,7 +383,7 @@ export default function ProfileScreen() {
                 <View style={[styles.iconWrapper, isUrdu && styles.iconWrapperRtl]}>
                   <Text style={styles.settingIcon}>ℹ️</Text>
                 </View>
-                <Text style={[styles.optionButtonText, directionStyle]}>{t.about}</Text>
+                <Text style={[styles.optionButtonText, directionStyle]} numberOfLines={1}>{t.about}</Text>
               </View>
               <Text style={[styles.arrowText, isUrdu && { transform: [{ scaleX: -1 }] }]}>›</Text>
             </TouchableOpacity>
@@ -397,7 +397,7 @@ export default function ProfileScreen() {
                 <View style={[styles.iconWrapper, { backgroundColor: 'rgba(239, 68, 68, 0.15)' }, isUrdu && styles.iconWrapperRtl]}>
                   <Text style={styles.settingIcon}>⚠️</Text>
                 </View>
-                <Text style={[styles.optionButtonText, { color: '#f87171' }, directionStyle]}>{t.deleteAccount}</Text>
+                <Text style={[styles.optionButtonText, { color: '#f87171' }, directionStyle]} numberOfLines={1}>{t.deleteAccount}</Text>
               </View>
               <Text style={[styles.arrowText, isUrdu && { transform: [{ scaleX: -1 }] }]}>›</Text>
             </TouchableOpacity>
