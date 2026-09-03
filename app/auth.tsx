@@ -43,8 +43,6 @@ const translations = {
     hasAccountAction: "Sign In",
     orContinue: "OR",
     guestLogin: "Explore Without Account",
-    footerText: "Official Drug Verification System",
-    serverStatus: "AI Engine Active",
     resetTitle: "Reset Password",
     resetConfirm: "A reset email with instructions will be sent to:\n\n",
     enterEmailNotice: "Please type your email address in the Email field first.",
@@ -76,8 +74,6 @@ const translations = {
     hasAccountAction: "سائن ان کریں",
     orContinue: "یا",
     guestLogin: "اکاؤنٹ کے بغیر آگے بڑھیں",
-    footerText: "سرکاری دواؤں کی تصدیق کا نظام",
-    serverStatus: "اے آئی انجن فعال ہے",
     resetTitle: "پاس ورڈ ری سیٹ",
     resetConfirm: "پاس ورڈ ری سیٹ کی ای میل اس ایڈریس پر بھیجی جائے گی۔\n\n",
     enterEmailNotice: "براہ کرم پہلے ای میل والے خانے میں اپنا ای میل درج کریں۔",
@@ -568,17 +564,6 @@ export default function AuthScreen() {
               <Text style={styles.secondaryActionText}>{t.guestLogin}</Text>
             </TouchableOpacity>
           </View>
-
-          {/* Footer Section */}
-          <View style={styles.footerSection}>
-            <View style={[styles.statusBadge, lang === 'ur' && { flexDirection: 'row-reverse' }]}>
-              <View style={styles.pulseDot} />
-              <Text style={styles.statusText}>{t.serverStatus}</Text>
-            </View>
-            <Text style={[styles.footerBrandText, lang === 'ur' && { writingDirection: 'rtl' }]}>
-              {t.footerText}
-            </Text>
-          </View>
         </ScrollView>
 
         {/* Modal */}
@@ -651,7 +636,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0A0F1D' },
   scrollContent: { 
     paddingHorizontal: 20, 
-    paddingBottom: 16,
+    paddingBottom: 24,
   },
   glowOrb: {
     position: 'absolute',
@@ -741,12 +726,6 @@ const styles = StyleSheet.create({
     borderRadius: 14, 
   },
   secondaryActionText: { color: '#94A3B8', fontWeight: '700', fontSize: 13 },
-
-  footerSection: { marginTop: 18, alignItems: 'center', gap: 6 },
-  statusBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(16, 185, 129, 0.1)', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(16, 185, 129, 0.3)', gap: 6 },
-  pulseDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#10B981' },
-  statusText: { color: '#34D399', fontSize: 11, fontWeight: '700' },
-  footerBrandText: { color: '#64748B', fontSize: 11, fontWeight: '600', textAlign: 'center' },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.75)', justifyContent: 'center', alignItems: 'center', padding: 20 },
   modalCard: { backgroundColor: '#111827', width: '100%', borderRadius: 20, padding: 22, borderWidth: 1, borderColor: '#3B82F6' },
