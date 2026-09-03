@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Alert,
   Button,
+  DeviceEventEmitter,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
@@ -404,6 +405,7 @@ export default function Index() {
                 const newLang = lang === 'en' ? 'ur' : 'en';
                 setLang(newLang);
                 await AsyncStorage.setItem('appLanguage', newLang);
+                DeviceEventEmitter.emit('languageChanged');
               }}
             >
               <Text style={styles.langIcon}>🌐</Text>

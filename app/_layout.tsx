@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, usePathname, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { DeviceEventEmitter, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const translations = {
@@ -23,10 +23,18 @@ export default function RootLayout() {
   const pathname = usePathname();
   const [currentLang, setCurrentLang] = useState<'en' | 'ur'>('en');
 
-  // pathname (route) change hone par ya component mount hone par language check kare ga
   useEffect(() => {
     checkLanguage();
-  }, [pathname]);
+
+    // Language change event ko listen kare ga taake switch button dabate hi footer update ho jaye
+    const subscription = DeviceEventEmitter.addListener('languageChanged', () => {
+      checkLanguage();
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   const checkLanguage = async () => {
     try {
@@ -57,7 +65,6 @@ export default function RootLayout() {
       
       <View style={styles.floatingFooterBackground}>
         <View style={[styles.floatingFooterContainer, { bottom: Math.max(insets.bottom, 16) }]}>
-          {/* Urdu hone par row-reverse kar diya hai taake right-to-left layout ban jaye */}
           <View style={[styles.floatingNavBar, isUrdu && { flexDirection: 'row-reverse' }]}>
             
             <TouchableOpacity 
