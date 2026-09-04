@@ -449,6 +449,14 @@ export default function Index() {
                 <View style={[styles.corner, styles.bottomRight]} />
               </View>
 
+              {/* Scanning Loader Overlay */}
+              {isProcessing && (
+                <View style={styles.processingOverlay}>
+                  <ActivityIndicator size="large" color="#3B82F6" />
+                  <Text style={styles.processingText}>Verifying Medicine...</Text>
+                </View>
+              )}
+
               <TouchableOpacity style={styles.torchBtn} onPress={() => setTorch(!torch)}>
                 <Text style={styles.torchBtnText}>{torch ? t.flashOff : t.flashOn}</Text>
               </TouchableOpacity>
@@ -466,9 +474,10 @@ export default function Index() {
               placeholderTextColor="#94A3B8"
               value={manualCode}
               onChangeText={setManualCode}
+              editable={!isProcessing}
             />
             <TouchableOpacity
-              style={styles.verifyBtn}
+              style={[styles.verifyBtn, isProcessing && { backgroundColor: '#475569' }]}
               onPress={() => {
                 if (manualCode.trim().length > 0) {
                   verifyCode(manualCode);
@@ -476,8 +485,13 @@ export default function Index() {
                   Alert.alert('Notice', 'Please enter a batch number or medicine name first.');
                 }
               }}
+              disabled={isProcessing}
             >
-              <Text style={styles.verifyBtnText}>{t.verifyBtn}</Text>
+              {isProcessing ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text style={styles.verifyBtnText}>{t.verifyBtn}</Text>
+              )}
             </TouchableOpacity>
           </View>
 
@@ -655,6 +669,25 @@ const styles = StyleSheet.create({
   bottomLeft: { bottom: -2, left: -2, borderBottomWidth: 4, borderLeftWidth: 4 },
   bottomRight: { bottom: -2, right: -2, borderBottomWidth: 4, borderRightWidth: 4 },
 
+  processingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(10, 15, 29, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 24,
+    zIndex: 10,
+  },
+  processingText: {
+    color: '#FFFFFF',
+    marginTop: 10,
+    fontWeight: '700',
+    fontSize: 13,
+  },
+
   torchBtn: { position: 'absolute', bottom: 12, right: 12, backgroundColor: 'rgba(15, 23, 42, 0.85)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16 },
   torchBtnText: { color: '#FFF', fontSize: 11, fontWeight: '700' },
   
@@ -671,7 +704,7 @@ const styles = StyleSheet.create({
     height: 48,
     textAlignVertical: 'center'
   },
-  verifyBtn: { backgroundColor: '#2563EB', justifyContent: 'center', paddingHorizontal: 18, borderRadius: 14, height: 48, shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 },
+  verifyBtn: { backgroundColor: '#2563EB', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 18, borderRadius: 14, height: 48, shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 },
   verifyBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13 },
   
   placeholderBox: { marginTop: 4, padding: 16, borderRadius: 20, backgroundColor: '#111827', borderStyle: 'dashed', borderWidth: 1.5, borderColor: '#334155', alignItems: 'center' },
