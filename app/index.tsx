@@ -49,7 +49,7 @@ const translations = {
     langToggle: "اردو",
     flashOn: "💡 Flash ON",
     flashOff: "🔦 Flash OFF",
-    placeholder: "Enter Batch No (e.g. 510902)",
+    placeholder: "Enter Batch No or Medicine Name",
     verifyBtn: "Verify",
     scanPrompt: "Point your camera at a QR code or barcode to scan.",
     reportMedicine: "REPORT MEDICINE",
@@ -72,7 +72,7 @@ const translations = {
     langToggle: "English",
     flashOn: "💡 فلیش آن",
     flashOff: "🔦 فلیش آف",
-    placeholder: "بیچ نمبر (مثلاً 510902)",
+    placeholder: "بیچ نمبر یا دوائی کا نام درج کریں",
     verifyBtn: "تصدیق کریں",
     scanPrompt: "کیمرے کو QR یا بارکوڈ کی طرف کریں۔",
     reportMedicine: "دوائی کی شکایت درج کریں",
@@ -135,15 +135,12 @@ export default function Index() {
     }
   };
 
-  // Cold-start delay khatam karne ke liye server ko warm up aur speech engine ko ready karna
   const warmUpServerAndSpeech = async () => {
     try {
-      // Server ko background mein ping bhejna taake server active ho jaye
       fetch('https://medicine-backened.vercel.app/')
         .then(() => console.log('Server warmed up successfully'))
         .catch(() => {});
 
-      // Speech engine ko pre-initialize karna taake pehli bar delay na ho
       if (Platform.OS === 'android' || Platform.OS === 'ios') {
         Speech.speak('', { rate: 1.0 });
       }
@@ -246,7 +243,7 @@ export default function Index() {
     Keyboard.dismiss();
 
     if (!code || code.trim() === '') {
-      Alert.alert('Notice', 'Please enter or scan a valid batch code.');
+      Alert.alert('Notice', 'Please enter or scan a valid batch code or medicine name.');
       return;
     }
 
@@ -274,7 +271,7 @@ export default function Index() {
       const isOk = response.ok && apiResponse.success === true;
 
       if (!isOk || !apiResponse.data || apiResponse.status === 'FAKE') {
-        const fakeMsg = lang === 'ur' ? 'یہ بیچ نمبر سرکاری ریکارڈ میں نہیں ملا۔' : (apiResponse?.message || 'This batch number was not found in the official registry.');
+        const fakeMsg = lang === 'ur' ? 'یہ بیچ نمبر یا دوائی سرکاری ریکارڈ میں نہیں ملی۔' : (apiResponse?.message || 'This medicine or batch number was not found in the official registry.');
         
         setResult({
           status: 'FAKE',
@@ -313,7 +310,7 @@ export default function Index() {
       }
 
     } catch (error: any) {
-      const errorMsg = lang === 'ur' ? 'بیچ کی تصدیق کرنے میں ناکامی یا کوڈ ڈیٹا بیس میں رجسٹرڈ نہیں۔' : 'Unable to verify batch or code not registered in database.';
+      const errorMsg = lang === 'ur' ? 'تصدیق کرنے میں ناکامی یا کوڈ ڈیٹا بیس میں رجسٹرڈ نہیں۔' : 'Unable to verify or code not registered in database.';
       
       setResult({
         status: 'FAKE',
@@ -402,7 +399,6 @@ export default function Index() {
           showsVerticalScrollIndicator={false}
         >
           
-          {/* Header Container */}
           <View style={[styles.headerContainer, { flexDirection: isUrdu ? 'row-reverse' : 'row' }]}>
             <View style={[styles.titleArea, { alignItems: isUrdu ? 'flex-end' : 'flex-start' }]}>
               <Text style={[styles.appTitle, { textAlign: isUrdu ? 'right' : 'left' }]}>{t.appTitle}</Text>
@@ -455,8 +451,8 @@ export default function Index() {
             </View>
           </View>
 
-          {/* Manual Search Box (Updated: Urdu mein input left par aur button right par rahega) */}
-          <View style={[styles.manualSearchBox, { flexDirection: 'row' }]}>
+          {/* Manual Search Box - Clean, Linter-Error Free & Fully Responsive */}
+          <View style={[styles.manualSearchBox, { flexDirection: isUrdu ? 'row-reverse' : 'row' }]}>
             <TextInput
               style={[
                 styles.input, 
@@ -473,7 +469,7 @@ export default function Index() {
                 if (manualCode.trim().length > 0) {
                   verifyCode(manualCode);
                 } else {
-                  Alert.alert('Notice', 'Please enter a batch number first.');
+                  Alert.alert('Notice', 'Please enter a batch number or medicine name first.');
                 }
               }}
             >
@@ -588,7 +584,7 @@ export default function Index() {
                 <Text style={{ fontSize: 40, marginBottom: 10 }}>✅</Text>
                 <Text style={[styles.modalTitle, { textAlign: 'center' }]}>{t.reportSuccess}</Text>
                 <Text style={[styles.modalSub, { textAlign: 'center', marginTop: 8 }]}>
-                  Batch <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text> has been flagged and sent to Drug Regulatory Authority.
+                  Batch / Medicine <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text> has been flagged and sent to Drug Regulatory Authority.
                 </Text>
                 <Text style={styles.refCode}>Ref ID: DRAP-2026-{Math.floor(1000 + Math.random() * 9000)}</Text>
 
@@ -658,10 +654,10 @@ const styles = StyleSheet.create({
   torchBtn: { position: 'absolute', bottom: 12, right: 12, backgroundColor: 'rgba(15, 23, 42, 0.85)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16 },
   torchBtnText: { color: '#FFF', fontSize: 11, fontWeight: '700' },
   
-  manualSearchBox: { flexDirection: 'row', marginTop: 14, marginBottom: 14, gap: 10 },
-  input: { flex: 1, backgroundColor: '#1E293B', borderWidth: 1, borderColor: '#334155', borderRadius: 14, paddingHorizontal: 14, fontSize: 12, color: '#FFFFFF', height: 48 },
-  verifyBtn: { backgroundColor: '#2563EB', justifyContent: 'center', paddingHorizontal: 20, borderRadius: 14, height: 48, shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 },
-  verifyBtnText: { color: '#FFF', fontWeight: '800', fontSize: 14 },
+  manualSearchBox: { marginTop: 14, marginBottom: 14, gap: 10 },
+  input: { flex: 1, backgroundColor: '#1E293B', borderWidth: 1, borderColor: '#334155', borderRadius: 14, paddingHorizontal: 10, fontSize: 11, color: '#FFFFFF', height: 48 },
+  verifyBtn: { backgroundColor: '#2563EB', justifyContent: 'center', paddingHorizontal: 18, borderRadius: 14, height: 48, shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 },
+  verifyBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13 },
   
   placeholderBox: { marginTop: 4, padding: 16, borderRadius: 20, backgroundColor: '#111827', borderStyle: 'dashed', borderWidth: 1.5, borderColor: '#334155', alignItems: 'center' },
   scannerIconPlaceholder: { fontSize: 22, marginBottom: 4 },

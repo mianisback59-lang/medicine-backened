@@ -247,20 +247,20 @@ app.post('/api/reset-password-confirm', async (req, res) => {
   }
 });
 
-// Verification API Endpoint
+// Verification API Endpoint (Supports Batch Number + Medicine Name / Brand Name Search)
 app.get('/api/verify/:batch', async (req, res) => {
   try {
     await connectToDatabase();
 
     const rawInput = decodeURIComponent(req.params.batch).replace(/[\r\n]+/g, '').trim();
-    console.log("🔍 Search Request For Batch:", rawInput);
+    console.log("🔍 Search Request For Batch/Name:", rawInput);
 
     if (!rawInput || rawInput.length < 2) {
       return res.status(404).json({
         success: false,
         status: "FAKE",
         title: "🚨 UNVERIFIED / COUNTERFEIT",
-        message: "Invalid or too short batch code entered."
+        message: "Invalid or too short search query entered."
       });
     }
 
@@ -277,7 +277,9 @@ app.get('/api/verify/:batch', async (req, res) => {
     const cleanInput = targetBatch.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
 
     const allMedicines = await Medicine.find({});
-    const found = allMedicines.find(med => {
+    
+    // 1. Pehle batch number ya qr_hash mein match dhoondein
+    let found = allMedicines.find(med => {
       const dbBatchRaw = (med.batch_number || '').trim().toLowerCase();
       const dbHashRaw = (med.qr_hash || '').trim().toLowerCase();
       
@@ -293,12 +295,21 @@ app.get('/api/verify/:batch', async (req, res) => {
       );
     });
 
+    // 2. Agar batch ya hash se match nahi mila, toh medicine_name ya brand_name se search karein
+    if (!found) {
+      found = allMedicines.find(med => {
+        const medName = (med.medicine_name || '').trim().toLowerCase();
+        const brandName = (med.brand_name || '').trim().toLowerCase();
+        return medName.includes(rawInputLower) || brandName.includes(rawInputLower);
+      });
+    }
+
     if (!found) {
       return res.status(404).json({
         success: false,
         status: "FAKE",
         title: "🚨 UNVERIFIED / COUNTERFEIT",
-        message: "This batch number was not found in the official registry."
+        message: "This medicine or batch number was not found in the official registry."
       });
     }
 
@@ -330,9 +341,9 @@ app.get('/api/verify/:batch', async (req, res) => {
       data: {
         medicine_name: found.medicine_name,
         brand_name: found.brand_name,
-        batch_number: found.batch_number,
-        manufacturing_date: found.manufacturing_date,
-        expiry_date: found.expiry_date
+        batch_number: found.batch_number || 'N/A (Name Search)',
+        manufacturing_date: found.manufacturing_date || 'N/A',
+        expiry_date: found.expiry_date || 'N/A'
       }
     });
 
