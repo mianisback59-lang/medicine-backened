@@ -115,6 +115,7 @@ export default function Index() {
 
   useEffect(() => {
     checkUserLogin();
+    warmUpServerAndSpeech();
   }, []);
 
   const checkUserLogin = async () => {
@@ -131,6 +132,23 @@ export default function Index() {
       console.log('Auth Check Error:', e);
     } finally {
       setCheckingAuth(false);
+    }
+  };
+
+  // Cold-start delay khatam karne ke liye server ko warm up aur speech engine ko ready karna
+  const warmUpServerAndSpeech = async () => {
+    try {
+      // Server ko background mein ping bhejna taake server active ho jaye
+      fetch('https://medicine-backened.vercel.app/')
+        .then(() => console.log('Server warmed up successfully'))
+        .catch(() => {});
+
+      // Speech engine ko pre-initialize karna taake pehli bar delay na ho
+      if (Platform.OS === 'android' || Platform.OS === 'ios') {
+        Speech.speak('', { rate: 1.0 });
+      }
+    } catch (error) {
+      console.log('Warm-up error:', error);
     }
   };
 
