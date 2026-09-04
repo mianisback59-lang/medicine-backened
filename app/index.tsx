@@ -49,7 +49,7 @@ const translations = {
     langToggle: "اردو",
     flashOn: "💡 Flash ON",
     flashOff: "🔦 Flash OFF",
-    placeholder: "Enter Batch No or Medicine Name",
+    placeholder: " Batch No or Medicine Name",
     verifyBtn: "Verify",
     scanPrompt: "Point your camera at a QR code or barcode to scan.",
     reportMedicine: "REPORT MEDICINE",
