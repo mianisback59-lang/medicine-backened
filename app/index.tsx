@@ -403,10 +403,14 @@ export default function Index() {
             <View style={[styles.titleArea, { alignItems: isUrdu ? 'flex-end' : 'flex-start' }]}>
               <Text style={[styles.appTitle, { textAlign: isUrdu ? 'right' : 'left' }]}>{t.appTitle}</Text>
               <Text 
-                style={[styles.appSubtitle, { textAlign: isUrdu ? 'right' : 'left' }]} 
+                style={[
+                  styles.appSubtitle, 
+                  { 
+                    textAlign: isUrdu ? 'right' : 'left',
+                    marginTop: isUrdu ? 0 : 2 
+                  }
+                ]} 
                 numberOfLines={1} 
-                adjustsFontSizeToFit={true}
-                minimumFontScale={0.8}
               >
                 {t.appSubtitle}
               </Text>
@@ -451,7 +455,7 @@ export default function Index() {
             </View>
           </View>
 
-          {/* Manual Search Box - Clean, Linter-Error Free & Fully Responsive */}
+          {/* Manual Search Box */}
           <View style={[styles.manualSearchBox, { flexDirection: isUrdu ? 'row-reverse' : 'row' }]}>
             <TextInput
               style={[
@@ -655,7 +659,18 @@ const styles = StyleSheet.create({
   torchBtnText: { color: '#FFF', fontSize: 11, fontWeight: '700' },
   
   manualSearchBox: { marginTop: 14, marginBottom: 14, gap: 10 },
-  input: { flex: 1, backgroundColor: '#1E293B', borderWidth: 1, borderColor: '#334155', borderRadius: 14, paddingHorizontal: 10, fontSize: 11, color: '#FFFFFF', height: 48 },
+  input: { 
+    flex: 1, 
+    backgroundColor: '#1E293B', 
+    borderWidth: 1, 
+    borderColor: '#334155', 
+    borderRadius: 14, 
+    paddingHorizontal: 14, 
+    fontSize: 13, 
+    color: '#FFFFFF', 
+    height: 48,
+    textAlignVertical: 'center'
+  },
   verifyBtn: { backgroundColor: '#2563EB', justifyContent: 'center', paddingHorizontal: 18, borderRadius: 14, height: 48, shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 },
   verifyBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13 },
   
