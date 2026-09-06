@@ -1,12 +1,30 @@
 {
-  "plugins": [
-    "@react-native-community/datetimepicker",
-    "expo-font",
-    "expo-image",
-    "expo-router",
-    "expo-splash-screen",
-    "expo-sqlite",
-    "expo-status-bar",
-    "expo-web-browser"
-  ]
+  "expo": {
+    "name": "MedVerify AI",
+    "slug": "medverify-ai",
+    "scheme": "medverifyai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": ".ChatApp/assets/images/icon.png",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": ".ChatApp/assets/images/icon.png",
+        "backgroundColor": "#070b19"
+      }
+    },
+    "plugins": [
+      "@react-native-community/datetimepicker",
+      "expo-font",
+      "expo-image",
+      "expo-router",
+      "expo-splash-screen",
+      "expo-sqlite",
+      "expo-status-bar",
+      "expo-web-browser"
+    ]
+  }
 }
