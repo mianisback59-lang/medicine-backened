@@ -49,7 +49,7 @@ const translations = {
     langToggle: "اردو",
     flashOn: "💡 Flash ON",
     flashOff: "🔦 Flash OFF",
-    placeholder: "Batch No or Medicine Name",
+    placeholder: "Enter Batch Number",
     verifyBtn: "Verify",
     scanPrompt: "Point your camera at a QR code or barcode to scan.",
     reportMedicine: "REPORT MEDICINE",
@@ -72,7 +72,7 @@ const translations = {
     langToggle: "English",
     flashOn: "💡 فلیش آن",
     flashOff: "🔦 فلیش آف",
-    placeholder: "بیچ نمبر یا دوائی کا نام درج کریں",
+    placeholder: "بیچ نمبر درج کریں",
     verifyBtn: "تصدیق کریں",
     scanPrompt: "کیمرے کو QR یا بارکوڈ کی طرف کریں۔",
     reportMedicine: "دوائی کی شکایت درج کریں",
@@ -243,7 +243,7 @@ export default function Index() {
     Keyboard.dismiss();
 
     if (!code || code.trim() === '') {
-      Alert.alert('Notice', 'Please enter or scan a valid batch code or medicine name.');
+      Alert.alert('Notice', 'Please enter or scan a valid batch number.');
       return;
     }
 
@@ -271,7 +271,7 @@ export default function Index() {
       const isOk = response.ok && apiResponse.success === true;
 
       if (!isOk || !apiResponse.data || apiResponse.status === 'FAKE') {
-        const fakeMsg = lang === 'ur' ? 'یہ بیچ نمبر یا دوائی سرکاری ریکارڈ میں نہیں ملی۔' : (apiResponse?.message || 'This medicine or batch number was not found in the official registry.');
+        const fakeMsg = lang === 'ur' ? 'یہ بیچ نمبر سرکاری ریکارڈ میں نہیں ملا۔' : (apiResponse?.message || 'This batch number was not found in the official registry.');
         
         setResult({
           status: 'FAKE',
@@ -310,7 +310,7 @@ export default function Index() {
       }
 
     } catch (error: any) {
-      const errorMsg = lang === 'ur' ? 'تصدیق کرنے میں ناکامی یا کوڈ ڈیٹا بیس میں رجسٹرڈ نہیں۔' : 'Unable to verify or code not registered in database.';
+      const errorMsg = lang === 'ur' ? 'تصدیق کرنے میں ناکامی یا بیچ نمبر ڈیٹا بیس میں رجسٹرڈ نہیں۔' : 'Unable to verify or batch code not registered in database.';
       
       setResult({
         status: 'FAKE',
@@ -453,7 +453,7 @@ export default function Index() {
               {isProcessing && (
                 <View style={styles.processingOverlay}>
                   <ActivityIndicator size="large" color="#3B82F6" />
-                  <Text style={styles.processingText}>Verifying Medicine...</Text>
+                  <Text style={styles.processingText}>Verifying Batch...</Text>
                 </View>
               )}
 
@@ -463,7 +463,7 @@ export default function Index() {
             </View>
           </View>
 
-          {/* Manual Search Box */}
+          {/* Manual Batch Input Box */}
           <View style={[styles.manualSearchBox, { flexDirection: isUrdu ? 'row-reverse' : 'row' }]}>
             <TextInput
               style={[
@@ -482,7 +482,7 @@ export default function Index() {
                 if (manualCode.trim().length > 0) {
                   verifyCode(manualCode);
                 } else {
-                  Alert.alert('Notice', 'Please enter a batch number or medicine name first.');
+                  Alert.alert('Notice', 'Please enter a valid batch number first.');
                 }
               }}
               disabled={isProcessing}
