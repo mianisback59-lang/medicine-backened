@@ -5,14 +5,14 @@
     "scheme": "medverifyai",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": ".ChatApp/assets/images/icon.png",
+    "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": ".ChatApp/assets/images/icon.png",
+        "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#070b19"
       }
     },
