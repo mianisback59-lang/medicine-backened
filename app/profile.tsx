@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import {
   Image,
   Modal,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Switch,
@@ -251,7 +250,7 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
-      <SafeAreaView style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
@@ -408,7 +407,7 @@ export default function ProfileScreen() {
             <Text style={[styles.logoutButtonText, directionStyle]}>🚪 {t.logout}</Text>
           </TouchableOpacity>
         </ScrollView>
-      </SafeAreaView>
+      </View>
 
       {/* Modals */}
       <Modal
