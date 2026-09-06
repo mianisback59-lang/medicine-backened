@@ -49,6 +49,7 @@ export default function RootLayout() {
   const t = translations[currentLang];
   const isUrdu = currentLang === 'ur';
 
+  // Calculate safe bottom spacing for floating dock and screen content padding
   const bottomSpacing = Math.max(insets.bottom, 16);
 
   return (
@@ -64,6 +65,7 @@ export default function RootLayout() {
         }}
       />
       
+      {/* Floating Navigation Bar Container */}
       <View style={[styles.floatingFooterContainer, { bottom: bottomSpacing }]}>
         <View style={[styles.floatingNavBar, isUrdu && { flexDirection: 'row-reverse' }]}>
           
