@@ -49,8 +49,8 @@ export default function RootLayout() {
   const t = translations[currentLang];
   const isUrdu = currentLang === 'ur';
 
-  // Yahan hum ne bottom spacing ko mazeed secure kar diya hai taake system buttons ke oopar floating lage
-  const bottomSpacing = Math.max(insets.bottom + 10, 24);
+  // System navigation buttons ke oopar safe spacing
+  const bottomSpacing = Math.max(insets.bottom + 8, 22);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#0A0F1D' }}>
@@ -113,30 +113,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: 'rgba(17, 24, 39, 0.95)',
     borderRadius: 28,
-    borderWidth: 1.5,
-    borderColor: 'rgba(59, 130, 246, 0.6)',
-    paddingVertical: 10,
+    borderWidth: 1.8,
+    borderColor: '#3B82F6', // Bright glowing blue border
+    paddingVertical: 8,
     paddingHorizontal: 8,
     width: '100%',
     justifyContent: 'space-between',
+    // Glowing shadow properties restored
     shadowColor: '#3B82F6',
-    shadowOpacity: 0.45,
-    shadowRadius: 15,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.85,
+    shadowRadius: 12,
+    elevation: 16,
   },
   navItem: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: 20,
     gap: 6,
   },
   activeNavItem: {
-    backgroundColor: 'rgba(37, 99, 235, 0.25)',
+    backgroundColor: 'rgba(37, 99, 235, 0.3)',
     borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.5)',
+    borderColor: '#60A5FA',
   },
   navIcon: {
     fontSize: 16,
