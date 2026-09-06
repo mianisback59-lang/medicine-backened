@@ -11,6 +11,7 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    "app/(tabs)/APP"
-, "TaskManagerApp/TaskManagerApp/app.js"  ]
+    "app/(tabs)/APP",
+    "TaskManagerApp/TaskManagerApp/app.js"
+  ]
 }
