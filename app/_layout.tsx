@@ -49,7 +49,8 @@ export default function RootLayout() {
   const t = translations[currentLang];
   const isUrdu = currentLang === 'ur';
 
-  const bottomSpacing = Math.max(insets.bottom + 8, 22);
+  // Yahan hum ne bottom spacing ko mazeed secure kar diya hai taake system buttons ke oopar floating lage
+  const bottomSpacing = Math.max(insets.bottom + 10, 24);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#0A0F1D' }}>
@@ -65,37 +66,35 @@ export default function RootLayout() {
       />
       
       <View style={[styles.floatingFooterContainer, { bottom: bottomSpacing }]}>
-        <View style={styles.glowWrapper}>
-          <View style={[styles.floatingNavBar, isUrdu && { flexDirection: 'row-reverse' }]}>
-            
-            <TouchableOpacity 
-              style={[styles.navItem, pathname === '/' && styles.activeNavItem]} 
-              activeOpacity={1}
-              onPress={() => router.replace('/')}
-            >
-              <Text style={styles.navIcon}>🛡️</Text>
-              <Text style={[styles.navText, pathname === '/' && styles.activeNavText]}>{t.scan}</Text>
-            </TouchableOpacity>
+        <View style={[styles.floatingNavBar, isUrdu && { flexDirection: 'row-reverse' }]}>
+          
+          <TouchableOpacity 
+            style={[styles.navItem, pathname === '/' && styles.activeNavItem]} 
+            activeOpacity={1}
+            onPress={() => router.replace('/')}
+          >
+            <Text style={styles.navIcon}>🛡️</Text>
+            <Text style={[styles.navText, pathname === '/' && styles.activeNavText]}>{t.scan}</Text>
+          </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={[styles.navItem, pathname === '/history' && styles.activeNavItem]} 
-              activeOpacity={1}
-              onPress={() => router.replace('/history')}
-            >
-              <Text style={styles.navIcon}>🕒</Text>
-              <Text style={[styles.navText, pathname === '/history' && styles.activeNavText]}>{t.history}</Text>
-            </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.navItem, pathname === '/history' && styles.activeNavItem]} 
+            activeOpacity={1}
+            onPress={() => router.replace('/history')}
+          >
+            <Text style={styles.navIcon}>🕒</Text>
+            <Text style={[styles.navText, pathname === '/history' && styles.activeNavText]}>{t.history}</Text>
+          </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={[styles.navItem, pathname === '/profile' && styles.activeNavItem]} 
-              activeOpacity={1}
-              onPress={() => router.replace('/profile')}
-            >
-              <Text style={styles.navIcon}>👤</Text>
-              <Text style={[styles.navText, pathname === '/profile' && styles.activeNavText]}>{t.profile}</Text>
-            </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.navItem, pathname === '/profile' && styles.activeNavItem]} 
+            activeOpacity={1}
+            onPress={() => router.replace('/profile')}
+          >
+            <Text style={styles.navIcon}>👤</Text>
+            <Text style={[styles.navText, pathname === '/profile' && styles.activeNavText]}>{t.profile}</Text>
+          </TouchableOpacity>
 
-          </View>
         </View>
       </View>
     </View>
@@ -110,41 +109,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 99,
   },
-  glowWrapper: {
-    width: '100%',
-    borderRadius: 30,
-    backgroundColor: 'transparent',
-    // Strong diffuse glowing shadow to mimic neon aura
-    shadowColor: '#3B82F6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.95,
-    shadowRadius: 24,
-    elevation: 25,
-  },
   floatingNavBar: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(17, 24, 39, 0.96)',
+    backgroundColor: 'rgba(17, 24, 39, 0.95)',
     borderRadius: 28,
-    borderWidth: 2,
-    borderColor: '#3B82F6', // Vibrant blue neon border
-    paddingVertical: 8,
+    borderWidth: 1.5,
+    borderColor: 'rgba(59, 130, 246, 0.6)',
+    paddingVertical: 10,
     paddingHorizontal: 8,
     width: '100%',
     justifyContent: 'space-between',
+    shadowColor: '#3B82F6',
+    shadowOpacity: 0.45,
+    shadowRadius: 15,
+    elevation: 12,
   },
   navItem: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
+    paddingVertical: 8,
     borderRadius: 20,
     gap: 6,
   },
   activeNavItem: {
-    backgroundColor: 'rgba(37, 99, 235, 0.35)',
+    backgroundColor: 'rgba(37, 99, 235, 0.25)',
     borderWidth: 1,
-    borderColor: '#60A5FA',
+    borderColor: 'rgba(59, 130, 246, 0.5)',
   },
   navIcon: {
     fontSize: 16,
@@ -155,6 +147,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   activeNavText: {
-    color: '#93C5FD',
+    color: '#60A5FA',
   },
 });
