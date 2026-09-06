@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BarcodeScanningResult, CameraView, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
 import * as Speech from 'expo-speech';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -243,7 +243,7 @@ export default function Index() {
     Keyboard.dismiss();
 
     if (!code || code.trim() === '') {
-      Alert.alert('Notice', 'Please enter or scan a valid batch number.');
+      Alert.alert('Notice', 'Please enter or scan a valid batch code.');
       return;
     }
 
@@ -310,7 +310,7 @@ export default function Index() {
       }
 
     } catch (error: any) {
-      const errorMsg = lang === 'ur' ? 'تصدیق کرنے میں ناکامی یا بیچ نمبر ڈیٹا بیس میں رجسٹرڈ نہیں۔' : 'Unable to verify or batch code not registered in database.';
+      const errorMsg = lang === 'ur' ? 'تصدیق کرنے میں ناکامی یا کوڈ ڈیٹا بیس میں رجسٹرڈ نہیں۔' : 'Unable to verify or code not registered in database.';
       
       setResult({
         status: 'FAKE',
@@ -453,7 +453,7 @@ export default function Index() {
               {isProcessing && (
                 <View style={styles.processingOverlay}>
                   <ActivityIndicator size="large" color="#3B82F6" />
-                  <Text style={styles.processingText}>Verifying Batch...</Text>
+                  <Text style={styles.processingText}>Verifying Medicine...</Text>
                 </View>
               )}
 
@@ -463,7 +463,7 @@ export default function Index() {
             </View>
           </View>
 
-          {/* Manual Batch Input Box */}
+          {/* Manual Search Box */}
           <View style={[styles.manualSearchBox, { flexDirection: isUrdu ? 'row-reverse' : 'row' }]}>
             <TextInput
               style={[
@@ -482,7 +482,7 @@ export default function Index() {
                 if (manualCode.trim().length > 0) {
                   verifyCode(manualCode);
                 } else {
-                  Alert.alert('Notice', 'Please enter a valid batch number first.');
+                  Alert.alert('Notice', 'Please enter a batch number first.');
                 }
               }}
               disabled={isProcessing}
@@ -602,7 +602,7 @@ export default function Index() {
                 <Text style={{ fontSize: 40, marginBottom: 10 }}>✅</Text>
                 <Text style={[styles.modalTitle, { textAlign: 'center' }]}>{t.reportSuccess}</Text>
                 <Text style={[styles.modalSub, { textAlign: 'center', marginTop: 8 }]}>
-                  Batch / Medicine <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text> has been flagged and sent to Drug Regulatory Authority.
+                  Batch <Text style={{ fontWeight: '800' }}>#{activeBatch}</Text> has been flagged and sent to Drug Regulatory Authority.
                 </Text>
                 <Text style={styles.refCode}>Ref ID: DRAP-2026-{Math.floor(1000 + Math.random() * 9000)}</Text>
 
