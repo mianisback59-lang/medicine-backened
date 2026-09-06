@@ -49,9 +49,6 @@ export default function RootLayout() {
   const t = translations[currentLang];
   const isUrdu = currentLang === 'ur';
 
-  // Yahan hum ne bottom spacing ko mazeed secure kar diya hai taake system buttons ke oopar floating lage
-  const bottomSpacing = Math.max(insets.bottom + 10, 24);
-
   return (
     <View style={{ flex: 1, backgroundColor: '#0A0F1D' }}>
       <Stack
@@ -65,36 +62,39 @@ export default function RootLayout() {
         }}
       />
       
-      <View style={[styles.floatingFooterContainer, { bottom: bottomSpacing }]}>
-        <View style={[styles.floatingNavBar, isUrdu && { flexDirection: 'row-reverse' }]}>
-          
-          <TouchableOpacity 
-            style={[styles.navItem, pathname === '/' && styles.activeNavItem]} 
-            activeOpacity={1}
-            onPress={() => router.replace('/')}
-          >
-            <Text style={styles.navIcon}>🛡️</Text>
-            <Text style={[styles.navText, pathname === '/' && styles.activeNavText]}>{t.scan}</Text>
-          </TouchableOpacity>
+      <View style={styles.floatingFooterBackground}>
+        {/* Yahan insets.bottom mein extra padding add kar di hai taake thora aur upar ho jaye */}
+        <View style={[styles.floatingFooterContainer, { bottom: Math.max(insets.bottom, 16) + 10 }]}>
+          <View style={[styles.floatingNavBar, isUrdu && { flexDirection: 'row-reverse' }]}>
+            
+            <TouchableOpacity 
+              style={[styles.navItem, pathname === '/' && styles.activeNavItem]} 
+              activeOpacity={1}
+              onPress={() => router.replace('/')}
+            >
+              <Text style={styles.navIcon}>🛡️</Text>
+              <Text style={[styles.navText, pathname === '/' && styles.activeNavText]}>{t.scan}</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.navItem, pathname === '/history' && styles.activeNavItem]} 
-            activeOpacity={1}
-            onPress={() => router.replace('/history')}
-          >
-            <Text style={styles.navIcon}>🕒</Text>
-            <Text style={[styles.navText, pathname === '/history' && styles.activeNavText]}>{t.history}</Text>
-          </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.navItem, pathname === '/history' && styles.activeNavItem]} 
+              activeOpacity={1}
+              onPress={() => router.replace('/history')}
+            >
+              <Text style={styles.navIcon}>🕒</Text>
+              <Text style={[styles.navText, pathname === '/history' && styles.activeNavText]}>{t.history}</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.navItem, pathname === '/profile' && styles.activeNavItem]} 
-            activeOpacity={1}
-            onPress={() => router.replace('/profile')}
-          >
-            <Text style={styles.navIcon}>👤</Text>
-            <Text style={[styles.navText, pathname === '/profile' && styles.activeNavText]}>{t.profile}</Text>
-          </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.navItem, pathname === '/profile' && styles.activeNavItem]} 
+              activeOpacity={1}
+              onPress={() => router.replace('/profile')}
+            >
+              <Text style={styles.navIcon}>👤</Text>
+              <Text style={[styles.navText, pathname === '/profile' && styles.activeNavText]}>{t.profile}</Text>
+            </TouchableOpacity>
 
+          </View>
         </View>
       </View>
     </View>
@@ -102,6 +102,15 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
+  floatingFooterBackground: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 125, // Height ko 105 se barha kar 125 kar diya hai
+    backgroundColor: '#0A0F1D',
+    zIndex: 98,
+  },
   floatingFooterContainer: {
     position: 'absolute',
     left: 20,
@@ -115,8 +124,8 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     borderWidth: 1.5,
     borderColor: 'rgba(59, 130, 246, 0.6)',
-    paddingVertical: 10,
-    paddingHorizontal: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 6,
     width: '100%',
     justifyContent: 'space-between',
     shadowColor: '#3B82F6',
@@ -129,7 +138,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: 20,
     gap: 6,
   },
