@@ -394,7 +394,7 @@ export default function Index() {
         <ScrollView 
           ref={scrollViewRef}
           style={styles.container} 
-          contentContainerStyle={[styles.scrollContent, { paddingBottom: Math.max(insets.bottom + 140, 150) }]}
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: Math.max(insets.bottom + 110, 130) }]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
