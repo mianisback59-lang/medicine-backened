@@ -436,7 +436,7 @@ export default function Index() {
               <CameraView
                 style={StyleSheet.absoluteFillObject}
                 facing="back"
-                enableTorch={torch}
+                torch={torch ? "on" : "off"}
                 onBarcodeScanned={isProcessing || result ? undefined : handleBarcodeScanned}
                 barcodeScannerSettings={{
                   barcodeTypes: ['qr', 'code128', 'ean13', 'ean8', 'datamatrix', 'pdf417'],
