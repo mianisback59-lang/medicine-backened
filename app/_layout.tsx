@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack, usePathname, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DeviceEventEmitter, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -26,7 +26,6 @@ export default function RootLayout() {
   useEffect(() => {
     checkLanguage();
 
-    // Language change event ko listen kare ga taake switch button dabate hi footer update ho jaye
     const subscription = DeviceEventEmitter.addListener('languageChanged', () => {
       checkLanguage();
     });
@@ -50,6 +49,8 @@ export default function RootLayout() {
   const t = translations[currentLang];
   const isUrdu = currentLang === 'ur';
 
+  const bottomSpacing = Math.max(insets.bottom, 16);
+
   return (
     <View style={{ flex: 1, backgroundColor: '#0A0F1D' }}>
       <Stack
@@ -63,38 +64,36 @@ export default function RootLayout() {
         }}
       />
       
-      <View style={styles.floatingFooterBackground}>
-        <View style={[styles.floatingFooterContainer, { bottom: Math.max(insets.bottom, 16) }]}>
-          <View style={[styles.floatingNavBar, isUrdu && { flexDirection: 'row-reverse' }]}>
-            
-            <TouchableOpacity 
-              style={[styles.navItem, pathname === '/' && styles.activeNavItem]} 
-              activeOpacity={1}
-              onPress={() => router.replace('/')}
-            >
-              <Text style={styles.navIcon}>🛡️</Text>
-              <Text style={[styles.navText, pathname === '/' && styles.activeNavText]}>{t.scan}</Text>
-            </TouchableOpacity>
+      <View style={[styles.floatingFooterContainer, { bottom: bottomSpacing }]}>
+        <View style={[styles.floatingNavBar, isUrdu && { flexDirection: 'row-reverse' }]}>
+          
+          <TouchableOpacity 
+            style={[styles.navItem, pathname === '/' && styles.activeNavItem]} 
+            activeOpacity={1}
+            onPress={() => router.replace('/')}
+          >
+            <Text style={styles.navIcon}>🛡️</Text>
+            <Text style={[styles.navText, pathname === '/' && styles.activeNavText]}>{t.scan}</Text>
+          </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={[styles.navItem, pathname === '/history' && styles.activeNavItem]} 
-              activeOpacity={1}
-              onPress={() => router.replace('/history')}
-            >
-              <Text style={styles.navIcon}>🕒</Text>
-              <Text style={[styles.navText, pathname === '/history' && styles.activeNavText]}>{t.history}</Text>
-            </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.navItem, pathname === '/history' && styles.activeNavItem]} 
+            activeOpacity={1}
+            onPress={() => router.replace('/history')}
+          >
+            <Text style={styles.navIcon}>🕒</Text>
+            <Text style={[styles.navText, pathname === '/history' && styles.activeNavText]}>{t.history}</Text>
+          </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={[styles.navItem, pathname === '/profile' && styles.activeNavItem]} 
-              activeOpacity={1}
-              onPress={() => router.replace('/profile')}
-            >
-              <Text style={styles.navIcon}>👤</Text>
-              <Text style={[styles.navText, pathname === '/profile' && styles.activeNavText]}>{t.profile}</Text>
-            </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.navItem, pathname === '/profile' && styles.activeNavItem]} 
+            activeOpacity={1}
+            onPress={() => router.replace('/profile')}
+          >
+            <Text style={styles.navIcon}>👤</Text>
+            <Text style={[styles.navText, pathname === '/profile' && styles.activeNavText]}>{t.profile}</Text>
+          </TouchableOpacity>
 
-          </View>
         </View>
       </View>
     </View>
@@ -102,15 +101,6 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
-  floatingFooterBackground: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 105,
-    backgroundColor: '#0A0F1D',
-    zIndex: 98,
-  },
   floatingFooterContainer: {
     position: 'absolute',
     left: 20,
@@ -124,8 +114,8 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     borderWidth: 1.5,
     borderColor: 'rgba(59, 130, 246, 0.6)',
-    paddingVertical: 6,
-    paddingHorizontal: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
     width: '100%',
     justifyContent: 'space-between',
     shadowColor: '#3B82F6',
