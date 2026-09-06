@@ -65,7 +65,6 @@ export default function RootLayout() {
       />
       
       <View style={[styles.floatingFooterContainer, { bottom: bottomSpacing }]}>
-        {/* Outer Glow Wrapper for Android Neon Effect */}
         <View style={styles.glowWrapper}>
           <View style={[styles.floatingNavBar, isUrdu && { flexDirection: 'row-reverse' }]}>
             
@@ -115,19 +114,19 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 30,
     backgroundColor: 'transparent',
-    // Android glow simulation using shadow properties on wrapper
-    shadowColor: '#60A5FA',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 18,
-    elevation: 20,
+    // Strong diffuse glowing shadow to mimic neon aura
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.95,
+    shadowRadius: 24,
+    elevation: 25,
   },
   floatingNavBar: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(17, 24, 39, 0.95)',
+    backgroundColor: 'rgba(17, 24, 39, 0.96)',
     borderRadius: 28,
     borderWidth: 2,
-    borderColor: '#60A5FA', // Bright neon blue border
+    borderColor: '#3B82F6', // Vibrant blue neon border
     paddingVertical: 8,
     paddingHorizontal: 8,
     width: '100%',
@@ -145,7 +144,7 @@ const styles = StyleSheet.create({
   activeNavItem: {
     backgroundColor: 'rgba(37, 99, 235, 0.35)',
     borderWidth: 1,
-    borderColor: '#93C5FD',
+    borderColor: '#60A5FA',
   },
   navIcon: {
     fontSize: 16,
