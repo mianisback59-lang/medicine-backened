@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   FlatList,
   Modal,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -259,7 +258,7 @@ export default function HistoryScreen() {
 
   return (
     <View style={styles.container}>
-      <SafeAreaView style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
         <View style={[styles.contentContainer, { paddingTop: Math.max(insets.top + 10, 20) }]}>
           {/* Header Row */}
           <View style={[styles.headerRow, isUrdu && { flexDirection: 'row-reverse' }]}>
@@ -339,7 +338,7 @@ export default function HistoryScreen() {
             />
           )}
         </View>
-      </SafeAreaView>
+      </View>
 
       <Modal
         visible={isModalVisible}
