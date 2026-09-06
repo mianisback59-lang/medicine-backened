@@ -394,7 +394,7 @@ export default function Index() {
         <ScrollView 
           ref={scrollViewRef}
           style={styles.container} 
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: Math.max(insets.bottom + 100, 120) }]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -623,8 +623,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { 
     paddingHorizontal: 20, 
-    paddingTop: 10, 
-    paddingBottom: 150 
+    paddingTop: 16, 
   },
   containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#0A0F1D' },
   permissionText: { fontSize: 16, textAlign: 'center', color: '#94A3B8', marginBottom: 20 },
