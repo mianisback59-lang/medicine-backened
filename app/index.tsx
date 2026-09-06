@@ -49,7 +49,7 @@ const translations = {
     langToggle: "اردو",
     flashOn: "💡 Flash ON",
     flashOff: "🔦 Flash OFF",
-    placeholder: "Enter Batch Number or Scan Barcode",
+    placeholder: "Enter Batch Number",
     verifyBtn: "Verify",
     scanPrompt: "Point your camera at a QR code or barcode to scan.",
     reportMedicine: "REPORT MEDICINE",
@@ -72,7 +72,7 @@ const translations = {
     langToggle: "English",
     flashOn: "💡 فلیش آن",
     flashOff: "🔦 فلیش آف",
-    placeholder: "بیچ نمبر درج کریں یا بارکوڈ سکین کریں",
+    placeholder: "بیچ نمبر درج کریں",
     verifyBtn: "تصدیق کریں",
     scanPrompt: "کیمرے کو QR یا بارکوڈ کی طرف کریں۔",
     reportMedicine: "دوائی کی شکایت درج کریں",
@@ -434,9 +434,9 @@ export default function Index() {
           <View style={styles.cameraWrapper}>
             <View style={styles.cameraCard}>
               <CameraView
-                style={StyleSheet.absoluteFillObject}
+                style={StyleSheet.absoluteFill}
                 facing="back"
-                torch={torch ? "on" : "off"}
+                enableTorch={torch}
                 onBarcodeScanned={isProcessing || result ? undefined : handleBarcodeScanned}
                 barcodeScannerSettings={{
                   barcodeTypes: ['qr', 'code128', 'ean13', 'ean8', 'datamatrix', 'pdf417'],
