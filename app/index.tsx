@@ -116,7 +116,7 @@ export default function Index() {
   // Scanner Laser Animation
   const laserAnim = useRef(new Animated.Value(0)).current;
   
-  // Targeting Box Pulse Animation (Jab scanning process ho / Lock ho)
+  // High-Tech Targeting Pulse Animation
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -124,12 +124,12 @@ export default function Index() {
       Animated.sequence([
         Animated.timing(laserAnim, {
           toValue: 1,
-          duration: 2000,
+          duration: 1800,
           useNativeDriver: true,
         }),
         Animated.timing(laserAnim, {
           toValue: 0,
-          duration: 2000,
+          duration: 1800,
           useNativeDriver: true,
         }),
       ])
@@ -142,13 +142,13 @@ export default function Index() {
       Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, {
-            toValue: 1.08,
-            duration: 300,
+            toValue: 1.06,
+            duration: 250,
             useNativeDriver: true,
           }),
           Animated.timing(pulseAnim, {
             toValue: 1,
-            duration: 300,
+            duration: 250,
             useNativeDriver: true,
           }),
         ])
@@ -432,7 +432,7 @@ export default function Index() {
 
   const laserTranslateY = laserAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 140],
+    outputRange: [0, 160],
   });
 
   return (
@@ -495,23 +495,27 @@ export default function Index() {
                 }}
               />
               
-              {/* Professional Targeting Viewfinder Overlay */}
+              {/* Ultra-Modern Sci-Fi Hologram Viewfinder Overlay */}
               <View style={styles.overlayContainer}>
                 <Animated.View 
                   style={[
                     styles.scanTargetBox, 
                     { 
                       transform: [{ scale: pulseAnim }],
-                      borderColor: isProcessing ? '#10B981' : 'rgba(59, 130, 246, 0.15)'
+                      borderColor: isProcessing ? '#00F2FE' : 'rgba(0, 242, 254, 0.25)'
                     }
                   ]}
                 >
-                  <View style={[styles.corner, styles.topLeft, isProcessing && { borderColor: '#10B981' }]} />
-                  <View style={[styles.corner, styles.topRight, isProcessing && { borderColor: '#10B981' }]} />
-                  <View style={[styles.corner, styles.bottomLeft, isProcessing && { borderColor: '#10B981' }]} />
-                  <View style={[styles.corner, styles.bottomRight, isProcessing && { borderColor: '#10B981' }]} />
+                  {/* Glowing Holographic Corners */}
+                  <View style={[styles.corner, styles.topLeft, isProcessing && styles.lockedCorner]} />
+                  <View style={[styles.corner, styles.topRight, isProcessing && styles.lockedCorner]} />
+                  <View style={[styles.corner, styles.bottomLeft, isProcessing && styles.lockedCorner]} />
+                  <View style={[styles.corner, styles.bottomRight, isProcessing && styles.lockedCorner]} />
 
-                  {/* Animated Laser Line */}
+                  {/* High-Tech Grid / Center Crosshair Accent */}
+                  <View style={styles.centerTargetDot} />
+
+                  {/* Animated Electric Blue Laser Line */}
                   {!isProcessing && (
                     <Animated.View 
                       style={[
@@ -523,11 +527,11 @@ export default function Index() {
                 </Animated.View>
               </View>
 
-              {/* Scanning Loader Overlay */}
+              {/* Scanning Loader Overlay with Neon Glow */}
               {isProcessing && (
                 <View style={styles.processingOverlay}>
-                  <ActivityIndicator size="large" color="#10B981" />
-                  <Text style={styles.processingText}>Locking & Verifying...</Text>
+                  <ActivityIndicator size="large" color="#00F2FE" />
+                  <Text style={styles.processingText}>Locking QR & Verifying...</Text>
                 </View>
               )}
 
@@ -728,11 +732,11 @@ const styles = StyleSheet.create({
   cameraWrapper: { 
     borderRadius: 24, 
     borderWidth: 1.5, 
-    borderColor: 'rgba(59, 130, 246, 0.3)', 
-    shadowColor: '#3B82F6', 
-    shadowOpacity: 0.35, 
-    shadowRadius: 15, 
-    elevation: 8, 
+    borderColor: 'rgba(0, 242, 254, 0.35)', 
+    shadowColor: '#00F2FE', 
+    shadowOpacity: 0.4, 
+    shadowRadius: 18, 
+    elevation: 10, 
     backgroundColor: '#000',
     overflow: 'hidden'
   },
@@ -744,40 +748,52 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scanTargetBox: {
-    width: 180,
-    height: 180,
+    width: 190,
+    height: 190,
     position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.15)',
-    borderRadius: 16,
+    borderWidth: 1.5,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0, 242, 254, 0.03)',
   },
   
   corner: { 
     position: 'absolute', 
-    width: 26, 
-    height: 26, 
-    borderColor: '#00F0FF',
-    shadowColor: '#00F0FF',
-    shadowOpacity: 0.8,
-    shadowRadius: 8,
-    elevation: 6
+    width: 28, 
+    height: 28, 
+    borderColor: '#00F2FE',
+    shadowColor: '#00F2FE',
+    shadowOpacity: 1,
+    shadowRadius: 10,
+    elevation: 8
   },
   topLeft: { top: -2, left: -2, borderTopWidth: 5, borderLeftWidth: 5, borderTopLeftRadius: 8 },
   topRight: { top: -2, right: -2, borderTopWidth: 5, borderRightWidth: 5, borderTopRightRadius: 8 },
   bottomLeft: { bottom: -2, left: -2, borderBottomWidth: 5, borderLeftWidth: 5, borderBottomLeftRadius: 8 },
   bottomRight: { bottom: -2, right: -2, borderBottomWidth: 5, borderRightWidth: 5, borderBottomRightRadius: 8 },
 
+  lockedCorner: {
+    borderColor: '#10B981',
+    shadowColor: '#10B981',
+  },
+
+  centerTargetDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(0, 242, 254, 0.4)',
+  },
+
   laserLine: {
     position: 'absolute',
-    top: 10,
+    top: 8,
     width: '92%',
     height: 3,
-    backgroundColor: '#FF3366',
-    shadowColor: '#FF3366',
+    backgroundColor: '#00F2FE',
+    shadowColor: '#00F2FE',
     shadowOpacity: 1,
-    shadowRadius: 10,
+    shadowRadius: 12,
     elevation: 8,
   },
 
@@ -787,17 +803,18 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(10, 15, 29, 0.85)',
+    backgroundColor: 'rgba(10, 15, 29, 0.88)',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 24,
     zIndex: 10,
   },
   processingText: {
-    color: '#FFFFFF',
+    color: '#00F2FE',
     marginTop: 10,
-    fontWeight: '700',
+    fontWeight: '800',
     fontSize: 13,
+    letterSpacing: 0.5,
   },
 
   torchBtn: { position: 'absolute', bottom: 12, right: 12, backgroundColor: 'rgba(15, 23, 42, 0.85)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16 },
