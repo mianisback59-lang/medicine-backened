@@ -7,7 +7,9 @@ import {
   ActivityIndicator,
   Alert,
   Animated,
+  Button,
   DeviceEventEmitter,
+  Easing,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
@@ -113,55 +115,80 @@ export default function Index() {
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [isSubmittingReport, setIsSubmittingReport] = useState<boolean>(false);
 
-  // Scanner Laser Animation
-  const laserAnim = useRef(new Animated.Value(0)).current;
-  
-  // High-Tech Targeting Pulse Animation
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    const laserLoop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(laserAnim, {
-          toValue: 1,
-          duration: 1800,
-          useNativeDriver: true,
-        }),
-        Animated.timing(laserAnim, {
-          toValue: 0,
-          duration: 1800,
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    laserLoop.start();
-  }, [laserAnim]);
-
-  useEffect(() => {
-    if (isProcessing) {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 1.06,
-            duration: 250,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 1,
-            duration: 250,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-    } else {
-      pulseAnim.setValue(1);
-    }
-  }, [isProcessing]);
+  // --- Scanner overlay animation refs (visual only, no business logic) ---
+  const scanLineAnim = useRef(new Animated.Value(0)).current;
+  const cornerPulseAnim = useRef(new Animated.Value(1)).current;
+  const lockScaleAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     checkUserLogin();
     warmUpServerAndSpeech();
   }, []);
+
+  // Continuous scanning laser + idle corner pulse (professional scanner feel)
+  useEffect(() => {
+    const laserLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(scanLineAnim, {
+          toValue: 1,
+          duration: 1600,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scanLineAnim, {
+          toValue: 0,
+          duration: 1600,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    const pulseLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(cornerPulseAnim, {
+          toValue: 0.5,
+          duration: 850,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(cornerPulseAnim, {
+          toValue: 1,
+          duration: 850,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    laserLoop.start();
+    pulseLoop.start();
+
+    return () => {
+      laserLoop.stop();
+      pulseLoop.stop();
+    };
+  }, []);
+
+  // Snap / lock animation whenever a code gets detected (isProcessing) or a result lands
+  useEffect(() => {
+    if (isProcessing || result) {
+      Animated.sequence([
+        Animated.timing(lockScaleAnim, {
+          toValue: 1.06,
+          duration: 140,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(lockScaleAnim, {
+          toValue: 1,
+          duration: 140,
+          easing: Easing.in(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [isProcessing, result]);
 
   const checkUserLogin = async () => {
     try {
@@ -232,7 +259,7 @@ export default function Index() {
       const existingHistory = await AsyncStorage.getItem('scanHistory');
       const historyArray = existingHistory ? JSON.parse(existingHistory) : [];
       const updatedHistory = [newRecord, ...historyArray];
-      
+
       await AsyncStorage.setItem('scanHistory', JSON.stringify(updatedHistory));
     } catch (error) {
       console.log('Error saving scan history:', error);
@@ -260,9 +287,7 @@ export default function Index() {
     return (
       <View style={styles.containerCenter}>
         <Text style={styles.permissionText}>Camera permission is required to verify medicine authenticity.</Text>
-        <TouchableOpacity style={styles.permissionBtn} onPress={requestPermission}>
-          <Text style={styles.permissionBtnText}>Grant Permission</Text>
-        </TouchableOpacity>
+        <Button onPress={requestPermission} title="Grant Permission" color="#2563EB" />
       </View>
     );
   }
@@ -319,7 +344,7 @@ export default function Index() {
 
       if (!isOk || !apiResponse.data || apiResponse.status === 'FAKE') {
         const fakeMsg = lang === 'ur' ? 'یہ بیچ نمبر سرکاری ریکارڈ میں نہیں ملا۔' : (apiResponse?.message || 'This batch number was not found in the official registry.');
-        
+
         setResult({
           status: 'FAKE',
           title: lang === 'ur' ? '🚨 جعلی / غیر مصدقہ پروڈکٹ' : (apiResponse.title || '🚨 UNVERIFIED / COUNTERFEIT'),
@@ -338,7 +363,7 @@ export default function Index() {
 
         setResult({
           status: rawStatus as any,
-          title: lang === 'ur' 
+          title: lang === 'ur'
             ? (rawStatus === 'EXPIRED' ? '⚠️ معیاد ختم شدہ دوائی' : '✅ اصلی اور تصدیق شدہ')
             : (apiResponse.title || (rawStatus === 'EXPIRED' ? '⚠️ EXPIRED MEDICINE' : '✅ VERIFIED AUTHENTIC')),
           color: statusColor,
@@ -349,16 +374,16 @@ export default function Index() {
         playVoiceAlert(rawStatus);
 
         await saveScanToHistory(
-          apiResponse.data.medicine_name || 'Medicine', 
-          rawStatus, 
-          successMsg, 
+          apiResponse.data.medicine_name || 'Medicine',
+          rawStatus,
+          successMsg,
           apiResponse.data.batch_number || searchTarget
         );
       }
 
     } catch (error: any) {
       const errorMsg = lang === 'ur' ? 'تصدیق کرنے میں ناکامی یا بیچ نمبر ڈیٹا بیس میں رجسٹرڈ نہیں۔' : 'Unable to verify or batch code not registered in database.';
-      
+
       setResult({
         status: 'FAKE',
         title: lang === 'ur' ? '🚨 جعلی / غیر مصدقہ پروڈکٹ' : '🚨 UNVERIFIED / COUNTERFEIT',
@@ -430,46 +455,45 @@ export default function Index() {
 
   const isUrdu = lang === 'ur';
 
-  const laserTranslateY = laserAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 160],
-  });
+  // Dynamic overlay color: theme blue while idle/scanning, result color once locked (green/amber/red)
+  const overlayColor = result ? result.color : '#3B82F6';
+  const isLocked = isProcessing || !!result;
 
   return (
     <View style={[styles.safeContainer, { paddingTop: topPadding }]}>
       <StatusBar barStyle="light-content" backgroundColor="#0A0F1D" translucent={true} />
-      
-      <KeyboardAvoidingView 
-        style={{ flex: 1 }} 
+
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView 
+        <ScrollView
           ref={scrollViewRef}
-          style={styles.container} 
+          style={styles.container}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          
+
           <View style={[styles.headerContainer, { flexDirection: isUrdu ? 'row-reverse' : 'row' }]}>
             <View style={[styles.titleArea, { alignItems: isUrdu ? 'flex-end' : 'flex-start' }]}>
               <Text style={[styles.appTitle, { textAlign: isUrdu ? 'right' : 'left' }]}>{t.appTitle}</Text>
-              <Text 
+              <Text
                 style={[
-                  styles.appSubtitle, 
-                  { 
+                  styles.appSubtitle,
+                  {
                     textAlign: isUrdu ? 'right' : 'left',
-                    marginTop: isUrdu ? 0 : 2 
+                    marginTop: isUrdu ? 0 : 2
                   }
-                ]} 
-                numberOfLines={1} 
+                ]}
+                numberOfLines={1}
               >
                 {t.appSubtitle}
               </Text>
             </View>
 
-            <TouchableOpacity 
-              style={styles.premiumLangBtn} 
+            <TouchableOpacity
+              style={styles.premiumLangBtn}
               activeOpacity={0.8}
               onPress={async () => {
                 const newLang = lang === 'en' ? 'ur' : 'en';
@@ -494,44 +518,81 @@ export default function Index() {
                   barcodeTypes: ['qr', 'code128', 'ean13', 'ean8', 'datamatrix', 'pdf417'],
                 }}
               />
-              
-              {/* Ultra-Modern Sci-Fi Hologram Viewfinder Overlay */}
-              <View style={styles.overlayContainer}>
-                <Animated.View 
+
+              <Animated.View
+                style={[
+                  styles.overlayFrame,
+                  {
+                    borderColor: overlayColor,
+                    transform: [{ scale: lockScaleAnim }],
+                  },
+                ]}
+              >
+                {/* Animated scanning laser — only while actively looking for a code */}
+                {!isLocked && (
+                  <Animated.View
+                    pointerEvents="none"
+                    style={[
+                      styles.scanLine,
+                      {
+                        backgroundColor: overlayColor,
+                        shadowColor: overlayColor,
+                        transform: [
+                          {
+                            translateY: scanLineAnim.interpolate({
+                              inputRange: [0, 1],
+                              outputRange: [4, 148],
+                            }),
+                          },
+                        ],
+                      },
+                    ]}
+                  />
+                )}
+
+                {/* Subtle center tint once a code is locked/verifying */}
+                {isLocked && (
+                  <View
+                    pointerEvents="none"
+                    style={[styles.lockedTint, { backgroundColor: overlayColor }]}
+                  />
+                )}
+
+                <Animated.View
                   style={[
-                    styles.scanTargetBox, 
-                    { 
-                      transform: [{ scale: pulseAnim }],
-                      borderColor: isProcessing ? '#00F2FE' : 'rgba(0, 242, 254, 0.25)'
-                    }
+                    styles.corner,
+                    styles.topLeft,
+                    { borderColor: overlayColor, opacity: isLocked ? 1 : cornerPulseAnim },
                   ]}
-                >
-                  {/* Glowing Holographic Corners */}
-                  <View style={[styles.corner, styles.topLeft, isProcessing && styles.lockedCorner]} />
-                  <View style={[styles.corner, styles.topRight, isProcessing && styles.lockedCorner]} />
-                  <View style={[styles.corner, styles.bottomLeft, isProcessing && styles.lockedCorner]} />
-                  <View style={[styles.corner, styles.bottomRight, isProcessing && styles.lockedCorner]} />
+                />
+                <Animated.View
+                  style={[
+                    styles.corner,
+                    styles.topRight,
+                    { borderColor: overlayColor, opacity: isLocked ? 1 : cornerPulseAnim },
+                  ]}
+                />
+                <Animated.View
+                  style={[
+                    styles.corner,
+                    styles.bottomLeft,
+                    { borderColor: overlayColor, opacity: isLocked ? 1 : cornerPulseAnim },
+                  ]}
+                />
+                <Animated.View
+                  style={[
+                    styles.corner,
+                    styles.bottomRight,
+                    { borderColor: overlayColor, opacity: isLocked ? 1 : cornerPulseAnim },
+                  ]}
+                />
+              </Animated.View>
 
-                  {/* High-Tech Grid / Center Crosshair Accent */}
-                  <View style={styles.centerTargetDot} />
-
-                  {/* Animated Electric Blue Laser Line */}
-                  {!isProcessing && (
-                    <Animated.View 
-                      style={[
-                        styles.laserLine, 
-                        { transform: [{ translateY: laserTranslateY }] }
-                      ]} 
-                    />
-                  )}
-                </Animated.View>
-              </View>
-
-              {/* Scanning Loader Overlay with Neon Glow */}
+              {/* Scanning Loader Overlay */}
               {isProcessing && (
                 <View style={styles.processingOverlay}>
-                  <ActivityIndicator size="large" color="#00F2FE" />
-                  <Text style={styles.processingText}>Locking QR & Verifying...</Text>
+                  <ActivityIndicator size="large" color="#3B82F6" />
+                  <Text style={styles.processingText}>Verifying Batch...</Text>
                 </View>
               )}
 
@@ -545,7 +606,7 @@ export default function Index() {
           <View style={[styles.manualSearchBox, { flexDirection: isUrdu ? 'row-reverse' : 'row' }]}>
             <TextInput
               style={[
-                styles.input, 
+                styles.input,
                 { textAlign: isUrdu ? 'right' : 'left' }
               ]}
               placeholder={t.placeholder}
@@ -699,103 +760,79 @@ export default function Index() {
 const styles = StyleSheet.create({
   safeContainer: { flex: 1, backgroundColor: '#0A0F1D' },
   container: { flex: 1 },
-  scrollContent: { 
-    paddingHorizontal: 20, 
-    paddingTop: 16, 
-    paddingBottom: 150 
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 150
   },
   containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#0A0F1D' },
   permissionText: { fontSize: 16, textAlign: 'center', color: '#94A3B8', marginBottom: 20 },
-  permissionBtn: { backgroundColor: '#2563EB', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12 },
-  permissionBtnText: { color: '#FFF', fontWeight: '700', fontSize: 14 },
-  
+
   headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   titleArea: { flex: 1, marginRight: 10 },
   appTitle: { fontSize: 26, fontWeight: '900', color: '#FFFFFF', letterSpacing: 0.5 },
   appSubtitle: { fontSize: 11.5, color: '#94A3B8', marginTop: 2 },
-  
-  premiumLangBtn: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    backgroundColor: 'rgba(30, 41, 59, 0.8)', 
-    borderWidth: 1, 
-    borderColor: 'rgba(59, 130, 246, 0.4)', 
-    paddingVertical: 8, 
-    paddingHorizontal: 12, 
-    borderRadius: 22, 
+
+  premiumLangBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(30, 41, 59, 0.8)',
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.4)',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 22,
     elevation: 4,
     gap: 4
   },
   langIcon: { fontSize: 13 },
   langBtnText: { color: '#60A5FA', fontWeight: '800', fontSize: 11 },
 
-  cameraWrapper: { 
-    borderRadius: 24, 
-    borderWidth: 1.5, 
-    borderColor: 'rgba(0, 242, 254, 0.35)', 
-    shadowColor: '#00F2FE', 
-    shadowOpacity: 0.4, 
-    shadowRadius: 18, 
-    elevation: 10, 
+  cameraWrapper: {
+    borderRadius: 24,
+    borderWidth: 1.5,
+    borderColor: 'rgba(59, 130, 246, 0.3)',
+    shadowColor: '#3B82F6',
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 6,
     backgroundColor: '#000',
     overflow: 'hidden'
   },
-  cameraCard: { height: 230, width: '100%', position: 'relative' },
-  
-  overlayContainer: {
-    ...StyleSheet.absoluteFill,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  scanTargetBox: {
-    width: 190,
-    height: 190,
-    position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
+  cameraCard: { height: 210, width: '100%', position: 'relative' },
+
+  overlayFrame: {
+    flex: 1,
+    margin: 24,
     borderWidth: 1.5,
     borderRadius: 18,
-    backgroundColor: 'rgba(0, 242, 254, 0.03)',
-  },
-  
-  corner: { 
-    position: 'absolute', 
-    width: 28, 
-    height: 28, 
-    borderColor: '#00F2FE',
-    shadowColor: '#00F2FE',
-    shadowOpacity: 1,
-    shadowRadius: 10,
-    elevation: 8
-  },
-  topLeft: { top: -2, left: -2, borderTopWidth: 5, borderLeftWidth: 5, borderTopLeftRadius: 8 },
-  topRight: { top: -2, right: -2, borderTopWidth: 5, borderRightWidth: 5, borderTopRightRadius: 8 },
-  bottomLeft: { bottom: -2, left: -2, borderBottomWidth: 5, borderLeftWidth: 5, borderBottomLeftRadius: 8 },
-  bottomRight: { bottom: -2, right: -2, borderBottomWidth: 5, borderRightWidth: 5, borderBottomRightRadius: 8 },
-
-  lockedCorner: {
-    borderColor: '#10B981',
-    shadowColor: '#10B981',
+    backgroundColor: 'transparent',
+    position: 'relative',
+    overflow: 'hidden',
   },
 
-  centerTargetDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: 'rgba(0, 242, 254, 0.4)',
-  },
-
-  laserLine: {
+  scanLine: {
     position: 'absolute',
-    top: 8,
-    width: '92%',
-    height: 3,
-    backgroundColor: '#00F2FE',
-    shadowColor: '#00F2FE',
-    shadowOpacity: 1,
-    shadowRadius: 12,
-    elevation: 8,
+    left: 0,
+    right: 0,
+    height: 2,
+    borderRadius: 2,
+    shadowOpacity: 0.9,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 4,
   },
+
+  lockedTint: {
+    ...StyleSheet.absoluteFill,
+    opacity: 0.08,
+  },
+
+  corner: { position: 'absolute', width: 26, height: 26 },
+  topLeft: { top: -2, left: -2, borderTopWidth: 5, borderLeftWidth: 5, borderTopLeftRadius: 12 },
+  topRight: { top: -2, right: -2, borderTopWidth: 5, borderRightWidth: 5, borderTopRightRadius: 12 },
+  bottomLeft: { bottom: -2, left: -2, borderBottomWidth: 5, borderLeftWidth: 5, borderBottomLeftRadius: 12 },
+  bottomRight: { bottom: -2, right: -2, borderBottomWidth: 5, borderRightWidth: 5, borderBottomRightRadius: 12 },
 
   processingOverlay: {
     position: 'absolute',
@@ -803,43 +840,42 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(10, 15, 29, 0.88)',
+    backgroundColor: 'rgba(10, 15, 29, 0.8)',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 24,
     zIndex: 10,
   },
   processingText: {
-    color: '#00F2FE',
+    color: '#FFFFFF',
     marginTop: 10,
-    fontWeight: '800',
+    fontWeight: '700',
     fontSize: 13,
-    letterSpacing: 0.5,
   },
 
   torchBtn: { position: 'absolute', bottom: 12, right: 12, backgroundColor: 'rgba(15, 23, 42, 0.85)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16 },
   torchBtnText: { color: '#FFF', fontSize: 11, fontWeight: '700' },
-  
+
   manualSearchBox: { marginTop: 14, marginBottom: 14, gap: 10 },
-  input: { 
-    flex: 1, 
-    backgroundColor: '#1E293B', 
-    borderWidth: 1, 
-    borderColor: '#334155', 
-    borderRadius: 14, 
-    paddingHorizontal: 14, 
-    fontSize: 13, 
-    color: '#FFFFFF', 
+  input: {
+    flex: 1,
+    backgroundColor: '#1E293B',
+    borderWidth: 1,
+    borderColor: '#334155',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    fontSize: 13,
+    color: '#FFFFFF',
     height: 48,
     textAlignVertical: 'center'
   },
   verifyBtn: { backgroundColor: '#2563EB', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 18, borderRadius: 14, height: 48, shadowColor: '#2563EB', shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 },
   verifyBtnText: { color: '#FFF', fontWeight: '800', fontSize: 13 },
-  
+
   placeholderBox: { marginTop: 4, padding: 16, borderRadius: 20, backgroundColor: '#111827', borderStyle: 'dashed', borderWidth: 1.5, borderColor: '#334155', alignItems: 'center' },
   scannerIconPlaceholder: { fontSize: 22, marginBottom: 4 },
   placeholderText: { fontSize: 13, color: '#94A3B8', textAlign: 'center', fontWeight: '500' },
-  
+
   resultCard: { backgroundColor: '#111827', marginTop: 10, padding: 20, borderRadius: 22, borderWidth: 1.5, shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
   badge: { alignSelf: 'flex-start', paddingVertical: 4, paddingHorizontal: 12, borderRadius: 8, marginBottom: 10 },
   badgeText: { color: '#FFF', fontSize: 11, fontWeight: '900', letterSpacing: 0.8 },
