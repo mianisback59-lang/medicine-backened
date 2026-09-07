@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Button,
+  Animated,
   DeviceEventEmitter,
   Keyboard,
   KeyboardAvoidingView,
@@ -113,6 +113,27 @@ export default function Index() {
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [isSubmittingReport, setIsSubmittingReport] = useState<boolean>(false);
 
+  // Scanner Laser Animation
+  const laserAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const laserLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(laserAnim, {
+          toValue: 1,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(laserAnim, {
+          toValue: 0,
+          duration: 2000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    laserLoop.start();
+  }, [laserAnim]);
+
   useEffect(() => {
     checkUserLogin();
     warmUpServerAndSpeech();
@@ -215,7 +236,9 @@ export default function Index() {
     return (
       <View style={styles.containerCenter}>
         <Text style={styles.permissionText}>Camera permission is required to verify medicine authenticity.</Text>
-        <Button onPress={requestPermission} title="Grant Permission" color="#2563EB" />
+        <TouchableOpacity style={styles.permissionBtn} onPress={requestPermission}>
+          <Text style={styles.permissionBtnText}>Grant Permission</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -383,6 +406,11 @@ export default function Index() {
 
   const isUrdu = lang === 'ur';
 
+  const laserTranslateY = laserAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 150],
+  });
+
   return (
     <View style={[styles.safeContainer, { paddingTop: topPadding }]}>
       <StatusBar barStyle="light-content" backgroundColor="#0A0F1D" translucent={true} />
@@ -442,11 +470,23 @@ export default function Index() {
                   barcodeTypes: ['qr', 'code128', 'ean13', 'ean8', 'datamatrix', 'pdf417'],
                 }}
               />
-              <View style={styles.overlayFrame}>
-                <View style={[styles.corner, styles.topLeft]} />
-                <View style={[styles.corner, styles.topRight]} />
-                <View style={[styles.corner, styles.bottomLeft]} />
-                <View style={[styles.corner, styles.bottomRight]} />
+              
+              {/* Professional Targeting Viewfinder Overlay */}
+              <View style={styles.overlayContainer}>
+                <View style={styles.scanTargetBox}>
+                  <View style={[styles.corner, styles.topLeft]} />
+                  <View style={[styles.corner, styles.topRight]} />
+                  <View style={[styles.corner, styles.bottomLeft]} />
+                  <View style={[styles.corner, styles.bottomRight]} />
+
+                  {/* Animated Laser Line */}
+                  <Animated.View 
+                    style={[
+                      styles.laserLine, 
+                      { transform: [{ translateY: laserTranslateY }] }
+                    ]} 
+                  />
+                </View>
               </View>
 
               {/* Scanning Loader Overlay */}
@@ -628,6 +668,8 @@ const styles = StyleSheet.create({
   },
   containerCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: '#0A0F1D' },
   permissionText: { fontSize: 16, textAlign: 'center', color: '#94A3B8', marginBottom: 20 },
+  permissionBtn: { backgroundColor: '#2563EB', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12 },
+  permissionBtnText: { color: '#FFF', fontWeight: '700', fontSize: 14 },
   
   headerContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   titleArea: { flex: 1, marginRight: 10 },
@@ -660,14 +702,38 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     overflow: 'hidden'
   },
-  cameraCard: { height: 210, width: '100%', position: 'relative' },
-  overlayFrame: { flex: 1, margin: 24, borderWidth: 1.5, borderColor: 'rgba(59, 130, 246, 0.6)', borderRadius: 16, backgroundColor: 'transparent', position: 'relative' },
+  cameraCard: { height: 230, width: '100%', position: 'relative' },
   
-  corner: { position: 'absolute', width: 16, height: 16, borderColor: '#3B82F6' },
-  topLeft: { top: -2, left: -2, borderTopWidth: 4, borderLeftWidth: 4 },
-  topRight: { top: -2, right: -2, borderTopWidth: 4, borderRightWidth: 4 },
-  bottomLeft: { bottom: -2, left: -2, borderBottomWidth: 4, borderLeftWidth: 4 },
-  bottomRight: { bottom: -2, right: -2, borderBottomWidth: 4, borderRightWidth: 4 },
+  overlayContainer: {
+    ...StyleSheet.absoluteFill,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scanTargetBox: {
+    width: 160,
+    height: 160,
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  
+  corner: { position: 'absolute', width: 22, height: 22, borderColor: '#3B82F6' },
+  topLeft: { top: 0, left: 0, borderTopWidth: 4, borderLeftWidth: 4, borderTopLeftRadius: 6 },
+  topRight: { top: 0, right: 0, borderTopWidth: 4, borderRightWidth: 4, borderTopRightRadius: 6 },
+  bottomLeft: { bottom: 0, left: 0, borderBottomWidth: 4, borderLeftWidth: 4, borderBottomLeftRadius: 6 },
+  bottomRight: { bottom: 0, right: 0, borderBottomWidth: 4, borderRightWidth: 4, borderBottomRightRadius: 6 },
+
+  laserLine: {
+    position: 'absolute',
+    top: 5,
+    width: '90%',
+    height: 2.5,
+    backgroundColor: '#EF4444',
+    shadowColor: '#EF4444',
+    shadowOpacity: 0.9,
+    shadowRadius: 6,
+    elevation: 5,
+  },
 
   processingOverlay: {
     position: 'absolute',
