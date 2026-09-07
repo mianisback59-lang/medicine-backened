@@ -115,6 +115,9 @@ export default function Index() {
 
   // Scanner Laser Animation
   const laserAnim = useRef(new Animated.Value(0)).current;
+  
+  // Targeting Box Pulse Animation (Jab scanning process ho / Lock ho)
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     const laserLoop = Animated.loop(
@@ -133,6 +136,27 @@ export default function Index() {
     );
     laserLoop.start();
   }, [laserAnim]);
+
+  useEffect(() => {
+    if (isProcessing) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.08,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      pulseAnim.setValue(1);
+    }
+  }, [isProcessing]);
 
   useEffect(() => {
     checkUserLogin();
@@ -408,7 +432,7 @@ export default function Index() {
 
   const laserTranslateY = laserAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 150],
+    outputRange: [0, 140],
   });
 
   return (
@@ -473,27 +497,37 @@ export default function Index() {
               
               {/* Professional Targeting Viewfinder Overlay */}
               <View style={styles.overlayContainer}>
-                <View style={styles.scanTargetBox}>
-                  <View style={[styles.corner, styles.topLeft]} />
-                  <View style={[styles.corner, styles.topRight]} />
-                  <View style={[styles.corner, styles.bottomLeft]} />
-                  <View style={[styles.corner, styles.bottomRight]} />
+                <Animated.View 
+                  style={[
+                    styles.scanTargetBox, 
+                    { 
+                      transform: [{ scale: pulseAnim }],
+                      borderColor: isProcessing ? '#10B981' : 'rgba(59, 130, 246, 0.15)'
+                    }
+                  ]}
+                >
+                  <View style={[styles.corner, styles.topLeft, isProcessing && { borderColor: '#10B981' }]} />
+                  <View style={[styles.corner, styles.topRight, isProcessing && { borderColor: '#10B981' }]} />
+                  <View style={[styles.corner, styles.bottomLeft, isProcessing && { borderColor: '#10B981' }]} />
+                  <View style={[styles.corner, styles.bottomRight, isProcessing && { borderColor: '#10B981' }]} />
 
                   {/* Animated Laser Line */}
-                  <Animated.View 
-                    style={[
-                      styles.laserLine, 
-                      { transform: [{ translateY: laserTranslateY }] }
-                    ]} 
-                  />
-                </View>
+                  {!isProcessing && (
+                    <Animated.View 
+                      style={[
+                        styles.laserLine, 
+                        { transform: [{ translateY: laserTranslateY }] }
+                      ]} 
+                    />
+                  )}
+                </Animated.View>
               </View>
 
               {/* Scanning Loader Overlay */}
               {isProcessing && (
                 <View style={styles.processingOverlay}>
-                  <ActivityIndicator size="large" color="#3B82F6" />
-                  <Text style={styles.processingText}>Verifying Batch...</Text>
+                  <ActivityIndicator size="large" color="#10B981" />
+                  <Text style={styles.processingText}>Locking & Verifying...</Text>
                 </View>
               )}
 
@@ -696,9 +730,9 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, 
     borderColor: 'rgba(59, 130, 246, 0.3)', 
     shadowColor: '#3B82F6', 
-    shadowOpacity: 0.25, 
-    shadowRadius: 12, 
-    elevation: 6, 
+    shadowOpacity: 0.35, 
+    shadowRadius: 15, 
+    elevation: 8, 
     backgroundColor: '#000',
     overflow: 'hidden'
   },
@@ -710,29 +744,41 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scanTargetBox: {
-    width: 160,
-    height: 160,
+    width: 180,
+    height: 180,
     position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.15)',
+    borderRadius: 16,
   },
   
-  corner: { position: 'absolute', width: 22, height: 22, borderColor: '#3B82F6' },
-  topLeft: { top: 0, left: 0, borderTopWidth: 4, borderLeftWidth: 4, borderTopLeftRadius: 6 },
-  topRight: { top: 0, right: 0, borderTopWidth: 4, borderRightWidth: 4, borderTopRightRadius: 6 },
-  bottomLeft: { bottom: 0, left: 0, borderBottomWidth: 4, borderLeftWidth: 4, borderBottomLeftRadius: 6 },
-  bottomRight: { bottom: 0, right: 0, borderBottomWidth: 4, borderRightWidth: 4, borderBottomRightRadius: 6 },
+  corner: { 
+    position: 'absolute', 
+    width: 26, 
+    height: 26, 
+    borderColor: '#00F0FF',
+    shadowColor: '#00F0FF',
+    shadowOpacity: 0.8,
+    shadowRadius: 8,
+    elevation: 6
+  },
+  topLeft: { top: -2, left: -2, borderTopWidth: 5, borderLeftWidth: 5, borderTopLeftRadius: 8 },
+  topRight: { top: -2, right: -2, borderTopWidth: 5, borderRightWidth: 5, borderTopRightRadius: 8 },
+  bottomLeft: { bottom: -2, left: -2, borderBottomWidth: 5, borderLeftWidth: 5, borderBottomLeftRadius: 8 },
+  bottomRight: { bottom: -2, right: -2, borderBottomWidth: 5, borderRightWidth: 5, borderBottomRightRadius: 8 },
 
   laserLine: {
     position: 'absolute',
-    top: 5,
-    width: '90%',
-    height: 2.5,
-    backgroundColor: '#EF4444',
-    shadowColor: '#EF4444',
-    shadowOpacity: 0.9,
-    shadowRadius: 6,
-    elevation: 5,
+    top: 10,
+    width: '92%',
+    height: 3,
+    backgroundColor: '#FF3366',
+    shadowColor: '#FF3366',
+    shadowOpacity: 1,
+    shadowRadius: 10,
+    elevation: 8,
   },
 
   processingOverlay: {
@@ -741,7 +787,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(10, 15, 29, 0.8)',
+    backgroundColor: 'rgba(10, 15, 29, 0.85)',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 24,
