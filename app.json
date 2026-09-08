@@ -14,7 +14,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.jpg",
         "backgroundColor": "#0A0F1D"
-      }
+      },
+      "package": "com.medverify_user.medverifyai"
     },
     "plugins": [
       "@react-native-community/datetimepicker",
@@ -25,6 +26,12 @@
       "expo-sqlite",
       "expo-status-bar",
       "expo-web-browser"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ad417a08-d6b2-487d-adae-e4e3095ed0f7"
+      }
+    }
   }
 }
