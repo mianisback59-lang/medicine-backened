@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -109,24 +109,26 @@ const BackgroundGlow = () => {
   }, [pulseAnim]);
 
   return (
-    <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      {/* Top Header Glowing Ball */}
       <Animated.View
         style={[
           styles.glowOrb,
           {
-            top: -120,
-            left: -120,
+            top: -60,
+            left: -60,
             backgroundColor: '#1D4ED8',
             opacity: pulseAnim,
           },
         ]}
       />
+      {/* Bottom Footer Glowing Ball */}
       <Animated.View
         style={[
           styles.glowOrb,
           {
-            bottom: -140,
-            right: -120,
+            bottom: -60,
+            right: -60,
             backgroundColor: '#0891B2',
             opacity: pulseAnim,
           },
@@ -640,12 +642,12 @@ const styles = StyleSheet.create({
   },
   glowOrb: {
     position: 'absolute',
-    width: 300,
-    height: 300,
-    borderRadius: 150,
+    width: 240,
+    height: 240,
+    borderRadius: 120,
     shadowColor: '#2563EB',
     shadowOpacity: 1,
-    shadowRadius: 140,
+    shadowRadius: 100,
     elevation: 30,
   },
   headerContainer: { 
