@@ -1,4 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo from '@react-native-community/netinfo';
 import { BarcodeScanningResult, CameraView, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
 import * as Speech from 'expo-speech';
@@ -112,6 +114,10 @@ export default function Index() {
   const [storeInfo, setStoreInfo] = useState<string>('');
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [isSubmittingReport, setIsSubmittingReport] = useState<boolean>(false);
+
+  // New state for professional offline modal
+  const [isOfflineModalVisible, setIsOfflineModalVisible] = useState<boolean>(false);
+  const [pendingCode, setPendingCode] = useState<string>('');
 
   useEffect(() => {
     checkUserLogin();
@@ -239,11 +245,20 @@ export default function Index() {
     return cleaned;
   };
 
+  // Wrapped verification with NetInfo check
   const verifyCode = async (code: string) => {
     Keyboard.dismiss();
 
     if (!code || code.trim() === '') {
       Alert.alert('Notice', 'Please enter or scan a valid batch number.');
+      return;
+    }
+
+    // Check internet connection first
+    const netState = await NetInfo.fetch();
+    if (!netState.isConnected) {
+      setPendingCode(code);
+      setIsOfflineModalVisible(true);
       return;
     }
 
@@ -555,6 +570,7 @@ export default function Index() {
         </ScrollView>
       </KeyboardAvoidingView>
 
+      {/* Report Modal */}
       <Modal visible={isReportModalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
@@ -614,6 +630,54 @@ export default function Index() {
           </View>
         </View>
       </Modal>
+
+      {/* ========================================== */}
+      {/* Professional Offline Popup (Modal) Design  */}
+      {/* ========================================== */}
+      <Modal
+        visible={isOfflineModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsOfflineModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.offlineCard}>
+            <View style={styles.iconContainer}>
+              <Ionicons name="cloud-offline-outline" size={38} color="#60A5FA" />
+            </View>
+
+            <Text style={styles.modalTitle}>No Internet Connection</Text>
+            <Text style={styles.modalSubText}>
+              You are currently offline. Please check your Wi-Fi or mobile data settings to securely scan and verify medicines.
+            </Text>
+
+            <TouchableOpacity
+              style={styles.retryBtn}
+              onPress={async () => {
+                const netState = await NetInfo.fetch();
+                if (netState.isConnected) {
+                  setIsOfflineModalVisible(false);
+                  if (pendingCode) {
+                    verifyCode(pendingCode);
+                  }
+                }
+              }}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.retryBtnText}>Try Again</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.dismissBtn}
+              onPress={() => setIsOfflineModalVisible(false)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.dismissBtnText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </View>
   );
 }
@@ -736,4 +800,64 @@ const styles = StyleSheet.create({
   cancelBtn: { paddingVertical: 12, alignItems: 'center', marginTop: 6 },
   cancelText: { color: '#94A3B8', fontSize: 13, fontWeight: '700' },
   refCode: { fontSize: 12, fontWeight: '800', color: '#34D399', backgroundColor: 'rgba(52, 211, 153, 0.1)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, marginTop: 12, overflow: 'hidden' },
+
+  // Professional Offline Modal Styles matching app theme
+  offlineCard: {
+    backgroundColor: '#111827',
+    width: '100%',
+    borderRadius: 24,
+    borderWidth: 1.5,
+    borderColor: 'rgba(59, 130, 246, 0.4)',
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#3B82F6',
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  iconContainer: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: 'rgba(37, 99, 235, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.3)',
+  },
+  modalSubText: {
+    fontSize: 13,
+    color: '#94A3B8',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  retryBtn: {
+    backgroundColor: '#2563EB',
+    width: '100%',
+    height: 46,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+    shadowColor: '#2563EB',
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  retryBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  dismissBtn: {
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  dismissBtnText: {
+    color: '#94A3B8',
+    fontSize: 13,
+    fontWeight: '700',
+  },
 });

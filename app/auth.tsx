@@ -4,7 +4,6 @@ import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Animated,
   Easing,
   Keyboard,
@@ -110,7 +109,6 @@ const BackgroundGlow = () => {
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
-      {/* Top Header Glowing Ball */}
       <Animated.View
         style={[
           styles.glowOrb,
@@ -122,7 +120,6 @@ const BackgroundGlow = () => {
           },
         ]}
       />
-      {/* Bottom Footer Glowing Ball */}
       <Animated.View
         style={[
           styles.glowOrb,
@@ -175,6 +172,28 @@ export default function AuthScreen() {
   const [newPassword, setNewPassword] = useState<string>('');
   const [resetLoading, setResetLoading] = useState<boolean>(false);
 
+  // Custom Dark Modal States
+  const [customDialog, setCustomDialog] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    type?: 'alert' | 'confirm';
+    onConfirm?: () => void;
+  }>({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'alert',
+  });
+
+  const showCustomAlert = (title: string, message: string, onConfirm?: () => void) => {
+    setCustomDialog({ visible: true, title, message, type: 'alert', onConfirm });
+  };
+
+  const showCustomConfirm = (title: string, message: string, onConfirm: () => void) => {
+    setCustomDialog({ visible: true, title, message, type: 'confirm', onConfirm });
+  };
+
   useEffect(() => {
     checkLoginStatus();
   }, []);
@@ -214,12 +233,12 @@ export default function AuthScreen() {
 
   const handleAuth = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Error', lang === 'ur' ? 'براہ کرم تمام خانے پُر کریں۔' : 'Please fill in all required fields.');
+      showCustomAlert('Error', lang === 'ur' ? 'براہ کرم تمام خانے پُر کریں۔' : 'Please fill in all required fields.');
       return;
     }
 
     if (!isLogin && !fullName.trim()) {
-      Alert.alert('Error', lang === 'ur' ? 'براہ کرم اپنا پورا نام درج کریں۔' : 'Please enter your full name.');
+      showCustomAlert('Error', lang === 'ur' ? 'براہ کرم اپنا پورا نام درج کریں۔' : 'Please enter your full name.');
       return;
     }
 
@@ -260,11 +279,11 @@ export default function AuthScreen() {
 
         router.replace('/'); 
       } else {
-        Alert.alert('Failed', data.message || 'Authentication failed.');
+        showCustomAlert('Failed', data.message || 'Authentication failed.');
       }
 
     } catch (error) {
-      Alert.alert('Network Error', 'Could not connect to the backend server.');
+      showCustomAlert('Network Error', 'Could not connect to the backend server.');
     } finally {
       setLoading(false);
     }
@@ -275,49 +294,45 @@ export default function AuthScreen() {
     const userEmail = email.trim().toLowerCase();
 
     if (!userEmail) {
-      Alert.alert('Notice', t.enterEmailNotice);
+      showCustomAlert('Notice', t.enterEmailNotice);
       return;
     }
 
-    Alert.alert(
+    showCustomConfirm(
       t.resetTitle,
       `${t.resetConfirm}${userEmail}`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Send Email',
-          onPress: async () => {
-            setLoading(true);
-            try {
-              const response = await fetch('https://medicine-backened.vercel.app/api/forgot-password', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: userEmail }),
-              });
+      async () => {
+        setLoading(true);
+        try {
+          const response = await fetch('https://medicine-backened.vercel.app/api/forgot-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: userEmail }),
+          });
 
-              const data = await response.json();
+          const data = await response.json();
 
-              if (response.ok) {
-                Alert.alert('Success', data.message || `Reset code sent to ${userEmail}`);
-                setResetModalVisible(true);
-              } else {
-                Alert.alert('Error', data.message || 'Could not send reset email.');
-              }
-            } catch (error) {
-              Alert.alert('Success', `Reset code processed for ${userEmail}`);
+          if (response.ok) {
+            showCustomAlert('Success', data.message || `Reset code sent to ${userEmail}`, () => {
               setResetModalVisible(true);
-            } finally {
-              setLoading(false);
-            }
-          },
-        },
-      ]
+            });
+          } else {
+            showCustomAlert('Error', data.message || 'Could not send reset email.');
+          }
+        } catch (error) {
+          showCustomAlert('Success', `Reset code processed for ${userEmail}`, () => {
+            setResetModalVisible(true);
+          });
+        } finally {
+          setLoading(false);
+        }
+      }
     );
   };
 
   const handleConfirmReset = async () => {
     if (!resetCode.trim() || !newPassword.trim()) {
-      Alert.alert('Error', 'Please enter both the reset code and your new password.');
+      showCustomAlert('Error', 'Please enter both the reset code and your new password.');
       return;
     }
 
@@ -337,16 +352,16 @@ export default function AuthScreen() {
       const data = await response.json();
 
       if (response.ok) {
-        Alert.alert('Success', 'Password updated successfully! You can now sign in.');
+        showCustomAlert('Success', 'Password updated successfully! You can now sign in.');
         setPassword(newPassword);
         setResetModalVisible(false);
         setResetCode('');
         setNewPassword('');
       } else {
-        Alert.alert('Error', data.message || 'Invalid code or failed to reset password.');
+        showCustomAlert('Error', data.message || 'Invalid code or failed to reset password.');
       }
     } catch (error) {
-      Alert.alert('Error', 'Network error. Could not reset password.');
+      showCustomAlert('Error', 'Network error. Could not reset password.');
     } finally {
       setResetLoading(false);
     }
@@ -568,7 +583,59 @@ export default function AuthScreen() {
           </View>
         </ScrollView>
 
-        {/* Modal */}
+        {/* Custom Theme Alert / Confirm Modal */}
+        <Modal
+          visible={customDialog.visible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setCustomDialog(prev => ({ ...prev, visible: false }))}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalCard}>
+              <Text style={[styles.modalTitle, lang === 'ur' && { textAlign: 'right' }]}>
+                {customDialog.title}
+              </Text>
+              <Text style={[styles.modalSub, lang === 'ur' && { textAlign: 'right' }]}>
+                {customDialog.message}
+              </Text>
+
+              {customDialog.type === 'confirm' ? (
+                <View style={styles.customDialogBtnRow}>
+                  <TouchableOpacity
+                    style={[styles.customDialogBtn, styles.customDialogCancelBtn]}
+                    onPress={() => setCustomDialog(prev => ({ ...prev, visible: false }))}
+                  >
+                    <Text style={styles.modalCancelText}>Cancel</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.customDialogBtn, styles.customDialogActionBtn]}
+                    onPress={() => {
+                      const action = customDialog.onConfirm;
+                      setCustomDialog(prev => ({ ...prev, visible: false }));
+                      if (action) action();
+                    }}
+                  >
+                    <Text style={styles.modalBtnText}>Send Email</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={styles.modalBtn}
+                  onPress={() => {
+                    const action = customDialog.onConfirm;
+                    setCustomDialog(prev => ({ ...prev, visible: false }));
+                    if (action) action();
+                  }}
+                >
+                  <Text style={styles.modalBtnText}>OK</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </Modal>
+
+        {/* Reset Password Modal */}
         <Modal
           visible={resetModalVisible}
           transparent={true}
@@ -738,4 +805,8 @@ const styles = StyleSheet.create({
   modalBtnText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
   modalCancelBtn: { marginTop: 12, alignItems: 'center' },
   modalCancelText: { color: '#94A3B8', fontSize: 13, fontWeight: '600' },
+  customDialogBtnRow: { flexDirection: 'row', gap: 10, marginTop: 6 },
+  customDialogBtn: { flex: 1, height: 46, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  customDialogCancelBtn: { backgroundColor: '#1E293B', borderWidth: 1, borderColor: '#334155' },
+  customDialogActionBtn: { backgroundColor: '#2563EB' },
 });
