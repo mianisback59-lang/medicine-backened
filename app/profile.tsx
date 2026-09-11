@@ -21,7 +21,7 @@ const translations = {
     subtitle: "Manage your credentials and preferences",
     role: "Verified Account",
     verifiedTitle: "Account Verification",
-    verifiedDesc: "Your account is fully secured, encrypted, and verified via registered email and phone credentials.",
+    verifiedDesc: "Your account is fully secured, encrypted, and verified via registered email credentials.",
     accountSettings: "Account Settings",
     preferences: "Preferences",
     language: "Language (Urdu / English)",
@@ -41,7 +41,6 @@ const translations = {
     editTitle: "Edit Profile Details",
     nameLabel: "Full Name",
     emailLabel: "Email Address",
-    phoneLabel: "Phone Number",
     logoutTitle: "Sign Out",
     logoutMsg: "Are you sure you want to sign out?",
     deleteTitle: "Delete Account",
@@ -57,7 +56,7 @@ const translations = {
     subtitle: "اپنی معلومات اور ترجیحات کا انتظام کریں",
     role: "تصدیق شدہ اکاؤنٹ",
     verifiedTitle: "اکاؤنٹ کی تصدیق",
-    verifiedDesc: "آپ کا اکاؤنٹ مکمل طور پر محفوظ ہے اور رجسٹرڈ ای میل اور فون کے ذریعے تصدیق شدہ ہے۔",
+    verifiedDesc: "آپ کا اکاؤنٹ مکمل طور پر محفوظ ہے اور رجسٹرڈ ای میل کے ذریعے تصدیق شدہ ہے۔",
     accountSettings: "اکاؤنٹ کی سیٹنگز",
     preferences: "ترجیحات",
     language: "زبان (اردو / انگریزی)",
@@ -77,7 +76,6 @@ const translations = {
     editTitle: "پروفائل میں ترمیم کریں",
     nameLabel: "پورا نام",
     emailLabel: "ای میل ایڈریس",
-    phoneLabel: "فون نمبر",
     logoutTitle: "سائن آؤٹ",
     logoutMsg: "کیا آپ واقعی اکاؤنٹ سے باہر نکلنا چاہتے ہیں؟",
     deleteTitle: "اکاؤنٹ حذف کریں",
@@ -100,7 +98,6 @@ export default function ProfileScreen() {
 
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
-  const [userPhone, setUserPhone] = useState('');
 
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isPhotoModalVisible, setIsPhotoModalVisible] = useState(false);
@@ -115,7 +112,6 @@ export default function ProfileScreen() {
   
   const [tempName, setTempName] = useState('');
   const [tempEmail, setTempEmail] = useState('');
-  const [tempPhone, setTempPhone] = useState('');
 
   const t = isUrdu ? translations.ur : translations.en;
   const directionStyle = { writingDirection: isUrdu ? ('rtl' as const) : ('ltr' as const) };
@@ -128,14 +124,12 @@ export default function ProfileScreen() {
     try {
       const savedName = await AsyncStorage.getItem('userName');
       const savedEmail = await AsyncStorage.getItem('userEmail');
-      const savedPhone = await AsyncStorage.getItem('userPhone');
       const savedImage = await AsyncStorage.getItem('profileImage');
       const savedLang = await AsyncStorage.getItem('appLanguage');
       const savedNotif = await AsyncStorage.getItem('pushNotifications');
 
       if (savedName) { setUserName(savedName); setTempName(savedName); }
       if (savedEmail) { setUserEmail(savedEmail); setTempEmail(savedEmail); }
-      if (savedPhone) { setUserPhone(savedPhone); setTempPhone(savedPhone); }
       if (savedImage) setProfileImage(savedImage);
       if (savedLang === 'ur') setIsUrdu(true);
       if (savedNotif === 'false') setIsNotificationsEnabled(false);
@@ -148,10 +142,8 @@ export default function ProfileScreen() {
     try {
       await AsyncStorage.setItem('userName', tempName);
       await AsyncStorage.setItem('userEmail', tempEmail);
-      await AsyncStorage.setItem('userPhone', tempPhone);
       setUserName(tempName);
       setUserEmail(tempEmail);
-      setUserPhone(tempPhone);
       setIsEditModalVisible(false);
       setInfoModalData({
         visible: true,
@@ -281,7 +273,6 @@ export default function ProfileScreen() {
               <View style={styles.heroInfoContainer}>
                 <Text style={styles.userName} numberOfLines={1}>{userName || (isUrdu ? 'نام درج نہیں ہے' : 'No Name Set')}</Text>
                 <Text style={styles.userEmail} numberOfLines={1}>{userEmail || (isUrdu ? 'ای میل درج نہیں ہے' : 'No Email Set')}</Text>
-                {userPhone ? <Text style={styles.userPhone}>{userPhone}</Text> : null}
               </View>
             </View>
 
@@ -535,16 +526,6 @@ export default function ProfileScreen() {
               keyboardType="email-address"
             />
 
-            <Text style={styles.inputLabel}>{t.phoneLabel}</Text>
-            <TextInput
-              style={styles.inputField}
-              value={tempPhone}
-              onChangeText={setUserPhone}
-              placeholder="Enter Phone"
-              placeholderTextColor="#64748b"
-              keyboardType="phone-pad"
-            />
-
             <View style={styles.modalBtnRow}>
               <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setIsEditModalVisible(false)} activeOpacity={0.8}>
                 <Text style={styles.modalCancelText}>{t.cancel}</Text>
@@ -656,10 +637,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#cbd5e1',
     marginBottom: 2,
-  },
-  userPhone: {
-    fontSize: 12,
-    color: '#94a3b8',
   },
   heroDivider: {
     height: 1,
